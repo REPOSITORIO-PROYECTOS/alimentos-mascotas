@@ -36,8 +36,6 @@ Se implementarám métodos de pago virtuales.
 
 ## Estilos y Convenciones
 
-Describe los estilos y convenciones que se siguen en el proyecto:
-
 - **Formato**: Las variables deben tener nombres descriptivos, ya sea en ingles y/o español.
 
 ```java
