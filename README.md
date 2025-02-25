@@ -1,7 +1,8 @@
 # alimentos-mascotas
 
 Proyecto de sistema de gestion de la fábrica de alimentos y snacks para mascotas "Barker".
-Este proyecto permite administrar inventarios, pedidos, proveedores, ventas. Las ventas se manejaran desde el la tienda virtual o directamente desde el servicio de Caja del dasboard
+Este proyecto permite administrar inventarios, pedidos, proveedores, ventas.
+Las ventas se manejaran desde el la tienda virtual o directamente desde el servicio de Caja del dasboard
 Se implementarám métodos de pago virtuales.
 
 ## Modalidad de Trabajo
