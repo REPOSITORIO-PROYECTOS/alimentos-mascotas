@@ -19,7 +19,7 @@ public class Product extends ModelClass {
 	String productName;
 
 	@Size(min = 3, max = 100)
-	String description;
+	String productDescription;
 
 	@Indexed(unique = true)
 	String productCode;
