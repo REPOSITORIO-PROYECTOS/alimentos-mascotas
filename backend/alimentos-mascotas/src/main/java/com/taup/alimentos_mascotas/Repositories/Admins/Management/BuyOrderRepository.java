@@ -22,5 +22,4 @@ public interface BuyOrderRepository extends ReactiveMongoRepository<BuyOrder, St
 
 	@Query("{}")
 	Flux<BuyOrder> findBuyOrdersPaged(PageRequest pageRequest);
-
 }

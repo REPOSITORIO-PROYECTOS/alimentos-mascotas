@@ -17,10 +17,10 @@ public class Ingredient extends ModelClass {
 	String id;
 
 	@Size(min =3, max =75)
-	String name;
+	String ingredientName;
 
 	@Size(max = 100)
-	String description;
+	String ingredientDescription;
 
 	Set<String> providerId;
 
