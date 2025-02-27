@@ -24,7 +24,6 @@ public class Product extends ModelClass {
 	@Indexed(unique = true)
 	String productCode;
 
-	@NotBlank
 	String recipeId;
 
 	@Positive
