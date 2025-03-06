@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
@@ -20,8 +21,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
-export default function ProductDetail({ params }: { params: { id: string } }) {
-    const productId = Number.parseInt(params.id);
+export default function ProductDetail({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const resolvedParams = React.use(params);
+    const productId = Number.parseInt(resolvedParams.id);
     const product = products.find((p) => p.id === productId) || products[0];
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [rating, setRating] = useState(4);
