@@ -12,7 +12,7 @@ export default function FAQPage() {
         <div>
             {/* Hero Section */}
             <div className="relative bg-amber-400 overflow-hidden">
-                <div className="container mx-auto px-4 py-12 relative">
+                <div className="container mx-auto px-4 py-24 relative">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
                         <div className="text-white">
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">
