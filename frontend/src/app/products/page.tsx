@@ -1,38 +1,87 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NumberFlow from "@number-flow/react";
 
 export default function ProductsPage() {
+    const [initialAnimation, setInitialAnimation] = useState(true);
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        // Animación inicial de 0 al número base
+        const initialTimer = setTimeout(() => {
+            setInitialAnimation(false);
+        }, 2000); // Duración de la animación inicial
+
+        return () => clearTimeout(initialTimer);
+    }, []);
+
+    useEffect(() => {
+        if (!initialAnimation) {
+            const interval = setInterval(() => {
+                setCount((prevCount) => (prevCount + 1) % 5); // Ciclo de 0 a 4
+            }, 5000); // Cambia cada 5 segundos
+
+            return () => clearInterval(interval);
+        }
+    }, [initialAnimation]);
+
+    const stats = [
+        {
+            base: 450,
+            emoji2: "🐕",
+            text: "Perritos felices por comer suplementos Baker Pet",
+        },
+        {
+            base: 150,
+            emoji2: "🐈",
+            text: "Gatos menos estresados por comer alimentos saludables",
+        },
+        {
+            base: 600,
+            emoji1: "😺",
+            emoji2: "🐶",
+            text: "Animales felices por no comer alimentos con aditivos tóxicos",
+        },
+    ];
+
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-20">
             {/* Banner de estadísticas */}
             <div className="bg-amber-400 rounded-lg p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="flex flex-col items-center">
-                        <h2 className="text-3xl font-bold mb-2">450🐕</h2>
-                        <p className="text-sm text-center">
-                            Perritos felices por comer
-                            <br />
-                            suplementos Baker Pet
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <h2 className="text-3xl font-bold mb-2">150🐈</h2>
-                        <p className="text-sm text-center">
-                            Gatos menos estresados por comer
-                            <br />
-                            alimentos saludables
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <h2 className="text-3xl font-bold mb-2">😺600🐶</h2>
-                        <p className="text-sm text-center">
-                            Animales felices por no comer
-                            <br />
-                            alimentos con aditivos tóxicos
-                        </p>
-                    </div>
+                    {stats.map((stat, index) => (
+                        <div key={index} className="flex flex-col items-center">
+                            <h2 className="text-3xl font-bold mb-2">
+                                {stat.emoji1}
+                                <NumberFlow
+                                    value={
+                                        initialAnimation
+                                            ? stat.base
+                                            : stat.base + count
+                                    }
+                                    transformTiming={{
+                                        duration: initialAnimation ? 2000 : 750,
+                                        easing: "ease-in-out",
+                                    }}
+                                    spinTiming={{
+                                        duration: initialAnimation ? 2000 : 750,
+                                        easing: "ease-in-out",
+                                    }}
+                                    opacityTiming={{
+                                        duration: 350,
+                                        easing: "ease-out",
+                                    }}
+                                />
+                                {stat.emoji2}
+                            </h2>
+                            <p className="text-sm text-center">{stat.text}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
 
