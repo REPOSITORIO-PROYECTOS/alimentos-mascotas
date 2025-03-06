@@ -1,5 +1,6 @@
-import { Search, ShoppingCart } from 'lucide-react'
-import React from 'react'
+import { Search, ShoppingCart } from "lucide-react";
+import { Link } from "next-view-transitions";
+import React from "react";
 
 export default function Header() {
     return (
@@ -7,37 +8,40 @@ export default function Header() {
             <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="md:flex md:items-center md:gap-12">
-                        <a className="block text-white" href="#">
+                        <Link className="block text-white" href="/">
                             <span className="sr-only">Home</span>
-                            <p className='text-2xl font-bold'>Barker</p>
-                        </a>
+                            <p className="text-2xl font-bold">Barker</p>
+                        </Link>
                     </div>
 
                     <div className="hidden md:block">
                         <nav aria-label="Global">
                             <ul className="flex items-center gap-6 text-sm">
                                 <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> About </a>
+                                    <Link
+                                        className="text-gray-900 transition hover:text-gray-900/75"
+                                        href="/products"
+                                    >
+                                        Productos
+                                    </Link>
                                 </li>
 
                                 <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> Careers </a>
+                                    <Link
+                                        className="text-gray-900 transition hover:text-gray-900/75"
+                                        href="#"
+                                    >
+                                        Sobre nosotros
+                                    </Link>
                                 </li>
 
                                 <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> History </a>
-                                </li>
-
-                                <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> Services </a>
-                                </li>
-
-                                <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> Projects </a>
-                                </li>
-
-                                <li>
-                                    <a className="text-gray-900 transition hover:text-gray-900/75" href="#"> Blog </a>
+                                    <Link
+                                        className="text-gray-900 transition hover:text-gray-900/75"
+                                        href="/preguntas-frecuentes"
+                                    >
+                                        Preguntas frecuentes
+                                    </Link>
                                 </li>
                             </ul>
                         </nav>
@@ -45,27 +49,19 @@ export default function Header() {
 
                     <div className="flex items-center gap-4">
                         <div className="sm:flex sm:gap-4">
-                            <a
-                                className=""
-                                href="#"
-                            >
+                            <Link className="" href="#">
                                 <Search className="mr-2 size-5" />
-                            </a>
+                            </Link>
 
                             <div className="hidden sm:flex">
-                                <a
-                                    className=""
-                                    href="#"
-                                >
+                                <Link className="" href="#">
                                     <ShoppingCart className="mr-2 size-5" />
-                                </a>
+                                </Link>
                             </div>
                         </div>
 
                         <div className="block md:hidden">
-                            <button
-                                className="rounded-sm bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75"
-                            >
+                            <button className="rounded-sm bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="size-5"
@@ -74,7 +70,11 @@ export default function Header() {
                                     stroke="currentColor"
                                     strokeWidth="2"
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M4 6h16M4 12h16M4 18h16"
+                                    />
                                 </svg>
                             </button>
                         </div>
@@ -82,5 +82,5 @@ export default function Header() {
                 </div>
             </div>
         </header>
-    )
+    );
 }
