@@ -1,157 +1,202 @@
+import Image from "next/image";
 import React from "react";
+import { Button } from "../ui/button";
+import { Eye, Heart, ShoppingCart } from "lucide-react";
 
 export default function Products() {
     return (
         <section className="relative overflow-hidden py-32">
             <div className="container mx-auto relative z-10 mt-8 grid grid-cols-1 gap-6 md:grid-cols-5">
-                <div
-                    data-slot="card"
-                    className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl flex flex-col pl-6 py-6 overflow-hidden md:col-span-3 md:flex-row gap-6 md:gap-12"
-                >
-                    <div
-                        data-slot="card-header"
-                        className="flex flex-col gap-1.5 flex-2 p-0 md:flex-1"
-                    >
-                        <div
-                            data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
-                        >
-                            Unparalleled
-                            <br />
-                            VAR flexibility
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
-                        >
-                            VAR is often known for its lengthy processing times.
-                            At Charter, we focus on achieving the fastest VAR
-                            transfers—often completed within hours.
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
-                        >
-                            Unlike traditional banks and middleware, we connect
-                            directly with the Federal Reserve to ensure the
-                            fastest, most transparent transfers possible.
-                        </div>
-                    </div>
-                    <div
-                        data-slot="card-content"
-                        className="relative w-full self-start p-0 overflow-hidden rounded-l-xl border md:flex-1"
-                    >
-                        <img
-                            src="/placeholder.svg"
+                <div className="bg-card relative text-card-foreground rounded-xl border col-span-1 shadow-xl flex flex-col overflow-hidden group md:col-span-3 md:flex-col">
+                    <div>
+                        <Image
+                            src="/product/Rectangle 4824.jpg"
                             alt="Code snippet"
-                            className="self-center object-cover"
+                            className="self-center object-cover w-full h-72"
+                            width={600}
+                            height={300}
                         />
                     </div>
-                </div>
-                <div
-                    data-slot="card"
-                    className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl md:col-span-2 flex flex-col justify-center"
-                >
-                    <div
-                        data-slot="card-header"
-                        className="flex flex-col gap-1.5 p-6"
-                    >
-                        <div
-                            data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
+                    <div className="absolute left-6 bottom-28 translate-y-0 flex gap-2 group-hover:-translate-y-16 transition-transform duration-300 ease-in-out">
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar al carrito"
                         >
-                            Unparalleled VAR flexibility
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
+                            <ShoppingCart className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Ver producto"
                         >
-                            VAR has a reputation for taking too long. At
-                            Charter, we optimise for the fastest VAR transfers
-                            possible — often in a matter of hours.
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
+                            <Eye className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar a favoritos"
                         >
-                            Unlike legacy banks and middleware providers, we
-                            have a direct connection to the Federal Reserve to
-                            facilitate the quickest transfers.
-                        </div>
+                            <Heart className="size-5" />
+                        </Button>
                     </div>
-                    <div
-                        data-slot="card-content"
-                        className="p-6 pt-0 flex items-center justify-center"
-                    >
-                        <img
-                            src="/placeholder.svg"
-                            alt="VAR Process Flow"
-                            className="self-center object-cover aspect-[2/1.1] rounded-xl"
-                        />
+                    <div className="relative bg-white z-20 p-6 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-zinc-400">Categoria</p>
+                            <p className="text-orange-500">Oferta</p>
+                        </div>
+                        <div className="text-xl font-bold">Titulo</div>
+                        <div className="flex gap-2 mt-2">
+                            <p>
+                                <span className="text-zinc-400 line-through">
+                                    $6.000
+                                </span>
+                            </p>
+                            <p>
+                                <span className="">$4.000</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div
-                    data-slot="card"
-                    className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl md:col-span-2"
-                >
-                    <div
-                        data-slot="card-header"
-                        className="flex flex-col gap-1.5 p-6 h-full"
-                    >
-                        <img
-                            src="/placeholder.svg"
-                            alt="VAR Process Diagram"
-                            className="object-cover aspect-[2/1] rounded-xl flex-1 self-center mb-6"
-                        />
-                        <div
-                            data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
-                        >
-                            Unparalleled VAR flexibility
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
-                        >
-                            VAR has a reputation for taking too long. At
-                            Charter, we optimise for the fastest VAR transfers
-                            possible — often in a matter of hours.
-                        </div>
-                    </div>
-                    <div data-slot="card-content" className="p-6 pt-0"></div>
-                </div>
-                <div
-                    data-slot="card"
-                    className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl overflow-hidden md:col-span-3"
-                >
-                    <div
-                        data-slot="card-header"
-                        className="flex flex-col gap-1.5 p-6"
-                    >
-                        <div
-                            data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
-                        >
-                            Unparalleled VAR flexibility
-                        </div>
-                        <div
-                            data-slot="card-description"
-                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
-                        >
-                            Unlike traditional banks and middleware, we connect
-                            directly with the Federal Reserve to ensure the
-                            fastest, most transparent transfers possible.
-                        </div>
-                    </div>
-                    <div
-                        data-slot="card-content"
-                        className="relative aspect-[2/1.25] mt-4 p-0 ml-8 w-full md:max-w-[400px] lg:max-w-[500px] overflow-hidden md:mx-auto rounded-t-xl"
-                    >
-                        <img
-                            src="/placeholder.svg"
+                <div className="bg-card relative text-card-foreground overflow-hidden rounded-xl border col-span-1 shadow-xl md:col-span-2 flex flex-col justify-center group">
+                    <div>
+                        <Image
+                            src="/product/Rectangle 4823.png"
                             alt="Code snippet"
-                            className="self-center object-cover"
+                            className="self-center object-cover w-full h-72"
+                            width={600}
+                            height={300}
                         />
+                    </div>
+                    <div className="absolute left-6 bottom-28 translate-y-0 flex gap-2 group-hover:-translate-y-16 transition-transform duration-300 ease-in-out">
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar al carrito"
+                        >
+                            <ShoppingCart className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Ver producto"
+                        >
+                            <Eye className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar a favoritos"
+                        >
+                            <Heart className="size-5" />
+                        </Button>
+                    </div>
+                    <div className="p-6 relative bg-white z-30 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-zinc-400">Categoria</p>
+                            <p className="text-orange-500">Oferta</p>
+                        </div>
+                        <div className="text-xl font-bold">Titulo</div>
+                        <div className="flex gap-2 mt-2">
+                            <p>
+                                <span className="text-zinc-400 line-through">
+                                    $6.000
+                                </span>
+                            </p>
+                            <p>
+                                <span className="">$4.000</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-card relative text-card-foreground overflow-hidden rounded-xl border col-span-1 shadow-xl md:col-span-2 group">
+                    <div>
+                        <Image
+                            src="/product/Rectangle 4822.jpg"
+                            alt="Code snippet"
+                            className="self-center object-cover w-full h-72"
+                            width={600}
+                            height={300}
+                        />
+                    </div>
+                    <div className="absolute left-6 bottom-28 translate-y-0 flex gap-2 group-hover:-translate-y-16 transition-transform duration-300 ease-in-out">
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar al carrito"
+                        >
+                            <ShoppingCart className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Ver producto"
+                        >
+                            <Eye className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar a favoritos"
+                        >
+                            <Heart className="size-5" />
+                        </Button>
+                    </div>
+                    <div className="p-6 relative z-30 bg-white flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-zinc-400">Categoria</p>
+                            <p className="text-orange-500">Oferta</p>
+                        </div>
+                        <div className="text-xl font-bold">Titulo</div>
+                        <div className="flex gap-2 mt-2">
+                            <p>
+                                <span className="text-zinc-400 line-through">
+                                    $6.000
+                                </span>
+                            </p>
+                            <p>
+                                <span className="">$4.000</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-card relative text-card-foreground rounded-xl border col-span-1 shadow-xl overflow-hidden md:col-span-3 group">
+                    <div>
+                        <Image
+                            src="/product/Rectangle 4821.jpg"
+                            alt="Code snippet"
+                            className="self-center object-cover w-full h-72"
+                            width={600}
+                            height={300}
+                        />
+                    </div>
+                    <div className="absolute left-6 bottom-28 translate-y-0 flex gap-2 group-hover:-translate-y-16 transition-transform duration-300 ease-in-out">
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar al carrito"
+                        >
+                            <ShoppingCart className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Ver producto"
+                        >
+                            <Eye className="size-5" />
+                        </Button>
+                        <Button
+                            className="bg-white text-black hover:bg-white/60"
+                            aria-label="Agregar a favoritos"
+                        >
+                            <Heart className="size-5" />
+                        </Button>
+                    </div>
+                    <div className="p-6 relative z-30 bg-white flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-zinc-400">Categoria</p>
+                            <p className="text-orange-500">Oferta</p>
+                        </div>
+                        <div className="text-xl font-bold">Titulo</div>
+                        <div className="flex gap-2 mt-2">
+                            <p>
+                                <span className="text-zinc-400 line-through">
+                                    $6.000
+                                </span>
+                            </p>
+                            <p>
+                                <span className="">$4.000</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
