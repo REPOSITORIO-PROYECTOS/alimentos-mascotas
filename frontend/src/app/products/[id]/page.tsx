@@ -269,7 +269,7 @@ const products = [
         name: "Snacks Naturales para Perro",
         price: 39.0,
         reviews: 14,
-        image: "/placeholder.svg?height=300&width=300",
+        image: "/product/Rectangle 4756.png",
     },
     // ... resto de los productos ...
 ];
