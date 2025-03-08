@@ -123,9 +123,7 @@ export default function ProductsPage() {
                                     {product.name}
                                 </h3>
                                 <div className="flex items-center">
-                                    <span className="text-sm mr-1">
-                                        {product.reviews} reviews
-                                    </span>
+                                    <span className="text-sm mr-1">4.5</span>
                                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                                 </div>
                             </div>
