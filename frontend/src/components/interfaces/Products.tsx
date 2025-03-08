@@ -4,19 +4,48 @@ export default function Products() {
     return (
         <section className="relative overflow-hidden py-32">
             <div className="container mx-auto relative z-10 mt-8 grid grid-cols-1 gap-6 md:grid-cols-5">
-                <div className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl flex flex-col overflow-hidden md:col-span-3 md:flex-col">
-                    <div>
+                <div
+                    data-slot="card"
+                    className="bg-card text-card-foreground rounded-xl border col-span-1 shadow-xl flex flex-col pl-6 py-6 overflow-hidden md:col-span-3 md:flex-row gap-6 md:gap-12"
+                >
+                    <div
+                        data-slot="card-header"
+                        className="flex flex-col gap-1.5 flex-2 p-0 md:flex-1"
+                    >
+                        <div
+                            data-slot="card-title"
+                            className="font-semibold tracking-tight !mt-0 text-3xl"
+                        >
+                            Unparalleled
+                            <br />
+                            VAR flexibility
+                        </div>
+                        <div
+                            data-slot="card-description"
+                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
+                        >
+                            VAR is often known for its lengthy processing times.
+                            At Charter, we focus on achieving the fastest VAR
+                            transfers—often completed within hours.
+                        </div>
+                        <div
+                            data-slot="card-description"
+                            className="text-muted-foreground mt-3 text-base font-medium leading-snug"
+                        >
+                            Unlike traditional banks and middleware, we connect
+                            directly with the Federal Reserve to ensure the
+                            fastest, most transparent transfers possible.
+                        </div>
+                    </div>
+                    <div
+                        data-slot="card-content"
+                        className="relative w-full self-start p-0 overflow-hidden rounded-l-xl border md:flex-1"
+                    >
                         <img
                             src="/placeholder.svg"
-                            alt="VAR Process Flow"
-                            className="self-center object-cover aspect-[2/1.1] w-full h-96 rounded-xl"
+                            alt="Code snippet"
+                            className="self-center object-cover"
                         />
-                    </div>
-                    <div className="p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <p className="text-zinc-400">Categoría</p>
-                            <p></p>
-                        </div>
                     </div>
                 </div>
                 <div
@@ -29,7 +58,7 @@ export default function Products() {
                     >
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight mt-0! text-3xl"
+                            className="font-semibold tracking-tight !mt-0 text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
@@ -72,11 +101,11 @@ export default function Products() {
                         <img
                             src="/placeholder.svg"
                             alt="VAR Process Diagram"
-                            className="object-cover aspect-2/1 rounded-xl flex-1 self-center mb-6"
+                            className="object-cover aspect-[2/1] rounded-xl flex-1 self-center mb-6"
                         />
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight mt-0! text-3xl"
+                            className="font-semibold tracking-tight !mt-0 text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
@@ -101,7 +130,7 @@ export default function Products() {
                     >
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight mt-0! text-3xl"
+                            className="font-semibold tracking-tight !mt-0 text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
