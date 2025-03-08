@@ -27,7 +27,7 @@ export default function FAQPage() {
                                 <br />
                                 animales reales
                             </p>
-                            <div className="inline-block bg-white/20 backdrop-blur-xs rounded-full px-6 py-2">
+                            <div className="inline-block bg-white/20 backdrop-blur-sm rounded-full px-6 py-2">
                                 <Image
                                     src="/placeholder.svg?height=50&width=150"
                                     alt="100% Natural"
