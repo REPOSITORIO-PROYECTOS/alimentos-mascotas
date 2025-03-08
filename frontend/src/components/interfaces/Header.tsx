@@ -5,7 +5,7 @@ import React from "react";
 export default function Header() {
     return (
         <header className="bg-yellow-400 fixed top-0 z-50 w-full">
-            <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-(--breakpoint-xl) px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="md:flex md:items-center md:gap-12">
                         <Link className="block text-white" href="/">

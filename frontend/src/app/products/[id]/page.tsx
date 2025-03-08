@@ -150,7 +150,7 @@ export default function ProductDetail({
             <div className="mb-12">
                 <h2 className="text-2xl font-bold text-center mb-8">Reseñas</h2>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+                <div className="bg-white p-6 rounded-lg shadow-xs mb-6">
                     <div className="flex items-center mb-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star

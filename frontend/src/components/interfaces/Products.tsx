@@ -29,7 +29,7 @@ export default function Products() {
                     >
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
+                            className="font-semibold tracking-tight mt-0! text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
@@ -72,11 +72,11 @@ export default function Products() {
                         <img
                             src="/placeholder.svg"
                             alt="VAR Process Diagram"
-                            className="object-cover aspect-[2/1] rounded-xl flex-1 self-center mb-6"
+                            className="object-cover aspect-2/1 rounded-xl flex-1 self-center mb-6"
                         />
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
+                            className="font-semibold tracking-tight mt-0! text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
@@ -101,7 +101,7 @@ export default function Products() {
                     >
                         <div
                             data-slot="card-title"
-                            className="font-semibold tracking-tight !mt-0 text-3xl"
+                            className="font-semibold tracking-tight mt-0! text-3xl"
                         >
                             Unparalleled VAR flexibility
                         </div>
