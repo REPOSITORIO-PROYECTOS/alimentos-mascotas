@@ -1,7 +1,7 @@
 package com.taup.alimentos_mascotas.Services.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
-import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
+import com.taup.alimentos_mascotas.Exceptions.MonoEx;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.ProductRepository;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.RecipeRepository;
@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -42,9 +41,9 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Mono<Product> save (Product product, String username){
+	public Mono<Product> save(Product product, String username){
 		if(product.getId()!=null){
-			return monoError(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo");
+			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo");
 		}
 
 		product.setCreatedAt(LocalDateTime.now());
@@ -54,14 +53,13 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Mono<Product> update (Product product, String productId, String username) {
+	public Mono<Product> update(Product product, String productId, String username) {
 		if (!product.getId().equals(productId)) {
-			return monoError(HttpStatus.BAD_REQUEST,
-					"Los IDs de los productos a actualizar no coinciden.");
+			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "Los IDs de los productos a actualizar no coinciden.");
 		}
 
 		return productRepo.findById(productId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontró el producto con ID: " + productId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontró el producto con ID: " + productId))
 				.flatMap(existingProduct -> {
 					Product updatedProduct = mappingProductToUpdate(existingProduct, product, username);
 					return productRepo.save(updatedProduct);
@@ -71,9 +69,9 @@ public class ProductService {
 	@Transactional
 	public Mono<Product> addRecipeToProduct(String productId, String recipeId) {
 		return recipeRepo.findById(recipeId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encotró la receta con el ID: " + recipeId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encotró la receta con el ID: " + recipeId))
 				.flatMap( foundRecipe -> productRepo.findById(productId)
-						.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encotró el producto con ID: " + productId))
+						.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encotró el producto con ID: " + productId))
 						.flatMap( foundProduct -> {
 							Set<String> productIds = foundRecipe.getCreatedProducts();
 
@@ -92,15 +90,15 @@ public class ProductService {
 	@Transactional
 	public Mono<Product> removeRecipeToProduct(String productId, String recipeId) {
 		return recipeRepo.findById(recipeId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encotró la receta con el ID: " + recipeId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encotró la receta con el ID: " + recipeId))
 				.flatMap( foundRecipe -> productRepo.findById(productId)
-						.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encotró el producto con ID: " + productId))
+						.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encotró el producto con ID: " + productId))
 						.flatMap( foundProduct -> {
 
 							Set<String> productIds = foundRecipe.getCreatedProducts();
 
 							if(productIds == null) {
-								return monoError(HttpStatus.BAD_REQUEST, "No hay productos en la lista");
+								return MonoEx.monoError(HttpStatus.BAD_REQUEST, "No hay productos en la lista");
 							}
 
 							productIds.remove(foundProduct.getId());
@@ -135,6 +133,8 @@ public class ProductService {
 		existingProduct.setRecipeId(product.getRecipeId());
 		existingProduct.setProductDescription(product.getProductDescription());
 		existingProduct.setStock(product.getStock());
+		existingProduct.setModifiedBy(username);
+		existingProduct.setUpdatedAt(LocalDateTime.now());
 
 		return existingProduct;
 	}
@@ -156,7 +156,6 @@ public class ProductService {
 	private Mono<PagedResponse<Product>> getProductsByKeyword(PageRequest pageRequest, String keyword) {
 		Mono<Long> totalElements = productRepo.countByKeyword(keyword);
 		Flux<Product> productsFlux= productRepo.findByKeyword(keyword, pageRequest);
-
 		return Mono.zip(totalElements, productsFlux.collectList())
 				.map(tuple -> new PagedResponse<>(
 						tuple.getT2(),
@@ -164,10 +163,6 @@ public class ProductService {
 						pageRequest.getPageNumber(),
 						pageRequest.getPageSize()
 				));
-	}
-
-	private <T> Mono<T> monoError(HttpStatus status, String message) {
-		return Mono.error(new ResponseStatusException(status, message));
 	}
 
 }

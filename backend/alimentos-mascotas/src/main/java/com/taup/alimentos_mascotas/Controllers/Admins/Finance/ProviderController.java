@@ -58,8 +58,7 @@ public class ProviderController {
 			@ApiResponse(responseCode = "400", description = "Solicitud inválida")
 	})
 	@PostMapping
-	public Mono<ResponseEntity<Provider>> saveProvider(
-			@RequestBody Provider provider) {
+	public Mono<ResponseEntity<Provider>> saveProvider(@RequestBody Provider provider) {
 
 		String user = "admin";
 

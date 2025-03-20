@@ -1,6 +1,7 @@
 package com.taup.alimentos_mascotas.Services.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
+import com.taup.alimentos_mascotas.Exceptions.MonoEx;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Recipe;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.ProductRepository;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.RecipeRepository;
@@ -9,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -43,7 +43,7 @@ public class RecipeService {
 	@Transactional
 	public Mono<Recipe> save (Recipe recipe, String username){
 		if(recipe.getId()!=null){
-			return monoError(HttpStatus.BAD_REQUEST, "La Receta ya tiene ID, no puede almacenarse como nueva");
+			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "La Receta ya tiene ID, no puede almacenarse como nueva");
 		}
 
 		recipe.setCreatedAt(LocalDateTime.now());
@@ -55,12 +55,12 @@ public class RecipeService {
 	@Transactional
 	public Mono<Recipe> update (Recipe recipe, String recipeId, String username) {
 		if (!recipe.getId().equals(recipeId)) {
-			return monoError(HttpStatus.BAD_REQUEST,
+			return MonoEx.monoError(HttpStatus.BAD_REQUEST,
 					"Los IDs de la receta a actualizar no coinciden.");
 		}
 
 		return recipeRepo.findById(recipeId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontró la receta con ID: " + recipeId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontró la receta con ID: " + recipeId))
 				.flatMap(existingRecipe -> {
 							Recipe updatedRecipe = mappingRecipeToUpdate(existingRecipe, recipe, username);
 							return recipeRepo.save(updatedRecipe);
@@ -70,9 +70,9 @@ public class RecipeService {
 	@Transactional
 	public Mono<Recipe> addProductToRecipe (String recipeId, String productId) {
 		return recipeRepo.findById(recipeId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
 				.flatMap(foundRecipe -> productRepo.findById(productId)
-								.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontro el producto con ID: " + productId))
+								.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro el producto con ID: " + productId))
 								.flatMap(foundProduct -> {
 									Set<String> productsList = foundRecipe.getCreatedProducts();
 									if(productsList == null) {
@@ -92,15 +92,15 @@ public class RecipeService {
 	@Transactional
 	public Mono<Recipe> removeProductFromRecipe (String recipeId, String productId) {
 		return recipeRepo.findById(recipeId)
-				.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
 				.flatMap(foundRecipe -> productRepo.findById(productId)
-						.switchIfEmpty(monoError(HttpStatus.NOT_FOUND, "No se encontro el producto con ID: " + productId))
+						.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro el producto con ID: " + productId))
 						.flatMap(foundProduct -> {
 
 							Set<String> productsList = foundRecipe.getCreatedProducts();
 
 							if(productsList == null) {
-								return monoError(HttpStatus.BAD_REQUEST, "No hay productos en la lista");
+								return MonoEx.monoError(HttpStatus.BAD_REQUEST, "No hay productos en la lista");
 							}
 							productsList.remove(productId);
 							foundProduct.setRecipeId(null);
@@ -131,8 +131,8 @@ public class RecipeService {
 		existingRecipe.setRecipeName(recipe.getRecipeName());
 		existingRecipe.setInstructions(recipe.getInstructions());
 		existingRecipe.setIngredientsWithQuantity(recipe.getIngredientsWithQuantity());
-		existingRecipe.setStimatedPrepTime(recipe.getStimatedPrepTime());
-		existingRecipe.setStimatedServings(recipe.getStimatedServings());
+		existingRecipe.setEstimatedPrepTime(recipe.getEstimatedPrepTime());
+		existingRecipe.setEstimatedServings(recipe.getEstimatedServings());
 
 		return existingRecipe;
 	}
@@ -164,8 +164,5 @@ public class RecipeService {
 				));
 	}
 
-	private <T> Mono<T> monoError(HttpStatus status, String message) {
-		return Mono.error(new ResponseStatusException(status, message));
-	}
 }
 

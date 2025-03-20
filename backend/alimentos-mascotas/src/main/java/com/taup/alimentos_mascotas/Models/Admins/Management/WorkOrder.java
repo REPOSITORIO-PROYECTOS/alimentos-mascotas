@@ -24,6 +24,9 @@ public class WorkOrder extends ModelClass {
 	@NotBlank
 	private String productId;
 
+	@NotBlank
+	private String recipeId;
+
 	@Positive
 	private Number quantityToDo;
 
@@ -31,11 +34,8 @@ public class WorkOrder extends ModelClass {
 	@Positive
 	private Map<String, Number> estimatedIngredients;
 
-	@NotBlank
-	@Positive
-	private Map<String, Number> usedIngredients;
-
-	private Map<String, Number> ingredientDifferences;
+	@Valid
+	private Priority priority;
 
 	@Valid
 	private OrderStatus status;
@@ -51,15 +51,19 @@ public class WorkOrder extends ModelClass {
 	@DecimalMin("0.0")
 	private BigDecimal estimatedCost;
 
+
+	@NotBlank
+	@Positive
+	private Map<String, Number> usedIngredients;
+
+	private Map<String, Number> ingredientDifferences;
+
 	@Positive
 	@DecimalMin("0.0")
-	private BigDecimal actualCost;
+	private BigDecimal realCost;
 
 	@Positive
 	private Number completedQuantity;
-
-	@Valid
-	private Priority priority;
 }
 
 

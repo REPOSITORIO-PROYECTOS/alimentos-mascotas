@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 @Document(collection = "expenses")
 public class Expense {
 	@Id
-	String id;
+	private String id;
 
 	@Positive
 	@DecimalMin("0.0")
-	BigDecimal amount;
+	private BigDecimal amount;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm")
 	private LocalDateTime  expenseDate;
 
-	String expenseType;
+	private String expenseType;
 
-	String details;
+	private String details;
 }
