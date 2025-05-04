@@ -14,25 +14,25 @@ import java.util.Set;
 @Document(collection = "recipes")
 public class Recipe extends ModelClass {
 	@Id
-	String id;
+	private String id;
 
 	@Size(min=3, max=100)
-	String recipeName;
+	private String recipeName;
 
 	@Size(max=100)
-	String recipeDescription;
+	private String recipeDescription;
 
-	Set<String> createdProducts;
+	private Set<String> createdProducts;
 
-	Map<String, Number> ingredientsWithQuantity;
-
-	@Positive
-	Integer stimatedPrepTime;
+	private Map<String, Number> ingredientsWithQuantity;
 
 	@Positive
-	Number stimatedServings;
+	private Integer estimatedPrepTime;
+
+	@Positive
+	private Number estimatedServings;
 
 	@Size(max = 200)
-	String instructions;
+	private String instructions;
 }
 
