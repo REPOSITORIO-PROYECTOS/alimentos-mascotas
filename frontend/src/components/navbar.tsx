@@ -15,7 +15,7 @@ export function Navbar() {
     const navItems = [
         { href: "/admin", label: "Home" },
         { href: "/admin/inventario", label: "Inventario" },
-        { href: "/admin/cursos", label: "Cursos" },
+        // { href: "/admin/cursos", label: "Cursos" },
         { href: "/admin/usuarios", label: "Usuarios" },
         { href: "/admin/historial", label: "Historial" },
     ];
