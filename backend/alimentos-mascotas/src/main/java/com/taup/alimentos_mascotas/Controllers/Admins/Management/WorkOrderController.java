@@ -26,19 +26,19 @@ public class WorkOrderController {
 		return workOrderService.listAllPaged(page, size, keyword);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-todas")
 	public Flux<WorkOrder> findAll() {
 		return workOrderService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<WorkOrder> save(@RequestBody WorkOrder workOrder) {
 		String username = "ADMIN";
 
 		return workOrderService.save(workOrder, username);
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping("/editar/{id}")
 	public Mono<WorkOrder> update(@PathVariable String workOrderId, @RequestBody WorkOrder workOrder) {
 		String username = "ADMIN";
 
@@ -51,7 +51,7 @@ public class WorkOrderController {
 		return workOrderService.completeWorkOrder(completedWorkOrder, finishingDate, workOrderId);
 	}
 
-	@DeleteMapping("/{workOrderId}")
+	@DeleteMapping("/eliminar{workOrderId}")
 	public Mono<Void> deleteWorkOrder(@PathVariable String workOrderId) {
 		return workOrderService.delete(workOrderId);
 	}

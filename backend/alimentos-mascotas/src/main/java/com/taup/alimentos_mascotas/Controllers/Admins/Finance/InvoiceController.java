@@ -65,7 +65,7 @@ public class InvoiceController {
 			@ApiResponse(responseCode = "201", description = "Factura creada exitosamente"),
 			@ApiResponse(responseCode = "400", description = "Datos de la factura inválidos")
 	})
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<ResponseEntity<Invoice>> saveInvoice(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos de la factura a crear", required = true) @RequestBody Invoice invoice) {
 
@@ -81,7 +81,7 @@ public class InvoiceController {
 			@ApiResponse(responseCode = "400", description = "IDs no coinciden o datos inválidos"),
 			@ApiResponse(responseCode = "404", description = "Factura no encontrada")
 	})
-	@PutMapping("/{invoiceId}")
+	@PutMapping("/editar/{invoiceId}")
 	public Mono<ResponseEntity<Invoice>> updateInvoice(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos actualizados de la factura", required = true) @RequestBody Invoice invoice,
 			@Parameter(description = "ID de la factura a actualizar", required = true, example = "12345") @PathVariable String invoiceId) {

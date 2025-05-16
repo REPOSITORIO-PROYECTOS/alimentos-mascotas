@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -87,24 +86,27 @@ import React from "react";
 import { useFetch } from "@/hooks/useFetch";
 import { useLoading } from "@/hooks/useLoading";
 import { toast } from "sonner";
-import PersonaForm from "../form-persona";
+import PersonaForm from "../form-producto";
+import ProductForm from "../form-producto";
 
 type Item = {
   id: string;
-  name: string;
-  surname: string;
-  email: string;
-  dni: string;
-  phone: string;
-  status: 'activo' | 'inactivo' | 'pendiente';
-  dateOfBirth: Date;      // Se agrega esta propiedad
-  ingressDate: Date;      // Se agrega esta propiedad
-  cursesIds: string[];
+  productName: string;
+  productDescription: string;
+  productDetails: string;
+  imageUrl: string | null;
+  sellingPrice: number;
+  stock: number;
+  categories: string[];
+  reviewsIds: string[];
+  recipeId: string;
+  productCode: string;
+  costPrice: number;
 };
 
 // Custom filter function for multi-column searching
 const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
-  const searchableRowContent = `${row.original.name} ${row.original.surname} ${row.original.email}`.toLowerCase();
+  const searchableRowContent = `${row.original.productName}`.toLowerCase();
   const searchTerm = (filterValue ?? "").toLowerCase();
   return searchableRowContent.includes(searchTerm);
 };
@@ -140,12 +142,12 @@ const columns: ColumnDef<Item>[] = [
   },
   {
     header: "Nombre",
-    accessorKey: "name",
+    accessorKey: "productName",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <div>
           <div className="">{row.getValue("name")}</div>
-          <div className="text-sm text-muted-foreground">{row.original.surname}</div>
+          <div className="text-sm text-muted-foreground">{row.original.productName}</div>
         </div>
       </div>
     ),
@@ -153,35 +155,20 @@ const columns: ColumnDef<Item>[] = [
     filterFn: multiColumnFilterFn,
   },
   {
-    header: "Email",
-    accessorKey: "email",
+    header: "Descripcion",
+    accessorKey: "productDescription",
     size: 220,
   },
   {
-    header: "DNI",
-    accessorKey: "dni",
+    header: "Detalles",
+    accessorKey: "productDetails",
     size: 160,
     filterFn: multiColumnFilterFn,
   },
   {
-    header: "Teléfono",
-    accessorKey: "phone",
+    header: "Precio venta",
+    accessorKey: "sellingPrice",
     size: 160,
-  },
-  {
-    header: "Estado",
-    accessorKey: "status",
-    cell: ({ row }) => (
-      <Badge
-        className={cn(
-          row.getValue("status") === "Inactive" ? "bg-muted-foreground/60 text-primary-foreground" : "bg-blue-600 text-background",
-        )}
-      >
-        {row.getValue("status")}
-      </Badge>
-    ),
-    size: 100,
-    filterFn: statusFilterFn,
   },
   {
     id: "actions",
@@ -194,7 +181,7 @@ const columns: ColumnDef<Item>[] = [
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export default function TableEstudents() {
+export default function TableProducts() {
   const id = useId();
   const { finishLoading, loading, startLoading } = useLoading()
   const fetch = useFetch()
@@ -230,7 +217,7 @@ export default function TableEstudents() {
   }, [searchTerm]);
 
   const swrUrl = useMemo(() => {
-    return `https://sistema-gestion-1.onrender.com/api/estudiantes/todos?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
+    return `https://barker.sistemataup.online/api/productos/pagina?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
   }, [pagination.pageIndex, pagination.pageSize, debouncedSearchTerm]);
 
   const { data: swrData, error, isLoading, mutate } = useSWR(swrUrl, fetcher, {
@@ -269,7 +256,7 @@ export default function TableEstudents() {
         try {
           console.log("Deleting row", row.original.id);
           await fetch({
-            endpoint: `cursos/${row.original.id}`,
+            endpoint: `/api/productos/eliminar/${row.original.id}`,
             method: "delete",
           });
         } catch (error: any) {
@@ -508,7 +495,7 @@ export default function TableEstudents() {
             </AlertDialog>
           )}
           {/* Add user button */}
-          <PersonaForm mutate={mutate} />
+          <ProductForm mutate={mutate} />
         </div>
       </div>
 

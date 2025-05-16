@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/productos")
+@RequestMapping("/api/productos-front")
 @RequiredArgsConstructor
 public class ProductFrontController {
 
@@ -22,7 +22,7 @@ public class ProductFrontController {
 		return productFrontService.listAllPaged(page, size, keyword);
 	}
 
-	@GetMapping("/{productId}")
+	@GetMapping("/obtener/{productId}")
 	public Mono<ProductFrontDTO> getProduct(@PathVariable String productId) {
 		return productFrontService.getProduct(productId);
 	}

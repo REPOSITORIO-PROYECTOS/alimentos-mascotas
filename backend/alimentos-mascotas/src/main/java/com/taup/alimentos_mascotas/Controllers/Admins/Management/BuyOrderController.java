@@ -28,26 +28,26 @@ public class BuyOrderController {
 		return buyOrderService.listAllPaged(page, size, keyword, startDate, endDate);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-todas")
 	public Flux<BuyOrder> findAll() {
 		return buyOrderService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<BuyOrder> save(@RequestBody BuyOrder buyOrder) {
 		String username = "ADMIN";
 
 		return buyOrderService.save(buyOrder, username);
 	}
 
-	@PutMapping("/{buyOrderId}")
+	@PutMapping("/editar/{buyOrderId}")
 	public Mono<BuyOrder> update(@PathVariable String buyOrderId, @RequestBody BuyOrder buyOrder) {
 		String username = "ADMIN";
 
 		return buyOrderService.update(buyOrder, buyOrderId, username);
 	}
 
-	@DeleteMapping("/{buyOrderId}")
+	@DeleteMapping("/eliminar/{buyOrderId}")
 	public Mono<Void> delete(@PathVariable String buyOrderId) {
 		return buyOrderService.delete(buyOrderId);
 	}

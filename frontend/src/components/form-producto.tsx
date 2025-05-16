@@ -15,61 +15,57 @@ import { useEffect, useState } from "react"
 import { useFetch } from "@/hooks/useFetch"
 import { useForm } from "react-hook-form"
 import { Button } from "./ui/button"
-import { es } from "date-fns/locale"
+import { es, id } from "date-fns/locale"
 import { ScopedMutator } from "swr"
 import { Input } from "./ui/input"
 import { toast } from "sonner"
 import * as z from "zod"
 
 const formSchema = z.object({
-    name: z.string().min(2, {
+    productName: z.string().min(2, {
         message: "El nombre debe tener al menos 2 caracteres.",
     }),
-    surname: z.string().min(2, {
-        message: "El apellido debe tener al menos 2 caracteres.",
+    productDescription: z.string().min(2, {
+        message: "La descripcion debe tener al menos 2 caracteres.",
     }),
-    email: z.string().email({
-        message: "Debe ser un email válido.",
+    productDetails: z.string().min(2, {
+        message: "Los detalles deben tener al menos 2 caracteres.",
     }),
-    dni: z.string().min(7, {
-        message: "El DNI debe tener al menos 7 caracteres.",
+    sellingPrice: z.number().min(1, {
+        message: "El precio debe ser mayor a 0.",
     }),
-    status: z.enum(["activo", "inactivo", "pendiente"], {
-        required_error: "Por favor seleccione un estado.",
+    stock: z.number().min(1, {
+        message: "El stock debe ser mayor a 0.",
     }),
-    phone: z.string().min(10, {
-        message: "El teléfono debe tener al menos 10 dígitos.",
+    categories: z.array(z.string()).min(1, {
+        message: "Debe seleccionar al menos una categoria.",
     }),
-    dateOfBirth: z.date({
-        required_error: "La fecha de nacimiento es requerida.",
-    }),
-    ingressDate: z.date({
-        required_error: "La fecha de ingreso es requerida.",
-    }),
-    cursesIds: z.array(z.string()).min(1, {
-        message: "Debe seleccionar al menos un curso.",
-    }),
+    costPrice: z.number().min(1, {
+        message: "El precio de costo debe ser mayor a 0.",
+    })
 })
 
-interface PersonaFormProps {
+interface ProductoFormProps {
     isEditable?: boolean;
     datos?: {
         id: string
-        name: string
-        surname: string
-        email: string
-        dni: string
-        status: 'activo' | 'inactivo' | 'pendiente'
-        phone: string
-        dateOfBirth: Date
-        ingressDate: Date
-        cursesIds: string[]
+        productName: string
+        productDescription: string
+        productDetails: string
+        imageUrl: string | null
+        sellingPrice: number
+        stock: number
+        categories: string[]
+        reviewsIds: string[]
+        recipeId: string
+        productCode: string
+        costPrice: number
     };
     mutate: ScopedMutator | (() => void); // Acepta tanto ScopedMutator como una función sin argumentos
     onClose?: () => void
 }
 
-export default function PersonaForm({ isEditable = false, datos, mutate, onClose }: PersonaFormProps) {
+export default function ProductForm({ isEditable = false, datos, mutate, onClose }: ProductoFormProps) {
     const [courseOptions, setCourseOptions] = useState<{ label: string; value: string }[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [open, setOpen] = useState(false)
@@ -78,15 +74,13 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: datos?.name || "",
-            surname: datos?.surname || "",
-            email: datos?.email || "",
-            dni: datos?.dni || "",
-            status: datos?.status || undefined,
-            phone: datos?.phone || "",
-            dateOfBirth: datos?.dateOfBirth ? parse(datos.dateOfBirth.toString(), "dd-MM-yyyy", new Date()) : undefined,
-            ingressDate: datos?.ingressDate ? parse(datos.ingressDate.toString(), "dd-MM-yyyy", new Date()) : undefined,
-            cursesIds: datos?.cursesIds ?? [],
+            productName: datos?.productName || "",
+            productDescription: datos?.productDescription || "",
+            productDetails: datos?.productDetails || "",
+            sellingPrice: datos?.sellingPrice || 0,
+            stock: datos?.stock || 0,
+            categories: datos?.categories || [],
+            costPrice: datos?.costPrice || 0,
         },
     })
 
@@ -127,17 +121,20 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
 
     console.log("algo intermedio")
 
-    async function onSubmit(data: z.infer<typeof formSchema>) {
+    async function onSubmit(dataForm: z.infer<typeof formSchema>) {
         const formData = {
-            name: data.name,
-            surname: data.surname,
-            email: data.email,
-            dni: data.dni,
-            status: data.status,
-            phone: data.phone,
-            dateOfBirth: formatDate(data.dateOfBirth),
-            ingressDate: formatDate(data.ingressDate),
-            cursesIds: data.cursesIds,
+            id: datos?.id,
+            imageUrl: datos?.imageUrl,
+            recipeId: datos?.recipeId,
+            productCode: datos?.productCode,
+            reviewsIds: datos?.reviewsIds,
+            productName: dataForm.productName,
+            productDescription: dataForm.productDescription,
+            productDetails: dataForm.productDetails,
+            sellingPrice: dataForm.sellingPrice,
+            stock: dataForm.stock,
+            categories: dataForm.categories,
+            costPrice: dataForm.costPrice,
         }
         startLoading()
         try {
@@ -206,7 +203,7 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="name"
+                                    name="productName"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Nombre</FormLabel>
@@ -219,10 +216,10 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="surname"
+                                    name="productDescription"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Apellido</FormLabel>
+                                            <FormLabel>Descripcion</FormLabel>
                                             <FormControl>
                                                 <Input {...field} />
                                             </FormControl>
@@ -233,10 +230,10 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                             </div>
                             <FormField
                                 control={form.control}
-                                name="email"
+                                name="productDetails"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>Detalles</FormLabel>
                                         <FormControl>
                                             <Input type="email" {...field} />
                                         </FormControl>
@@ -247,10 +244,10 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="dni"
+                                    name="sellingPrice"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>DNI</FormLabel>
+                                            <FormLabel>Precio venta</FormLabel>
                                             <FormControl>
                                                 <Input {...field} />
                                             </FormControl>
@@ -260,10 +257,10 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="phone"
+                                    name="stock"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Teléfono</FormLabel>
+                                            <FormLabel>Stock</FormLabel>
                                             <FormControl>
                                                 <Input {...field} />
                                             </FormControl>
@@ -274,10 +271,10 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                             </div>
                             <FormField
                                 control={form.control}
-                                name="status"
+                                name="categories"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Estado</FormLabel>
+                                        <FormLabel>Categorias</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
@@ -294,116 +291,21 @@ export default function PersonaForm({ isEditable = false, datos, mutate, onClose
                                     </FormItem>
                                 )}
                             />
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="dateOfBirth"
-                                    render={({ field }) => {
-                                        let dateObj: Date | undefined;
-                                        if (typeof field.value === "string" && field.value) {
-                                            dateObj = parse(field.value, "dd-MM-yyyy", new Date(), { locale: es }); // Asegúrate de usar el locale
-                                        } else if (field.value instanceof Date) {
-                                            dateObj = field.value;
-                                        }
-                                        const formattedDate = dateObj && isValid(dateObj) ? format(dateObj, "PPP", { locale: es }) : "";
-                                        return (
-                                            <FormItem className="flex flex-col">
-                                                <FormLabel>Fecha de Nacimiento</FormLabel>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <FormControl>
-                                                            <Button
-                                                                variant={"outline"}
-                                                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                            >
-                                                                {formattedDate || <span>Seleccione una fecha</span>}
-                                                            </Button>
-                                                        </FormControl>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <CalendarWithMonthYearPicker
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )
-                                    }}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="ingressDate"
-                                    render={({ field }) => {
-                                        let dateObj: Date | undefined;
-                                        if (typeof field.value === "string" && field.value) {
-                                            dateObj = parse(field.value, "dd-MM-yyyy", new Date(), { locale: es }); // Asegúrate de usar el locale
-                                        } else if (field.value instanceof Date) {
-                                            dateObj = field.value;
-                                        }
-                                        const formattedDate = dateObj && isValid(dateObj) ? format(dateObj, "PPP", { locale: es }) : "";
-                                        return (
-                                            <FormItem className="flex flex-col">
-                                                <FormLabel>Fecha de Ingreso</FormLabel>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <FormControl>
-                                                            <Button
-                                                                variant={"outline"}
-                                                                className={cn(
-                                                                    "w-full pl-3 text-left font-normal",
-                                                                    !field.value && "text-muted-foreground",
-                                                                )}
-                                                            >
-                                                                {formattedDate || <span>Seleccione una fecha</span>}
-                                                            </Button>
-                                                        </FormControl>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <CalendarWithMonthYearPicker
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )
-                                    }}
-                                />
-                            </div>
-                            {
-                                isLoading ? <Loader2Icon className="animate-spin" size={16} strokeWidth={2} /> : <FormField
-                                    control={form.control}
-                                    name="cursesIds"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Cursos</FormLabel>
-                                            <FormControl>
-                                                <MultipleSelector
-                                                    options={courseOptions}
-                                                    // @ts-ignore
-                                                    selected={(field.value || []).map(
-                                                        (id: string) =>
-                                                            courseOptions.find((option) => option.value === id) || { value: id, label: id }
-                                                    )}
-                                                    onChange={(selected) => field.onChange(selected.map((option) => option.value))}
-                                                    placeholder="Seleccionar cursos..."
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
-
+                            <FormField
+                                control={form.control}
+                                name="costPrice"
+                                render={({ field }) => {
+                                    return (<>
+                                    <FormItem>
+                                        <FormLabel>Precio costo</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    </>)
+                                }}
+                            />
                         </form>
                     </Form>
                     <AlertDialogFooter>

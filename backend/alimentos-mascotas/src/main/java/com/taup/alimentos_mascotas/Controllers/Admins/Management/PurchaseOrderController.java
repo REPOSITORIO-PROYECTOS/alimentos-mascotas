@@ -28,19 +28,19 @@ public class PurchaseOrderController {
 		return purchaseOrderService.listAllPaged(page, size, keyword, startDate, endDate);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-todas")
 	public Flux<PurchaseOrder> findAll() {
 		return purchaseOrderService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<PurchaseOrder> save(@RequestBody PurchaseOrder purchaseOrder) {
 		String username = "ADMIN";
 
 		return purchaseOrderService.save(purchaseOrder, username);
 	}
 
-	@PutMapping("/{purchaseOrderId}")
+	@PutMapping("/editar/{purchaseOrderId}")
 	public Mono<PurchaseOrder> update(
 			@PathVariable String purchaseOrderId,
 			@RequestBody PurchaseOrder purchaseOrder) {
@@ -57,7 +57,7 @@ public class PurchaseOrderController {
 		return purchaseOrderService.authorizePurchaseOrder(purchaseOrderId, username);
 	}
 
-	@DeleteMapping("/{purchaseOrderId}")
+	@DeleteMapping("/eliminar/{purchaseOrderId}")
 	public Mono<Void> deletePurchaseOrder(@PathVariable String purchaseOrderId) {
 		return purchaseOrderService.deletePurchaseOrder(purchaseOrderId);
 	}

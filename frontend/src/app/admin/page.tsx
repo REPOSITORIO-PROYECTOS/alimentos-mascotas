@@ -9,14 +9,14 @@ export default async function AdminPage() {
     const session = await getSession()
 
     // If not authenticated, redirect to login
-    if (!session) {
-        redirect("/login")
-    }
+    // if (!session) {
+    //     redirect("/login")
+    // }
 
-    // If authenticated but not admin, show forbidden
-    if (session.role !== "admin") {
-        forbidden()
-    }
+    // // If authenticated but not admin, show forbidden
+    // if (session.role !== "admin") {
+    //     forbidden()
+    // }
 
     return (
         <div className="container mx-auto p-4 md:p-6">

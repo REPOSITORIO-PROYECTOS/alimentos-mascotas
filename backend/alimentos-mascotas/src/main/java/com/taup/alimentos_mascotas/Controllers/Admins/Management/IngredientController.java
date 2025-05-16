@@ -11,8 +11,6 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/ingredientes")
 @AllArgsConstructor
@@ -28,12 +26,12 @@ public class IngredientController {
 		return ingredientService.listAllPaged(page, size, keyword);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-ingredientes")
 	public Flux<Ingredient> findAllIngredients() {
 		return ingredientService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<ResponseEntity<Ingredient>> save(@RequestBody Ingredient ingredient){
 		String username = "ADMIN";
 		return ingredientService.save(ingredient, username)
@@ -44,7 +42,7 @@ public class IngredientController {
 				});
 	}
 
-	@PutMapping("/{ingredientId}")
+	@PutMapping("/editar/{ingredientId}")
 	public Mono<ResponseEntity<Ingredient>> update(@RequestBody Ingredient ingredient, @PathVariable String ingredientId){
 		String username = "ADMIN";
 		return ingredientService.update(ingredient, ingredientId,username)
@@ -77,7 +75,7 @@ public class IngredientController {
 				}));
 	}
 
-	@DeleteMapping("/{ingredientId}")
+	@DeleteMapping("/eliminar/{ingredientId}")
 	public Mono<ResponseEntity<Void>> deleteIngredient (@PathVariable String ingredientId) {
 		return ingredientService.deleteIngredient(ingredientId)
 			.then(Mono.just(ResponseEntity.noContent().<Void>build()))

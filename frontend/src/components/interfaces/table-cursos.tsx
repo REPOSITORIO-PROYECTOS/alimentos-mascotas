@@ -90,7 +90,7 @@ import React from 'react';
 import { useLoading } from '@/hooks/useLoading';
 import { useFetch } from '@/hooks/useFetch';
 import { toast } from 'sonner';
-import PersonaForm from '../form-persona';
+import PersonaForm from '../form-producto';
 import FormCurso from "../form-curso";
 import Link from "next/link";
 

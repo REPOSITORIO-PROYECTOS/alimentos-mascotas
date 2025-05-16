@@ -28,12 +28,12 @@ public class RecipeController {
 		return recipeService.listAllPaged(page, size, keyword);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-todas")
 	public Flux<Recipe> findAllRecipes() {
 		return recipeService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<ResponseEntity<Recipe>> save(@RequestBody Recipe recipe){
 		String username = "ADMIN";
 		return recipeService.save(recipe, username)
@@ -44,7 +44,7 @@ public class RecipeController {
 				});
 	}
 
-	@PutMapping("/{recipeId}")
+	@PutMapping("/editar/{recipeId}")
 	public Mono<ResponseEntity<Recipe>> update(@RequestBody Recipe recipe, @PathVariable String recipeId){
 		String username = "ADMIN";
 		return recipeService.update(recipe, recipeId, username)
@@ -78,7 +78,7 @@ public class RecipeController {
 				}));
 	}
 
-	@DeleteMapping("/{recipeId}")
+	@DeleteMapping("/eliminar/{recipeId}")
 	public Mono<ResponseEntity<Void>> deleteRecipe (@PathVariable String recipeId) {
 		return recipeService.delete(recipeId)
 				.then(Mono.just(ResponseEntity.noContent().<Void>build()))

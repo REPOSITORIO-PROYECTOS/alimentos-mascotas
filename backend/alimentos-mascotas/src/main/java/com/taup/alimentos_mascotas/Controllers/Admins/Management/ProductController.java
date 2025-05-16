@@ -23,19 +23,19 @@ public class ProductController {
 		return productService.listAllPaged(page, size, keyword);
 	}
 
-	@GetMapping
+	@GetMapping("/obtener-todos")
 	public Flux<Product> findAll() {
 		return productService.findAll();
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<Product> save(@RequestBody Product product) {
 		String username = "ADMIN";
 
 		return productService.save(product, username);
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping("/editar/{id}")
 	public Mono<Product> update(@PathVariable String productId, @RequestBody Product product) {
 		String username = "ADMIN";
 
@@ -52,7 +52,7 @@ public class ProductController {
 		return productService.removeRecipeToProduct(productId, recipeId);
 	}
 
-	@DeleteMapping("/{productId}")
+	@DeleteMapping("/eliminar/{productId}")
 	public Mono<Void> delete(@PathVariable String productId) {
 		return productService.delete(productId);
 	}

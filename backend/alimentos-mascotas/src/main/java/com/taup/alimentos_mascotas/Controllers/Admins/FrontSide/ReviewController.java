@@ -28,13 +28,13 @@ public class ReviewController {
 		return reviewService.getBestReviewsForProduct(productId);
 	}
 
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<Review> save(@RequestBody Review review) {
 		String username = "ADMIN"; // Obtener el nombre de usuario autenticado
 		return reviewService.save(review, username);
 	}
 
-	@PutMapping("/{reviewId}")
+	@PutMapping("/editar/{reviewId}")
 	public Mono<Review> update(
 			@PathVariable String reviewId,
 			@RequestBody Review review) {
@@ -47,7 +47,7 @@ public class ReviewController {
 		return reviewService.authorizeReview(reviewId);
 	}
 
-	@DeleteMapping("/{reviewId}")
+	@DeleteMapping("/eliminar/{reviewId}")
 	public Mono<Void> delete(@PathVariable String reviewId) {
 		return reviewService.delete(reviewId);
 	}

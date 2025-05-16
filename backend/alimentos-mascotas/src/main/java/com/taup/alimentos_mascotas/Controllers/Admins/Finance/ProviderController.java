@@ -45,7 +45,7 @@ public class ProviderController {
 			@ApiResponse(responseCode = "200", description = "Proveedor obtenido exitosamente"),
 			@ApiResponse(responseCode = "404", description = "Proveedor no encontrado")
 	})
-	@GetMapping("/{providerId}")
+	@GetMapping("/obtener/{providerId}")
 	public Mono<ResponseEntity<Provider>> getProviderById(
 			@Parameter(description = "ID del proveedor a buscar", required = true) @PathVariable String providerId) {
 		return providerService.getProviderById(providerId)
@@ -57,7 +57,7 @@ public class ProviderController {
 			@ApiResponse(responseCode = "201", description = "Proveedor creado exitosamente"),
 			@ApiResponse(responseCode = "400", description = "Solicitud inválida")
 	})
-	@PostMapping
+	@PostMapping("/guardar")
 	public Mono<ResponseEntity<Provider>> saveProvider(@RequestBody Provider provider) {
 
 		String user = "admin";
@@ -72,7 +72,7 @@ public class ProviderController {
 			@ApiResponse(responseCode = "400", description = "IDs no coinciden o solicitud inválida"),
 			@ApiResponse(responseCode = "404", description = "Proveedor no encontrado")
 	})
-	@PutMapping("/{providerId}")
+	@PutMapping("/editar/{providerId}")
 	public Mono<ResponseEntity<Provider>> updateProvider(
 			@RequestBody Provider provider,
 			@PathVariable String providerId) {
@@ -88,7 +88,7 @@ public class ProviderController {
 			@ApiResponse(responseCode = "204", description = "Proveedor eliminado exitosamente"),
 			@ApiResponse(responseCode = "404", description = "Proveedor no encontrado")
 	})
-	@DeleteMapping("/{providerId}")
+	@DeleteMapping("/eliminar/{providerId}")
 	public Mono<ResponseEntity<Void>> deleteProvider(
 			@Parameter(description = "ID del proveedor a eliminar", required = true) @PathVariable String providerId) {
 		return providerService.deleteProvider(providerId)

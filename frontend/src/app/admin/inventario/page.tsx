@@ -1,5 +1,5 @@
 import Panel from "@/components/interfaces/panel";
-import TablePerson from "@/components/interfaces/table-estudents";
+import TableProducts from "@/components/interfaces/table-products";
 
 export default function Page() {
     return (
@@ -9,7 +9,7 @@ export default function Page() {
                     PANEL DE INVENTARIO
                 </h2>
             </div>
-            <TablePerson />
+            <TableProducts />
         </>
     );
 }
