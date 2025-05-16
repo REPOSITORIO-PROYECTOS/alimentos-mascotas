@@ -4,13 +4,13 @@ import React from "react";
 
 export default function Header() {
     return (
-        <header className="bg-yellow-400 fixed top-0 z-50 w-full">
-            <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <header className="bg-primary fixed top-0 z-50 w-full">
+            <div className="mx-auto max-w-(--breakpoint-xl) px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="md:flex md:items-center md:gap-12">
                         <Link className="block text-white" href="/">
                             <span className="sr-only">Home</span>
-                            <p className="text-2xl font-bold">Barker</p>
+                            <p className="font-sans pb-3.5">Barker</p>
                         </Link>
                     </div>
 
