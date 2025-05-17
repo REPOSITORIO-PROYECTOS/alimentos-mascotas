@@ -6,15 +6,14 @@ export default function Carrusel() {
         <section className="bg-background">
             <div className="container mx-auto py-12">
                 <header className="relative z-10 flex flex-col items-center justify-center gap-6 bg-background text-center">
-                    <h2 className="text-5xl font-bold font-sans tracking-widest text-foreground lg:text-4xl">
-                        Nuestros best sellers
+                    <h2 className="text-2xl font-bold font-sans tracking-widest text-primary uppercase lg:text-3xl">
+                        Recomendandos con amor
                         <span className="text-primary">.</span>
                     </h2>
                     <p className="mt-2 mb-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                        Descubre nuestros productos más populares y recomendados
-                        por nuestros clientes. ¡No te los pierdas!
-                        <br /> ¡Haz tu pedido ahora y disfruta de la calidad de
-                        nuestros productos!
+                        Estos snacks naturales son los más elegidos por nuestros
+                        peludos. Ideales para premiar, entretener o simplemente
+                        cuidarlos como se merecen.
                     </p>
                 </header>
             </div>
