@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/mercadopago")
 public class MercadoPagoController {
 
-    @PostMapping
+    @PostMapping("/pago")
     public String mercadopagoPayment(@RequestBody CartRequestDTO cartRequestDTO) throws MPException, MPApiException {
         MercadoPagoConfig.setAccessToken("TEST-722495920164756-030515-fdf7ee0f93f17da1bdd65163d0b6ec09-264392580");
 
@@ -50,6 +50,7 @@ public class MercadoPagoController {
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(items)
                 .backUrls(backUrls)
+				.notificationUrl("https://barker.sistemataup.com/api/mercadopago/notificaciones")
                 .build();
 
         // Crear la preferencia en MercadoPago
