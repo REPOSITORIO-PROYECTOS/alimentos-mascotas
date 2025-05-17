@@ -48,13 +48,9 @@ public class ProviderService {
 			return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"El proveedor ya tiene un ID registrado. No se puede almacenar un proveedor con ID ya registrado."));
 		}
-
-		return userService.getFullName(username)
-				.flatMap(fullName -> {
-					provider.setCreatedAt(LocalDateTime.now());
-					provider.setCreatedBy(fullName);
-					return providerRepo.save(provider);
-				});
+		provider.setCreatedAt(LocalDateTime.now());
+		provider.setCreatedBy(username);
+		return providerRepo.save(provider);
 	}
 
 	public Mono<Provider> updateProvider(Provider provider, String providerId, String username) {
@@ -66,11 +62,10 @@ public class ProviderService {
 		return providerRepo.findById(providerId)
 				.switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,
 						"No se encontró el proveedor con ID: " + providerId)))
-				.flatMap(existingProvider -> userService.getFullName(username)
-						.flatMap(fullName -> {
-							Provider updatedProvider = mappingProviderToUpdate(existingProvider, provider, fullName);
+				.flatMap(existingProvider -> {
+							Provider updatedProvider = mappingProviderToUpdate(existingProvider, provider, username);
 							return providerRepo.save(updatedProvider);
-						}));
+						});
 	}
 
 	public Mono<Void> deleteProvider(String providerId) {

@@ -87,7 +87,7 @@ import React from "react";
 import { useFetch } from "@/hooks/useFetch";
 import { useLoading } from "@/hooks/useLoading";
 import { toast } from "sonner";
-import PersonaForm from "../form-persona";
+import PersonaForm from "../form-producto";
 import UserForm from "../form-user";
 
 type Item = {

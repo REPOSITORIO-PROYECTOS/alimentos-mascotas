@@ -20,4 +20,6 @@ public interface ProductRepository extends ReactiveMongoRepository<Product, Stri
 
 	@Query("{}")
 	Flux<Product> findProductsPaged(PageRequest pageRequest);
+
+	Flux<Product> findByRecipeId(String recipeId);
 }
