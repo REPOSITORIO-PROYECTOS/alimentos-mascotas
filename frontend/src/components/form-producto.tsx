@@ -72,7 +72,7 @@ const formSchema = z.object({
     productDetails: z.string().min(2, {
         message: "Los detalles deben tener al menos 2 caracteres.",
     }),
-    imageUrl: imageSchema,
+    // imageUrl: imageSchema,
     sellingPrice: z.number().min(1, {
         message: "El precio debe ser mayor a 0.",
     }),
@@ -140,7 +140,7 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            imageUrl: datos?.imageUrl || null,
+            //imageUrl: datos?.imageUrl || null,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
             costPrice: datos?.costPrice || 0,
@@ -155,42 +155,17 @@ export default function ProductForm({
         const formDataObj = new FormData();
 
         // Crear el objeto de producto para enviar como JSON
-        const productData = {
-            productName: dataForm.productName,
-            productDescription: dataForm.productDescription,
-            productDetails: dataForm.productDetails,
-            sellingPrice: dataForm.sellingPrice,
-            costPrice: dataForm.costPrice,
-            stock: dataForm.stock,
-            discountPercent: dataForm.discountPercent || 0,
-            categories: dataForm.categories,
-        };
-
-        // Agregar campos existentes si es edición
-        if (isEditable && datos) {
-            Object.assign(productData, {
-                id: datos.id,
-                productCode: datos.productCode,
-                recipeId: datos.recipeId,
-                reviewsIds: datos.reviewsIds,
-            });
-
-            // Si no hay nueva imagen y hay una imagen existente
-            if (
-                (!dataForm.imageUrl || dataForm.imageUrl.length === 0) &&
-                datos.imageUrl
-            ) {
-                Object.assign(productData, { imageUrl: datos.imageUrl });
-            }
-        }
-
-        // Agregar el objeto producto como JSON
-        formDataObj.append("product", JSON.stringify(productData));
-
-        // Agregar la imagen si existe
-        if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
-            formDataObj.append("image", dataForm.imageUrl[0]);
-        }
+        formDataObj.append("id", "");
+        formDataObj.append("productName", dataForm?.productName);
+        formDataObj.append("productDescription", dataForm?.productDescription);
+        formDataObj.append("productDetails", dataForm?.productDetails);
+        formDataObj.append("sellingPrice", dataForm?.sellingPrice.toString());
+        formDataObj.append("stock", dataForm?.stock.toString());
+        formDataObj.append("costPrice", dataForm?.costPrice.toString());
+        formDataObj.append(
+            "discountPercent",
+            dataForm?.discountPercent?.toString() || "0"
+        );
 
         startLoading();
         try {
@@ -332,7 +307,7 @@ export default function ProductForm({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="imageUrl"
                                 render={({
@@ -421,7 +396,7 @@ export default function ProductForm({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                             <div className="grid grid-cols-3 gap-4">
                                 {" "}
                                 <FormField

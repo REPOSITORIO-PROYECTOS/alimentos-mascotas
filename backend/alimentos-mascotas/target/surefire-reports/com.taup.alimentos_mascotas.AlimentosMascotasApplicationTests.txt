@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.taup.alimentos_mascotas.AlimentosMascotasApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.106 s -- in com.taup.alimentos_mascotas.AlimentosMascotasApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.867 s -- in com.taup.alimentos_mascotas.AlimentosMascotasApplicationTests

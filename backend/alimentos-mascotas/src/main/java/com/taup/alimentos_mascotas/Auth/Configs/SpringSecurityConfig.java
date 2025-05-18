@@ -55,7 +55,7 @@ public class SpringSecurityConfig {
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchanges -> {
 					// ? ENDPOINTS PÚBLICOS
-					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones").permitAll();
 					exchanges.pathMatchers(HttpMethod.GET, "/api/productos-front/**", "/api/resenas/pagina", 
 					"/api/resenas/mejores/{productId}").permitAll();
 					exchanges.pathMatchers("/webjars/**", "/swagger-ui.html", "/swagger-ui/**",

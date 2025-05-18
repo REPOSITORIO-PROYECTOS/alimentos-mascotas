@@ -34,7 +34,7 @@ public class ProductController {
 
 	@PostMapping("/guardar")
 	public Mono<Product> save(Authentication auth, 
-							  @RequestPart("product") ProductDTO productDTO 
+							  @RequestBody ProductDTO productDTO 
                             /*@RequestPart("image") Mono<FilePart> image*/) {
 		String username = auth.getName();
 		
