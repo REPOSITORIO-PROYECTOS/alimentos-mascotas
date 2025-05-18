@@ -34,33 +34,33 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { useAuthStore } from "@/context/store";
 
-const isFileListDefined = typeof FileList !== "undefined";
+// const isFileListDefined = typeof FileList !== "undefined";
 
-const imageSchema = isFileListDefined
-    ? z
-          .instanceof(FileList)
-          .refine((files) => files.length > 0, {
-              message: "Debe seleccionar un archivo de imagen.",
-          })
-          .refine(
-              (files) => {
-                  const validTypes = [
-                      "image/jpeg",
-                      "image/png",
-                      "image/jpg",
-                      "image/webp",
-                  ];
-                  return validTypes.includes(files[0]?.type);
-              },
-              {
-                  message:
-                      "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
-              }
-          )
-          .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
-              message: "El tamaño de la imagen no debe exceder los 5MB.",
-          })
-    : z.any();
+// const imageSchema = isFileListDefined
+//     ? z
+//           .instanceof(FileList)
+//           .refine((files) => files.length > 0, {
+//               message: "Debe seleccionar un archivo de imagen.",
+//           })
+//           .refine(
+//               (files) => {
+//                   const validTypes = [
+//                       "image/jpeg",
+//                       "image/png",
+//                       "image/jpg",
+//                       "image/webp",
+//                   ];
+//                   return validTypes.includes(files[0]?.type);
+//               },
+//               {
+//                   message:
+//                       "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+//               }
+//           )
+//           .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
+//               message: "El tamaño de la imagen no debe exceder los 5MB.",
+//           })
+//     : z.any();
 
 const formSchema = z.object({
     productName: z.string().min(2, {
@@ -72,7 +72,7 @@ const formSchema = z.object({
     productDetails: z.string().min(2, {
         message: "Los detalles deben tener al menos 2 caracteres.",
     }),
-    imageUrl: imageSchema,
+    // imageUrl: imageSchema,
     sellingPrice: z.number().min(1, {
         message: "El precio debe ser mayor a 0.",
     }),
@@ -97,7 +97,7 @@ interface ProductoFormProps {
         productName: string;
         productDescription: string;
         productDetails: string;
-        imageUrl: string | null;
+        // imageUrl: string | null;
         sellingPrice: number;
         stock: number;
         discountPercent: number;
@@ -140,7 +140,7 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            imageUrl: datos?.imageUrl || null,
+            // imageUrl: datos?.imageUrl || null,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
             costPrice: datos?.costPrice || 0,
@@ -176,21 +176,21 @@ export default function ProductForm({
             });
 
             // Si no hay nueva imagen y hay una imagen existente
-            if (
-                (!dataForm.imageUrl || dataForm.imageUrl.length === 0) &&
-                datos.imageUrl
-            ) {
-                Object.assign(productData, { imageUrl: datos.imageUrl });
-            }
+            // if (
+            //     (!dataForm.imageUrl || dataForm.imageUrl.length === 0) &&
+            //     datos.imageUrl
+            // ) {
+            //     Object.assign(productData, { imageUrl: datos.imageUrl });
+            // }
         }
 
         // Agregar el objeto producto como JSON
         formDataObj.append("product", JSON.stringify(productData));
 
         // Agregar la imagen si existe
-        if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
-            formDataObj.append("image", dataForm.imageUrl[0]);
-        }
+        // if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
+        //     formDataObj.append("image", dataForm.imageUrl[0]);
+        // }
 
         startLoading();
         try {
@@ -332,7 +332,7 @@ export default function ProductForm({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="imageUrl"
                                 render={({
@@ -421,7 +421,7 @@ export default function ProductForm({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                             <div className="grid grid-cols-3 gap-4">
                                 {" "}
                                 <FormField
