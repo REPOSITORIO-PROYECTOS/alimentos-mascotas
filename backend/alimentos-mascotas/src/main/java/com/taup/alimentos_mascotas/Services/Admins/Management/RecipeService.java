@@ -68,7 +68,7 @@ public class RecipeService {
 	}
 
 	@Transactional
-	public Mono<Recipe> addProductToRecipe (String recipeId, String productId) {
+	public Mono<Recipe> addProductToRecipe (String recipeId, String productId, String username) {
 		return recipeRepo.findById(recipeId)
 				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
 				.flatMap(foundRecipe -> productRepo.findById(productId)
@@ -80,7 +80,9 @@ public class RecipeService {
 									}
 									productsList.add(productId);
 									foundProduct.setRecipeId(recipeId);
-
+									
+									foundRecipe.setModifiedBy(username);
+									foundRecipe.setUpdatedAt(LocalDateTime.now());
 									foundRecipe.setCreatedProducts(productsList);
 
 									return productRepo.save(foundProduct)
@@ -90,7 +92,7 @@ public class RecipeService {
 	}
 
 	@Transactional
-	public Mono<Recipe> removeProductFromRecipe (String recipeId, String productId) {
+	public Mono<Recipe> removeProductFromRecipe (String recipeId, String productId, String username) {
 		return recipeRepo.findById(recipeId)
 				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontro la receta con ID: " + recipeId))
 				.flatMap(foundRecipe -> productRepo.findById(productId)
@@ -103,6 +105,8 @@ public class RecipeService {
 								return MonoEx.monoError(HttpStatus.BAD_REQUEST, "No hay productos en la lista");
 							}
 							productsList.remove(productId);
+							foundRecipe.setModifiedBy(username);
+							foundRecipe.setUpdatedAt(LocalDateTime.now());
 							foundProduct.setRecipeId(null);
 
 							return productRepo.save(foundProduct)

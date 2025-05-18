@@ -5,6 +5,7 @@ import com.taup.alimentos_mascotas.Models.Admins.Management.BuyOrder;
 import com.taup.alimentos_mascotas.Services.Admins.Management.BuyOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,15 +35,15 @@ public class BuyOrderController {
 	}
 
 	@PostMapping("/guardar")
-	public Mono<BuyOrder> save(@RequestBody BuyOrder buyOrder) {
-		String username = "ADMIN";
+	public Mono<BuyOrder> save(Authentication auth, @RequestBody BuyOrder buyOrder) {
+		String username = auth.getName();
 
 		return buyOrderService.save(buyOrder, username);
 	}
 
 	@PutMapping("/editar/{buyOrderId}")
-	public Mono<BuyOrder> update(@PathVariable String buyOrderId, @RequestBody BuyOrder buyOrder) {
-		String username = "ADMIN";
+	public Mono<BuyOrder> update(Authentication auth, @PathVariable String buyOrderId, @RequestBody BuyOrder buyOrder) {
+		String username = auth.getName();
 
 		return buyOrderService.update(buyOrder, buyOrderId, username);
 	}

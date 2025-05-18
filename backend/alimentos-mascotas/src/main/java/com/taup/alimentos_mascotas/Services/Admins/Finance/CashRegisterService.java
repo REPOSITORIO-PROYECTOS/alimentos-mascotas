@@ -39,7 +39,7 @@ public class CashRegisterService {
 								CashRegister newCashRegister = new CashRegister();
 								newCashRegister.setStartDate(LocalDateTime.now());
 								newCashRegister.setIsClosed(false);
-								newCashRegister.setCreatedBy(name);
+								newCashRegister.setCreatedBy(name.getName() + " " + name.getSurname());
 								return cashRegisterRepo.save(newCashRegister);
 							});
 				});

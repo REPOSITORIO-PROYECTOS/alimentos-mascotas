@@ -1,4 +1,13 @@
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\AlimentosMascotasApplication.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Configs\SpringSecurityConfig.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Controllers\AuthController.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\CustomReactiveAuthenticationManager.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Filters\JwtAuthenticationFilter.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Filters\JwtAuthenticationWebFilter.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Filters\JwtCookieFilter.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Services\AuthService.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Services\CustomReactiveUserDetailsService.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Auth\Utils\JwtUtil.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Controllers\Admins\Finance\CashRegisterController.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Controllers\Admins\Finance\InvoiceController.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Controllers\Admins\Finance\MercadoPagoController.java
@@ -14,10 +23,14 @@ D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\CartItemDTO.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\CartRequestDTO.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\InvoiceWithProviderDTO.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\LoginRequest.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\PagedResponse.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\ProductDTO.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\ProductFrontDTO.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\UserCredentialsDTO.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\DTO\UserInfo.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Exceptions\MonoEx.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Exceptions\UserNotFoundException.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Models\Admins\Finance\CashRegister.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Models\Admins\Finance\Expense.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Models\Admins\Finance\Income.java
@@ -54,6 +67,7 @@ D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\FrontSide\ProductFrontService.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\FrontSide\ReviewService.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\Management\BuyOrderService.java
+D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\Management\ImageUploadService.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\Management\IngredientService.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\Management\ProductService.java
 D:\Mathias\Proyectos\alimentos-mascotas\backend\alimentos-mascotas\src\main\java\com\taup\alimentos_mascotas\Services\Admins\Management\PurchaseOrderService.java

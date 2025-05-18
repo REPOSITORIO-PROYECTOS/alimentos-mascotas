@@ -6,6 +6,7 @@ import com.taup.alimentos_mascotas.Services.Admins.Management.IngredientService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -32,8 +33,8 @@ public class IngredientController {
 	}
 
 	@PostMapping("/guardar")
-	public Mono<ResponseEntity<Ingredient>> save(@RequestBody Ingredient ingredient){
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Ingredient>> save(Authentication auth, @RequestBody Ingredient ingredient){
+		String username = auth.getName();
 		return ingredientService.save(ingredient, username)
 				.map(savedIngredient -> ResponseEntity.status(HttpStatus.CREATED).body(savedIngredient))
 				.onErrorResume(error -> {
@@ -43,8 +44,8 @@ public class IngredientController {
 	}
 
 	@PutMapping("/editar/{ingredientId}")
-	public Mono<ResponseEntity<Ingredient>> update(@RequestBody Ingredient ingredient, @PathVariable String ingredientId){
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Ingredient>> update(Authentication auth, @RequestBody Ingredient ingredient, @PathVariable String ingredientId){
+		String username = auth.getName();
 		return ingredientService.update(ingredient, ingredientId,username)
 				.map(updatedIngredient -> ResponseEntity.status(HttpStatus.OK).body(updatedIngredient))
 				.onErrorResume(error -> {
@@ -54,8 +55,8 @@ public class IngredientController {
 	}
 
 	@PutMapping("/{ingredientId}/agregar-proveedor/{providerId}")
-	public Mono<ResponseEntity<Ingredient>> addProvider(@PathVariable String providerId, @PathVariable String ingredientId) {
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Ingredient>> addProvider(Authentication auth, @PathVariable String providerId, @PathVariable String ingredientId) {
+		String username = auth.getName();
 		return ingredientService.addProviderToIngredient(ingredientId, providerId)
 				.map(ingredient -> ResponseEntity.status(HttpStatus.OK).body(ingredient))
 				.onErrorResume((error -> {
@@ -65,8 +66,8 @@ public class IngredientController {
 	}
 
 	@PutMapping("/{ingredientId}/quitar-proveedor/{providerId}")
-	public Mono<ResponseEntity<Ingredient>> removeProvider(@PathVariable String providerId, @PathVariable String ingredientId) {
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Ingredient>> removeProvider(Authentication auth, @PathVariable String providerId, @PathVariable String ingredientId) {
+		String username = auth.getName();
 		return ingredientService.removeProviderToIngredient(ingredientId, providerId)
 				.map(ingredient -> ResponseEntity.status(HttpStatus.OK).body(ingredient))
 				.onErrorResume((error -> {
