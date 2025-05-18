@@ -252,6 +252,7 @@ const columns: ColumnDef<Item>[] = [
 
 export default function TableProducts() {
     const { user } = useAuthStore();
+    console.log("user", user);
     const fetcher = useCallback(
         (url: string) => {
             if (!user?.token) return Promise.reject("Token no disponible");
@@ -261,7 +262,7 @@ export default function TableProducts() {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${user.token}`,
+                    Authorization: `Bearer ${user?.token}`,
                 },
             })
                 .then((response) => {
