@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
 
             // Función de login
             login: async (
-                dni: string,
+                email: string,
                 password: string,
                 roles: "ROLE_ADMIN" | "ROLE_CLIENT"
             ) => {
@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ dni, password }),
+                            body: JSON.stringify({ email, password }),
                         }
                     );
 

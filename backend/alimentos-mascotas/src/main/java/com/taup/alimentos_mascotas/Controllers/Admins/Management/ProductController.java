@@ -34,11 +34,11 @@ public class ProductController {
 
 	@PostMapping("/guardar")
 	public Mono<Product> save(Authentication auth, 
-							  @RequestPart("product") ProductDTO productDTO, 
-                              @RequestPart("image") Mono<FilePart> image) {
+							  @RequestPart("product") ProductDTO productDTO 
+                            /*@RequestPart("image") Mono<FilePart> image*/) {
 		String username = auth.getName();
 		
-		return productService.save(productDTO, username , image);
+		return productService.save(productDTO, username);
 	}
 
 	@PutMapping("/editar/{id}")

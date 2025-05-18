@@ -47,76 +47,73 @@ public class ProductService {
 	}
 
 	@Transactional
-	// public Mono<Product> save(ProductDTO productDTO, String username, Mono<FilePart> image) {
+	public Mono<Product> save(ProductDTO productDTO, String username) {
 
-    // if (productDTO.getId() != null) {
-    //     return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
-    // }
-
-    // return imageUploadService.uploadImage(image, username)
-    //     .flatMap(imageUrl -> {
-	// 		Product product = new Product();
-	// 		product.setId(productDTO.getId());
-    //         product.setProductName(productDTO.getProductName());
-    //         product.setProductDescription(productDTO.getProductDescription());
-    //         product.setProductDetails(productDTO.getProductDetails());
-    //         product.setProductCode(productDTO.getProductCode());
-    //         product.setRecipeId(productDTO.getRecipeId());
-    //         product.setStock(productDTO.getStock());
-    //         product.setCostPrice(productDTO.getCostPrice());
-    //         product.setDiscountPercent(productDTO.getDiscountPercent());
-	// 		product.setReviewsIds(productDTO.getReviewsIds());
-	// 		product.setCategories(productDTO.getCategories());
-	// 		product.setSellingPrice(productDTO.getSellingPrice());
-	// 		product.setUpdatedAt(LocalDateTime.now());
-    //         product.setModifiedBy(username);
-    //         product.setImageUrl(imageUrl);  // Asignamos la URL de la imagen
-    //         product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
-    //         product.setCreatedBy(username);  // Establecemos el usuario creador
-
-
-    //         return productRepo.save(product);
-    //     });
-	// }
-
-	public Mono<Product> save(ProductDTO productDTO, String username, Mono<FilePart> image) {
     if (productDTO.getId() != null) {
         return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
     }
 
-    return image
-        .doOnNext(filePart -> {
-            // Verifica si el archivo está presente
-            if (filePart != null) {
-                System.out.println("Archivo recibido: " + filePart.filename());
-            } else {
-                System.out.println("No se ha recibido ningún archivo.");
-            }
-        })
-        .flatMap(filePart -> imageUploadService.uploadImage(filePart, username)) // Suponiendo que tu servicio espera un Mono<FilePart>
-        .flatMap(imageUrl -> {
-            Product product = new Product();
-            // Asignación de propiedades del producto
-            product.setProductName(productDTO.getProductName());
-            product.setProductDescription(productDTO.getProductDescription());
-            product.setProductDetails(productDTO.getProductDetails());
-            product.setProductCode(productDTO.getProductCode());
-            product.setRecipeId(productDTO.getRecipeId());
-            product.setStock(productDTO.getStock());
-            product.setCostPrice(productDTO.getCostPrice());
-            product.setDiscountPercent(productDTO.getDiscountPercent());
-            product.setReviewsIds(productDTO.getReviewsIds());
-            product.setCategories(productDTO.getCategories());
-            product.setSellingPrice(productDTO.getSellingPrice());
-            product.setUpdatedAt(LocalDateTime.now());
-            product.setModifiedBy(username);
-            product.setImageUrl(imageUrl);  // Asignamos la URL de la imagen
-            product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
-            product.setCreatedBy(username);  // Establecemos el usuario creador
+	Product product = new Product();
+	product.setId(productDTO.getId());
+	product.setProductName(productDTO.getProductName());
+	product.setProductDescription(productDTO.getProductDescription());
+	product.setProductDetails(productDTO.getProductDetails());
+	product.setProductCode(productDTO.getProductCode());
+	product.setRecipeId(productDTO.getRecipeId());
+	product.setStock(productDTO.getStock());
+	product.setCostPrice(productDTO.getCostPrice());
+	product.setDiscountPercent(productDTO.getDiscountPercent());
+	product.setReviewsIds(productDTO.getReviewsIds());
+	product.setCategories(productDTO.getCategories());
+	product.setSellingPrice(productDTO.getSellingPrice());
+	product.setUpdatedAt(LocalDateTime.now());
+	product.setModifiedBy(username);
+	product.setImageUrl("");  // Asignamos la URL de la imagen
+	product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
+	product.setCreatedBy(username);  // Establecemos el usuario creador
 
-            return productRepo.save(product);
-        });
-}
+    return productRepo.save(product);
+        
+	}
+
+// 	public Mono<Product> save(ProductDTO productDTO, String username, Mono<FilePart> image) {
+//     if (productDTO.getId() != null) {
+//         return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
+//     }
+
+//     return image
+//         .doOnNext(filePart -> {
+//             // Verifica si el archivo está presente
+//             if (filePart != null) {
+//                 System.out.println("Archivo recibido: " + filePart.filename());
+//             } else {
+//                 System.out.println("No se ha recibido ningún archivo.");
+//             }
+//         })
+//         .flatMap(filePart -> imageUploadService.uploadImage(filePart, username)) // Suponiendo que tu servicio espera un Mono<FilePart>
+//         .flatMap(imageUrl -> {
+//             Product product = new Product();
+//             // Asignación de propiedades del producto
+//             product.setProductName(productDTO.getProductName());
+//             product.setProductDescription(productDTO.getProductDescription());
+//             product.setProductDetails(productDTO.getProductDetails());
+//             product.setProductCode(productDTO.getProductCode());
+//             product.setRecipeId(productDTO.getRecipeId());
+//             product.setStock(productDTO.getStock());
+//             product.setCostPrice(productDTO.getCostPrice());
+//             product.setDiscountPercent(productDTO.getDiscountPercent());
+//             product.setReviewsIds(productDTO.getReviewsIds());
+//             product.setCategories(productDTO.getCategories());
+//             product.setSellingPrice(productDTO.getSellingPrice());
+//             product.setUpdatedAt(LocalDateTime.now());
+//             product.setModifiedBy(username);
+//             product.setImageUrl(imageUrl);  // Asignamos la URL de la imagen
+//             product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
+//             product.setCreatedBy(username);  // Establecemos el usuario creador
+
+//             return productRepo.save(product);
+//         });
+// }
 
 
 	@Transactional
