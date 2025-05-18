@@ -4,14 +4,14 @@ import com.taup.alimentos_mascotas.DTO.PagedResponse;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Recipe;
 import com.taup.alimentos_mascotas.Services.Admins.Management.RecipeService;
 import lombok.AllArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/recetas")
@@ -34,8 +34,8 @@ public class RecipeController {
 	}
 
 	@PostMapping("/guardar")
-	public Mono<ResponseEntity<Recipe>> save(@RequestBody Recipe recipe){
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Recipe>> save(Authentication auth, @RequestBody Recipe recipe){
+		String username = auth.getName();
 		return recipeService.save(recipe, username)
 				.map(savedRecipe -> ResponseEntity.status(HttpStatus.CREATED).body(savedRecipe))
 				.onErrorResume(error -> {
@@ -45,8 +45,8 @@ public class RecipeController {
 	}
 
 	@PutMapping("/editar/{recipeId}")
-	public Mono<ResponseEntity<Recipe>> update(@RequestBody Recipe recipe, @PathVariable String recipeId){
-		String username = "ADMIN";
+	public Mono<ResponseEntity<Recipe>> update(Authentication auth, @RequestBody Recipe recipe, @PathVariable String recipeId){
+		String username = auth.getName();
 		return recipeService.update(recipe, recipeId, username)
 				.map(updatedRecipe -> ResponseEntity.status(HttpStatus.OK).body(updatedRecipe))
 				.onErrorResume(error -> {
@@ -57,9 +57,9 @@ public class RecipeController {
 
 
 	@PutMapping("/{recipeId}/agregar-proveedor/{productId}")
-	public Mono<ResponseEntity<Recipe>> addProvider(@PathVariable String productId, @PathVariable String recipeId) {
-		String username = "ADMIN";
-		return recipeService.addProductToRecipe(recipeId, productId)
+	public Mono<ResponseEntity<Recipe>> addProvider(Authentication auth, @PathVariable String productId, @PathVariable String recipeId) {
+		String username = auth.getName();
+		return recipeService.addProductToRecipe(recipeId, productId, username)
 				.map(ingredient -> ResponseEntity.status(HttpStatus.OK).body(ingredient))
 				.onErrorResume((error -> {
 					System.err.println("Error al guardar el ingrediente: " + error.getMessage());
@@ -68,9 +68,9 @@ public class RecipeController {
 	}
 
 	@PutMapping("/{recipeId}/quitar-proveedor/{productId}")
-	public Mono<ResponseEntity<Recipe>> removeProvider(@PathVariable String productId, @PathVariable String recipeId) {
-		String username = "ADMIN";
-		return recipeService.removeProductFromRecipe(recipeId, productId)
+	public Mono<ResponseEntity<Recipe>> removeProvider(Authentication auth, @PathVariable String productId, @PathVariable String recipeId) {
+		String username = auth.getName();
+		return recipeService.removeProductFromRecipe(recipeId, productId, username)
 				.map(ingredient -> ResponseEntity.status(HttpStatus.OK).body(ingredient))
 				.onErrorResume((error -> {
 					System.err.println("Error al guardar el ingrediente: " + error.getMessage());

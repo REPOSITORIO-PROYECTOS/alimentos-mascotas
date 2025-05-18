@@ -1,9 +1,12 @@
 package com.taup.alimentos_mascotas.Controllers.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
+import com.taup.alimentos_mascotas.DTO.ProductDTO;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
 import com.taup.alimentos_mascotas.Services.Admins.Management.ProductService;
 import lombok.AllArgsConstructor;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,15 +32,15 @@ public class ProductController {
 	}
 
 	@PostMapping("/guardar")
-	public Mono<Product> save(@RequestBody Product product) {
-		String username = "ADMIN";
+	public Mono<Product> save(Authentication auth, @RequestBody ProductDTO productDTO) {
+		String username = auth.getName();
 
-		return productService.save(product, username);
+		return productService.save(productDTO, username);
 	}
 
 	@PutMapping("/editar/{id}")
-	public Mono<Product> update(@PathVariable String productId, @RequestBody Product product) {
-		String username = "ADMIN";
+	public Mono<Product> update(Authentication auth, @PathVariable String productId, @RequestBody Product product) {
+		String username = auth.getName();
 
 		return productService.update(product, productId, username);
 	}

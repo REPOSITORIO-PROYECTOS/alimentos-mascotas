@@ -5,6 +5,7 @@ import com.taup.alimentos_mascotas.Models.Admins.Management.WorkOrder;
 import com.taup.alimentos_mascotas.Services.Admins.Management.WorkOrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,15 +33,15 @@ public class WorkOrderController {
 	}
 
 	@PostMapping("/guardar")
-	public Mono<WorkOrder> save(@RequestBody WorkOrder workOrder) {
-		String username = "ADMIN";
+	public Mono<WorkOrder> save(Authentication auth, @RequestBody WorkOrder workOrder) {
+		String username = auth.getName();
 
 		return workOrderService.save(workOrder, username);
 	}
 
 	@PutMapping("/editar/{id}")
-	public Mono<WorkOrder> update(@PathVariable String workOrderId, @RequestBody WorkOrder workOrder) {
-		String username = "ADMIN";
+	public Mono<WorkOrder> update(Authentication auth, @PathVariable String workOrderId, @RequestBody WorkOrder workOrder) {
+		String username = auth.getName();
 
 		return workOrderService.update(workOrder, workOrderId, username);
 	}

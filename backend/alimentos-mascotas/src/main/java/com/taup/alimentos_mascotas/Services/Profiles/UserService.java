@@ -2,6 +2,7 @@ package com.taup.alimentos_mascotas.Services.Profiles;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
 import com.taup.alimentos_mascotas.DTO.UserInfo;
+import com.taup.alimentos_mascotas.Models.Profiles.User;
 import com.taup.alimentos_mascotas.Repositories.Devs.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -49,11 +50,11 @@ public class UserService {
 		return userRepository.findById(id).map(UserInfo::new);
 	}
 
-	public Mono<String> getFullName(String email) {
+	public Mono<User> getFullName(String email) {
 		return userRepository.findByEmail(email)
 				.switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,
 						"No se encontró el usuario: " + email)))
-				.map(user -> user.getName() + " " + user.getSurname());
+				.map(user -> user);
 	}
 
 }

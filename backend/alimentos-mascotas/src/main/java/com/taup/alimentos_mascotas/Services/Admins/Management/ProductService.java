@@ -1,6 +1,7 @@
 package com.taup.alimentos_mascotas.Services.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
+import com.taup.alimentos_mascotas.DTO.ProductDTO;
 import com.taup.alimentos_mascotas.Exceptions.MonoEx;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.ProductRepository;
@@ -8,11 +9,15 @@ import com.taup.alimentos_mascotas.Repositories.Admins.Management.RecipeReposito
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +28,7 @@ public class ProductService {
 	
 	private final ProductRepository productRepo;
 	private final RecipeRepository recipeRepo;
+	private final ImageUploadService imageUploadService;
 
 	@Transactional(readOnly = true)
 	public Mono<PagedResponse<Product>> listAllPaged(int page, int size, String keyword) {
@@ -41,15 +47,36 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Mono<Product> save(Product product, String username){
-		if(product.getId()!=null){
-			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo");
-		}
+	public Mono<Product> save(ProductDTO productDTO, String username) {
 
-		product.setCreatedAt(LocalDateTime.now());
-		product.setCreatedBy(username);
+    if (productDTO.getId() != null) {
+        return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
+    }
 
-		return productRepo.save(product);
+    return imageUploadService.uploadImage(productDTO.getImage(), username)
+        .flatMap(imageUrl -> {
+			Product product = new Product();
+			product.setId(productDTO.getId());
+            product.setProductName(productDTO.getProductName());
+            product.setProductDescription(productDTO.getProductDescription());
+            product.setProductDetails(productDTO.getProductDetails());
+            product.setProductCode(productDTO.getProductCode());
+            product.setRecipeId(productDTO.getRecipeId());
+            product.setStock(productDTO.getStock());
+            product.setCostPrice(productDTO.getCostPrice());
+            product.setDiscountPercent(productDTO.getDiscountPercent());
+			product.setReviewsIds(productDTO.getReviewsIds());
+			product.setCategories(productDTO.getCategories());
+			product.setSellingPrice(productDTO.getSellingPrice());
+			product.setUpdatedAt(LocalDateTime.now());
+            product.setModifiedBy(username);
+            product.setImageUrl(imageUrl);  // Asignamos la URL de la imagen
+            product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
+            product.setCreatedBy(username);  // Establecemos el usuario creador
+
+
+            return productRepo.save(product);
+        });
 	}
 
 	@Transactional

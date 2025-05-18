@@ -8,22 +8,36 @@ import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
+import com.taup.alimentos_mascotas.DTO.CartItemDTO;
 import com.taup.alimentos_mascotas.DTO.CartRequestDTO;
+import com.taup.alimentos_mascotas.Models.Admins.Management.BuyOrder;
+import com.taup.alimentos_mascotas.Services.Admins.Management.BuyOrderService;
+import com.taup.alimentos_mascotas.Utils.OrderStatus;
+
+import lombok.AllArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/mercadopago")
+@AllArgsConstructor
 public class MercadoPagoController {
+
+    private final BuyOrderService buyOrderService;
 
     @PostMapping("/pago")
     public String mercadopagoPayment(@RequestBody CartRequestDTO cartRequestDTO) throws MPException, MPApiException {
-        MercadoPagoConfig.setAccessToken("TEST-722495920164756-030515-fdf7ee0f93f17da1bdd65163d0b6ec09-264392580");
+        MercadoPagoConfig.setAccessToken("TEST-3775450885913617-050817-1ee12bd5595bb56af9e92bccbfddaddf-627477256");
 
         // Construir las URLs de retorno
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
@@ -110,35 +124,117 @@ public class MercadoPagoController {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Pago fallido, intente nuevamente.");
     }
-
+    
     @PostMapping("/notificaciones")
-    public ResponseEntity<String> handleNotification(@RequestBody Map<String, Object> payload) {
-        // Extraer datos del payload
-        String action = (String) payload.get("action");
-        Map<String, Object> data = (Map<String, Object>) payload.get("data");
+public ResponseEntity<String> handleNotification(@RequestBody Map<String, Object> payload) {
+    // Extraer datos del payload
+    String action = (String) payload.get("action");
+    Map<String, Object> data = (Map<String, Object>) payload.get("data");
 
-        if (action != null && data != null) {
-            String paymentId = (String) data.get("id");
-            String status = (String) data.get("status");
-            String externalReference = (String) data.get("external_reference");
+    if (action != null && data != null) {
+        String paymentId = (String) data.get("id");
+        String status = (String) data.get("status");
+        String paymentReference = (String) data.get("external_reference");
 
-            // Solo procesar si el pago fue aprobado
-            if ("payment.updated".equals(action)) {
-                // Recuperar el carrito de compra usando el externalReference
-                // (Aquí deberías tener una lógica para recuperar el carrito asociado al externalReference)
-                CartRequestDTO carrito = recuperarCarritoPorExternalReference(externalReference);
+        // Solo procesar si el pago fue aprobado
+        if ("payment.updated".equals(action) && "approved".equals(status)) {
+            // Aquí obtenemos los detalles de los items directamente desde el payload
+            List<Map<String, Object>> items = (List<Map<String, Object>>) data.get("items");
+            if (items != null && !items.isEmpty()) {
+                // Convertir los items en CartItemDTO
+                List<CartItemDTO> productos = new ArrayList<>();
+                BigDecimal totalAmount = BigDecimal.ZERO;
 
-                if (carrito != null) {
-                    //TODO:
-                    // Guardar la compra en la base de datos
+                for (Map<String, Object> item : items) {
+                    // Extraer los detalles de cada ítem
+                    String itemId = (String) item.get("id");
+                    String itemTitle = (String) item.get("title");
+                    String itemDescription = (String) item.get("description");
+                    String itemPictureUrl = (String) item.get("picture_url");
+                    String itemCategoryId = (String) item.get("category_id");
+                    int itemQuantity = ((Double) item.get("quantity")).intValue();
+                    String itemCurrencyId = (String) item.get("currency_id");
+                    BigDecimal itemUnitPrice = new BigDecimal((Double) item.get("unit_price"));
 
-                    return ResponseEntity.ok("Compra registrada exitosamente");
+                    // Agregar el ítem a la lista
+                    CartItemDTO cartItem = new CartItemDTO();
+                    cartItem.setId(itemId);
+                    cartItem.setTitle(itemTitle);
+                    cartItem.setDescription(itemDescription);
+                    cartItem.setPictureUrl(itemPictureUrl);
+                    cartItem.setCategoryId(itemCategoryId);
+                    cartItem.setQuantity(itemQuantity);
+                    cartItem.setCurrencyId(itemCurrencyId);
+                    cartItem.setUnitPrice(itemUnitPrice);
+
+                    // Agregar al total
+                    totalAmount = totalAmount.add(itemUnitPrice.multiply(BigDecimal.valueOf(itemQuantity)));
+
+                    productos.add(cartItem);
                 }
+
+                // Crear un nuevo pedido (BuyOrder) con los detalles del pago y los ítems
+                BuyOrder buyOrder = new BuyOrder();
+                buyOrder.setId(paymentId);  // ID del pago
+                buyOrder.setTotalAmount(totalAmount);  // Monto total de la compra
+                buyOrder.setIsPaid(true);  // El pago fue aprobado
+                buyOrder.setProducts(this.mapItemsToProductsMap(productos));  // Mapa de productos
+                buyOrder.setPaymentReference(paymentReference);  // Referencia de pago
+                buyOrder.setOrderDate(LocalDateTime.now());  // Fecha de creación del pedido
+                buyOrder.setStatus(OrderStatus.COMPLETED);  // Estado del pedido (PAGADO)
+                buyOrder.setShippingMethod("Standard");  // Método de envío (esto puede cambiar)
+                buyOrder.setEstimatedDeliveryDate(LocalDateTime.now().plusDays(7));  // Fecha estimada de entrega (puedes ajustar esto)
+                buyOrder.setDiscountAmount(BigDecimal.ZERO);  // Sin descuento (puedes ajustarlo)
+                buyOrder.setCouponCode("");  // Código de cupón (puedes ajustarlo)
+                buyOrder.setCustomerId("customerId_placeholder");  // ID del cliente (debes proporcionarlo)
+                buyOrder.setCustomerNotes("No hay notas del cliente");  // Notas del cliente (puedes ajustarlo)
+
+                // Guardar el pedido en la base de datos
+                buyOrder.setCreatedAt(LocalDateTime.now());
+                buyOrder.setCreatedBy("admin");  // Este es un ejemplo, ajusta según tu lógica
+                buyOrder.setModifiedBy("admin");  // Este es un ejemplo, ajusta según tu lógica
+
+                // Llamar al servicio de compras para guardar el pedido
+                buyOrderService.save(buyOrder, "Cliente");
+
+                return ResponseEntity.ok("Compra registrada exitosamente");
             }
         }
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Notificación no procesada");
     }
+
+    // Si la notificación no fue procesada correctamente
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Notificación no procesada");
+}
+
+
+    // @PostMapping("/notificaciones")
+    // public ResponseEntity<String> handleNotification(@RequestBody Map<String, Object> payload) {
+    //     // Extraer datos del payload
+    //     String action = (String) payload.get("action");
+    //     Map<String, Object> data = (Map<String, Object>) payload.get("data");
+
+    //     if (action != null && data != null) {
+    //         String paymentId = (String) data.get("id");
+    //         String status = (String) data.get("status");
+    //         String externalReference = (String) data.get("external_reference");
+
+    //         // Solo procesar si el pago fue aprobado
+    //         if ("payment.updated".equals(action)) {
+    //             // Recuperar el carrito de compra usando el externalReference
+    //             // (Aquí deberías tener una lógica para recuperar el carrito asociado al externalReference)
+    //             CartRequestDTO carrito = recuperarCarritoPorExternalReference(externalReference);
+
+    //             if (carrito != null) {
+    //                 //TODO:
+    //                 // Guardar la compra en la base de datos
+
+    //                 return ResponseEntity.ok("Compra registrada exitosamente");
+    //             }
+    //         }
+    //     }
+
+    //     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Notificación no procesada");
+    // }
 
     private CartRequestDTO recuperarCarritoPorExternalReference(String externalReference) {
         //TODO:
@@ -146,4 +242,14 @@ public class MercadoPagoController {
         // (usar una base de datos en memoria, Redis, o cualquier otro almacenamiento temporal)
         return null;
     }
+
+    // Método auxiliar para convertir los ítems de CartItemDTO a Map<String, Number>
+    private Map<String, Number> mapItemsToProductsMap(List<CartItemDTO> items) {
+        Map<String, Number> productsMap = new HashMap<>();
+        for (CartItemDTO item : items) {
+            productsMap.put(item.getId(), item.getQuantity());
+        }
+        return productsMap;
+    }
+
 }

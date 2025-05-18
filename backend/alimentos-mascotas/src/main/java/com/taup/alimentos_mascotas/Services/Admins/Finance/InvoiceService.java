@@ -62,7 +62,7 @@ public class InvoiceService {
 
 					invoice.setPaidAmount(0.0);
 					invoice.setCreatedAt(LocalDateTime.now());
-					invoice.setCreatedBy(name);
+					invoice.setCreatedBy(name.getName() + " " + name.getSurname());
 
 					return invoiceRepo.save(invoice);
 				});
@@ -78,7 +78,7 @@ public class InvoiceService {
 				.flatMap(name -> {
 					return invoiceRepo.findById(invoiceId)
 							.flatMap(existingInvoice -> {
-								return invoiceRepo.save(mappingInvoiceToUpdate(existingInvoice, invoice, name));
+								return invoiceRepo.save(mappingInvoiceToUpdate(existingInvoice, invoice, name.getName() + " " + name.getSurname()));
 							});
 				});
 
@@ -108,7 +108,7 @@ public class InvoiceService {
 												existingInvoice.setPaidAmount(existingInvoice.getPaidAmount() + invoice.getPaidAmount());
 												existingInvoice.setLastPaymentDate(LocalDateTime.now());
 												existingInvoice.setUpdatedAt(LocalDateTime.now());
-												existingInvoice.setModifiedBy(name);
+												existingInvoice.setModifiedBy(name.getName() + " " + name.getSurname());
 
 												existingInvoice.setHasDebt(existingInvoice.getPaidAmount() < existingInvoice.getDueAmount());
 												existingInvoice.setIsPaid(existingInvoice.getPaidAmount() >= existingInvoice.getDueAmount());
