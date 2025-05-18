@@ -34,33 +34,33 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { useAuthStore } from "@/context/store";
 
-// const isFileListDefined = typeof FileList !== "undefined";
+const isFileListDefined = typeof FileList !== "undefined";
 
-// const imageSchema = isFileListDefined
-//     ? z
-//           .instanceof(FileList)
-//           .refine((files) => files.length > 0, {
-//               message: "Debe seleccionar un archivo de imagen.",
-//           })
-//           .refine(
-//               (files) => {
-//                   const validTypes = [
-//                       "image/jpeg",
-//                       "image/png",
-//                       "image/jpg",
-//                       "image/webp",
-//                   ];
-//                   return validTypes.includes(files[0]?.type);
-//               },
-//               {
-//                   message:
-//                       "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
-//               }
-//           )
-//           .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
-//               message: "El tamaño de la imagen no debe exceder los 5MB.",
-//           })
-//     : z.any();
+const imageSchema = isFileListDefined
+    ? z
+          .instanceof(FileList)
+          .refine((files) => files.length > 0, {
+              message: "Debe seleccionar un archivo de imagen.",
+          })
+          .refine(
+              (files) => {
+                  const validTypes = [
+                      "image/jpeg",
+                      "image/png",
+                      "image/jpg",
+                      "image/webp",
+                  ];
+                  return validTypes.includes(files[0]?.type);
+              },
+              {
+                  message:
+                      "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+              }
+          )
+          .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
+              message: "El tamaño de la imagen no debe exceder los 5MB.",
+          })
+    : z.any();
 
 const formSchema = z.object({
     productName: z.string().min(2, {
@@ -154,43 +154,43 @@ export default function ProductForm({
     async function onSubmit(dataForm: z.infer<typeof formSchema>) {
         const formDataObj = new FormData();
 
-        // Crear el objeto de producto para enviar como JSON
-        const productData = {
-            productName: dataForm.productName,
-            productDescription: dataForm.productDescription,
-            productDetails: dataForm.productDetails,
-            sellingPrice: dataForm.sellingPrice,
-            costPrice: dataForm.costPrice,
-            stock: dataForm.stock,
-            discountPercent: dataForm.discountPercent || 0,
-            categories: dataForm.categories,
-        };
-
-        // Agregar campos existentes si es edición
-        if (isEditable && datos) {
-            Object.assign(productData, {
-                id: datos.id,
-                productCode: datos.productCode,
-                recipeId: datos.recipeId,
-                reviewsIds: datos.reviewsIds,
-            });
-
-            // Si no hay nueva imagen y hay una imagen existente
-            // if (
-            //     (!dataForm.imageUrl || dataForm.imageUrl.length === 0) &&
-            //     datos.imageUrl
-            // ) {
-            //     Object.assign(productData, { imageUrl: datos.imageUrl });
-            // }
-        }
-
-        // Agregar el objeto producto como JSON
-        formDataObj.append("product", JSON.stringify(productData));
-
-        // Agregar la imagen si existe
+        // // Agregar la imagen si existe
         // if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
         //     formDataObj.append("image", dataForm.imageUrl[0]);
         // }
+
+        // Agregar el resto de campos
+        formDataObj.append("productName", dataForm.productName);
+        formDataObj.append("productDescription", dataForm.productDescription);
+        formDataObj.append("productDetails", dataForm.productDetails);
+        formDataObj.append("sellingPrice", dataForm.sellingPrice.toString());
+        formDataObj.append("stock", dataForm.stock.toString());
+        formDataObj.append("costPrice", dataForm.costPrice.toString());
+        formDataObj.append(
+            "discountPercent",
+            dataForm.discountPercent?.toString() || "0"
+        );
+
+        // Agregar categorías como un array JSON
+        formDataObj.append("categories", JSON.stringify(dataForm.categories));
+
+        // Agregar campos existentes si es edición
+        if (isEditable && datos) {
+            formDataObj.append("id", datos.id);
+            if (datos.productCode)
+                formDataObj.append("productCode", datos.productCode);
+            if (datos.recipeId) formDataObj.append("recipeId", datos.recipeId);
+            if (datos.reviewsIds)
+                formDataObj.append(
+                    "reviewsIds",
+                    JSON.stringify(datos.reviewsIds)
+                );
+            // // No agregamos imageUrl existente porque ya estamos enviando el archivo nuevo
+            // if (!dataForm.imageUrl || dataForm.imageUrl.length === 0) {
+            //     if (datos.imageUrl)
+            //         formDataObj.append("imageUrl", datos.imageUrl);
+            // }
+        }
 
         startLoading();
         try {
