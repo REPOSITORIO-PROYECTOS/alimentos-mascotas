@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+    const pathname = usePathname();
+
+    // No renderizar el Header en rutas de admin
+    if (pathname === "/admin" || pathname?.startsWith("/admin/")) {
+        return null;
+    }
     return (
         <footer className="border-t mt-20">
             <div className="container mx-auto px-4 py-12">
