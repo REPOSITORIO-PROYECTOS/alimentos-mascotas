@@ -122,7 +122,7 @@ export default function Hero() {
                         <div className="grid grid-cols-[4.8rem_5.625rem_10.75rem] grid-rows-[9.3rem_8.68rem_1.125rem_3.875rem] gap-[0.625rem] sm:grid-cols-[5.3rem_6.25rem_12rem] sm:grid-rows-[10.3rem_9.625rem_1.25rem_4.3rem] sm:gap-[0.8rem] xl:grid-cols-[_8.5rem_10rem_19.3rem] xl:grid-rows-[16.625rem_15.5rem_1.375rem_6.9rem] xl:gap-[1.25rem]">
                             <div className="col-[2_/_-1] overflow-hidden rounded-3xl bg-blue-200">
                                 <img
-                                    src="/placeholder.svg"
+                                    src="/images/hero/products-hero.webp"
                                     alt=""
                                     className="size-full object-cover object-center"
                                 />
@@ -150,7 +150,7 @@ export default function Hero() {
                                 <div className="p-5 xl:p-7">
                                     <div className="">
                                         <img
-                                            src="/hero/untitled.svg"
+                                            src="/images/hero/untitled.svg"
                                             alt="100% Natural"
                                         />
                                     </div>
@@ -167,7 +167,7 @@ export default function Hero() {
                             </div>
                             <div className="col-[2_/_3] row-[-3_/-1] flex h-full w-full items-center justify-center overflow-hidden rounded-3xl">
                                 <img
-                                    src="/hero/Recurso 1.svg"
+                                    src="/images/hero/Recurso 1.svg"
                                     alt="Isologo"
                                     className="mx-auto size-16 xl:size-36"
                                 />
@@ -175,7 +175,7 @@ export default function Hero() {
                             <div className="relative col-[3_/_4] row-[2_/_4] rounded-3xl bg-muted">
                                 <div className="h-full w-full overflow-hidden rounded-3xl">
                                     <img
-                                        src="/placeholder.svg"
+                                        src="/images/hero/products-hero-2.webp"
                                         alt=""
                                         className="size-full object-cover object-center"
                                     />
