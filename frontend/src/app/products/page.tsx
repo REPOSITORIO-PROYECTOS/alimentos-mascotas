@@ -173,7 +173,7 @@ export default function ProductsPage() {
     ];
 
     return (
-        <div className="container mx-auto px-4 py-20">
+        <div className="container relative mx-auto px-4 py-20">
             {/* Banner de estadísticas */}
             <div className="bg-amber-400 rounded-lg p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -417,6 +417,20 @@ export default function ProductsPage() {
                     </Pagination>
                 </div>
             )}
+            {/* Decorative paw prints */}
+            {[...Array(16)].map((_, i) => (
+                <div
+                    key={i}
+                    className="absolute z-0 w-16 h-16 opacity-20"
+                    style={{
+                        top: `${Math.random() * 200}%`,
+                        left: `${Math.random() * 100}%`,
+                        transform: `rotate(${Math.random() * 360}deg)`,
+                    }}
+                >
+                    <img src="/favicon.svg" alt="logo" />
+                </div>
+            ))}
         </div>
     );
 }
