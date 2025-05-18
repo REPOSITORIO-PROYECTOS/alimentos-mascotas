@@ -923,7 +923,7 @@ const RowActions = React.memo(({ row }: { row: Row<Item> }) => {
                         productName: row.original.productName,
                         productDescription: row.original.productDescription,
                         productDetails: row.original.productDetails || "",
-                        imageUrl: row.original.imageUrl,
+                        // imageUrl: row.original.imageUrl,
                         sellingPrice: row.original.sellingPrice,
                         stock: row.original.stock,
                         discountPercent: row.original.discountPercent,
