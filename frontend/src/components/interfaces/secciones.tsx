@@ -1,58 +1,36 @@
 import React from "react";
 import { Card, CardContent } from "../ui/card";
-import { Infinity, Laptop, Zap, ZoomIn } from "lucide-react";
+import { Bone, LeafyGreen, Plus } from "lucide-react";
 
 const values = [
     {
-        title: "Alimento Húmedo",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
-        image: "/placeholder.svg",
-    },
-    {
-        title: "Snacks Deshidratados",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
-        image: "/placeholder.svg",
-    },
-    {
-        title: "Snacks Congelados",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
-        image: "/placeholder.svg",
-    },
-    {
-        title: "Suplementos Nutricionales",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit.",
-        image: "/placeholder.svg",
-    },
-];
-
-const features = [
-    {
-        title: "Alimento Húmedo",
+        title: "Snacks deshidratados",
         description:
-            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe est aliquid exercitationem, quos explicabo repellat",
-        icon: Infinity,
+            "Snacks 100% naturales para cuidar su salud, premiarlos y darles amor",
+        extendeDescription:
+            "La dieta ideal para sumar sabor, nutrientes y proteínas a la alimentación diaria de tu peludo. Con ingredientes frescos y naturales, pensada para que disfrute mientras cuida su salud.",
+        image: "/images/sections/snacks-deshidratados.webp",
+        icon: LeafyGreen,
         variant: "default",
     },
     {
-        title: "Snacks Deshidratados",
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe est aliquid exercitationem, quos explicabo repellat",
-        icon: Laptop,
+        title: "Suplementos",
+        description: "Nutrición extra para acompañar cada etapa de su vida.",
+        extendeDescription:
+            "Snacks 100% naturales, saludables sin aditivos, solo ingredientes reales. Perfectos para premiar y entrenar a tu peludo.",
+        image: "/images/sections/suplemento.webp",
+        icon: Bone,
         variant: "muted",
     },
     {
-        title: "Snacks Congelados",
+        title: "Alimentación natural",
         description:
-            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe est aliquid exercitationem, quos explicabo repellat",
-        icon: Zap,
+            "Dieta preparada con alimentos 100% naturales, Frescura y nutrientes reales en cada bocado",
+        extendeDescription:
+            "Apoyo extra para su salud diaria con productos sin químicos, ni conservantes. Para fortalecer sus huesos y su energía.",
+        image: "/images/sections/alimentacion-natural.webp",
+        icon: Plus,
         variant: "default",
-    },
-    {
-        title: "Suplementos Nutricionales",
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe est aliquid exercitationem, quos explicabo repellat",
-        icon: ZoomIn,
-        variant: "muted",
     },
 ];
 
@@ -60,9 +38,8 @@ export default function Secciones() {
     return (
         <section className="py-32">
             <div className="container mx-auto px-4">
-                <h2 className="text-4xl font-sans font-semibold">
+                <h2 className="text-4xl text-primary font-sans font-semibold">
                     Nuestras categorias
-                    <span className="text-primary">.</span>
                 </h2>
 
                 <div className="mt-12 grid grid-cols-1 gap-10 sm:grid-cols-2">
@@ -88,7 +65,7 @@ export default function Secciones() {
                 </div>
 
                 <div className="mt-12 space-y-4">
-                    {features.map((feature, index) => {
+                    {values.map((feature, index) => {
                         const Icon = feature.icon;
                         return (
                             <Card
@@ -107,7 +84,7 @@ export default function Secciones() {
                                         </p>
                                     </div>
                                     <p className="w-full text-base text-muted-foreground">
-                                        {feature.description}
+                                        {feature.extendeDescription}
                                     </p>
                                 </CardContent>
                             </Card>
