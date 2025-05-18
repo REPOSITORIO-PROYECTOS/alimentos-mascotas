@@ -11,14 +11,14 @@ export default function FAQPage() {
     return (
         <div>
             {/* Hero Section */}
-            <div className="relative bg-amber-400 overflow-hidden">
-                <div className="container mx-auto px-4 py-24 relative">
+            <div className="relative bg-primary overflow-hidden">
+                <div className="container relative z-10 mx-auto px-4 py-24">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
                         <div className="text-white">
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">
                                 Sumá a tu peludo al
                                 <br />
-                                <span className="text-5xl md:text-6xl block mt-2">
+                                <span className="text-5xl font-sans md:text-6xl block mt-2 mb-10">
                                     BARKER TEAM
                                 </span>
                             </h1>
@@ -27,13 +27,13 @@ export default function FAQPage() {
                                 <br />
                                 animales reales
                             </p>
-                            <div className="inline-block bg-white/20 backdrop-blur-xs rounded-full px-6 py-2">
+                            <div className="inline-block bg-white/20 backdrop-blur-xs rounded-full px-19 py-4">
                                 <Image
-                                    src="/placeholder.svg?height=50&width=150"
+                                    src="/images/logo.webp"
                                     alt="100% Natural"
                                     width={150}
                                     height={50}
-                                    className="h-12 w-auto"
+                                    className="h-28 w-auto"
                                 />
                             </div>
                         </div>
@@ -57,12 +57,6 @@ export default function FAQPage() {
                                     </div>
                                 ))}
                             </div>
-                            <button className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg">
-                                <ChevronLeft className="h-6 w-6 text-amber-600" />
-                            </button>
-                            <button className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg">
-                                <ChevronRight className="h-6 w-6 text-amber-600" />
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -70,14 +64,14 @@ export default function FAQPage() {
                 {[...Array(16)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-16 h-16 opacity-20"
+                        className="absolute z-0 w-16 h-16 opacity-20"
                         style={{
                             top: `${Math.random() * 100}%`,
                             left: `${Math.random() * 100}%`,
                             transform: `rotate(${Math.random() * 360}deg)`,
                         }}
                     >
-                        🐾
+                        <img src="/favicon.svg" alt="logo" />
                     </div>
                 ))}
             </div>
