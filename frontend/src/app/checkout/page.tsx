@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuthStore } from "@/context/store";
+import { calcularCostoEnvio } from "@/lib/shipping-costs";
 
 // Form schema using Zod
 const formSchema = z.object({
@@ -54,13 +55,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CheckoutPage() {
-    const { items, totalPrice, clearCart } = useCartStore();
-    const { user } = useAuthStore();
+    const { items, totalPrice, clearCart } = useCartStore();    const { user } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
-    const router = useRouter();
-
-    const form = useForm<FormValues>({
+    const [shippingCost, setShippingCost] = useState(0);
+    const router = useRouter();    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "",
@@ -74,6 +73,12 @@ export default function CheckoutPage() {
         },
     });
 
+    // Función para actualizar el costo de envío cuando cambia el código postal
+    const handleZipCodeChange = (zipCode: string) => {
+        const cost = calcularCostoEnvio(zipCode);
+        setShippingCost(cost);
+    };
+
     const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true);
 
@@ -82,8 +87,7 @@ export default function CheckoutPage() {
             await new Promise((resolve) => setTimeout(resolve, 1500));
             const response = await fetch(
                 `https://barker.sistemataup.online/api/mercadopago/pago`,
-                {
-                    body: JSON.stringify({
+                {                    body: JSON.stringify({
                         items: items.map((item) => ({
                             id: item.id,
                             title: item.productName,
@@ -100,6 +104,17 @@ export default function CheckoutPage() {
                                       100
                                     : 0),
                         })),
+                        shippingCost: shippingCost,
+                        shippingInfo: {
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            email: data.email,
+                            phone: data.phone,
+                            address: data.address,
+                            city: data.city,
+                            state: data.state,
+                            zipCode: data.zipCode
+                        }
                     }),
                     method: "POST",
                     headers: {
@@ -132,12 +147,11 @@ export default function CheckoutPage() {
                 }
             } catch (error) {
                 console.error("Error parsing JSON response:", responseData);
-            }
-
-            console.log("Order submitted:", {
+            }            console.log("Order submitted:", {
                 customerInfo: data,
                 items: items,
-                totalAmount: totalPrice,
+                totalAmount: totalPrice + shippingCost,
+                shippingCost: shippingCost
             });
         } catch (error) {
             console.error("Error processing order:", error);
@@ -333,8 +347,7 @@ export default function CheckoutPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    />
-                                    <FormField
+                                    />                                    <FormField
                                         control={form.control}
                                         name="zipCode"
                                         render={({ field }) => (
@@ -346,6 +359,10 @@ export default function CheckoutPage() {
                                                     <Input
                                                         placeholder="Código postal"
                                                         {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(e);
+                                                            handleZipCodeChange(e.target.value);
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -428,19 +445,22 @@ export default function CheckoutPage() {
 
                             <Separator className="my-4" />
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
+                            <div className="space-y-2">                                <div className="flex justify-between text-sm">
                                     <span>Subtotal</span>
                                     <span>${totalPrice.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Envío</span>
-                                    <span>Gratis</span>
+                                    {shippingCost > 0 ? (
+                                        <span>${shippingCost.toFixed(2)}</span>
+                                    ) : (
+                                        <span>Ingresa código postal</span>
+                                    )}
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex justify-between font-semibold">
                                     <span>Total</span>
-                                    <span>${totalPrice.toFixed(2)}</span>
+                                    <span>${(totalPrice + shippingCost).toFixed(2)}</span>
                                 </div>
                             </div>
 
