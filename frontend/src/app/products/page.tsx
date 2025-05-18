@@ -183,7 +183,7 @@ export default function ProductsPage() {
 
     return (
         <section>
-            <div className="container relative z-10 mx-auto px-4 py-20">
+            <div className="container relative z-10 mx-auto px-4 py-20 overflow-hidden">
                 {/* Banner de estadísticas */}
                 <div className="bg-amber-400 rounded-lg p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
