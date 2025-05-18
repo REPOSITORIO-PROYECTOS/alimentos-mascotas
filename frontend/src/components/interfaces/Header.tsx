@@ -1,16 +1,30 @@
-import { Search, ShoppingCart } from "lucide-react";
+"use client";
+
 import { Link } from "next-view-transitions";
+import { usePathname } from "next/navigation";
 import React from "react";
+import { CartButton } from "../cart-button";
 
 export default function Header() {
+    const pathname = usePathname();
+
+    // No renderizar el Header en rutas de admin
+    if (pathname === "/admin" || pathname?.startsWith("/admin/")) {
+        return null;
+    }
+
     return (
         <header className="bg-primary fixed top-0 z-50 w-full">
-            <div className="mx-auto max-w-(--breakpoint-xl) px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-(--breakpoint-lg) px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="md:flex md:items-center md:gap-12">
                         <Link className="block text-white" href="/">
                             <span className="sr-only">Home</span>
-                            <p className="font-sans pb-3.5">Barker</p>
+                            <img
+                                className="h-12 w-auto"
+                                src="/images/logo.webp"
+                                alt="Logo"
+                            />
                         </Link>
                     </div>
 
@@ -19,25 +33,23 @@ export default function Header() {
                             <ul className="flex items-center gap-6 text-sm">
                                 <li>
                                     <Link
-                                        className="text-gray-900 transition hover:text-gray-900/75"
+                                        className="text-white transition text-xl font-semibold hover:text-white/75"
+                                        href="/"
+                                    >
+                                        Inicio
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        className="text-white transition text-xl font-semibold hover:text-white/75"
                                         href="/products"
                                     >
                                         Productos
                                     </Link>
                                 </li>
-
                                 <li>
                                     <Link
-                                        className="text-gray-900 transition hover:text-gray-900/75"
-                                        href="#"
-                                    >
-                                        Sobre nosotros
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link
-                                        className="text-gray-900 transition hover:text-gray-900/75"
+                                        className="text-white transition text-xl font-semibold hover:text-white/75"
                                         href="/preguntas-frecuentes"
                                     >
                                         Preguntas frecuentes
@@ -48,16 +60,8 @@ export default function Header() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="sm:flex sm:gap-4">
-                            <Link className="" href="#">
-                                <Search className="mr-2 size-5" />
-                            </Link>
-
-                            <div className="hidden sm:flex">
-                                <Link className="" href="#">
-                                    <ShoppingCart className="mr-2 size-5" />
-                                </Link>
-                            </div>
+                        <div className="">
+                            <CartButton />
                         </div>
 
                         <div className="block md:hidden">
