@@ -36,7 +36,7 @@ public class SpringSecurityConfig {
 	@Bean
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:3000"));
+		config.setAllowedOrigins(List.of("http://localhost:3000", "https://bakerpet.store", "https://alimentos-mascotas.netlify.app"));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		config.setAllowCredentials(true);
@@ -55,7 +55,7 @@ public class SpringSecurityConfig {
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchanges -> {
 					// ? ENDPOINTS PÚBLICOS
-					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones", "/api/productos/**").permitAll();
 					exchanges.pathMatchers(HttpMethod.GET, "/api/productos-front/**", "/api/resenas/pagina", 
 					"/api/resenas/mejores/{productId}").permitAll();
 					exchanges.pathMatchers("/webjars/**", "/swagger-ui.html", "/swagger-ui/**",

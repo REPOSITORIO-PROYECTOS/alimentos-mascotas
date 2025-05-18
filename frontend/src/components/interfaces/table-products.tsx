@@ -255,15 +255,15 @@ export default function TableProducts() {
     console.log("user", user);
     const fetcher = useCallback(
         (url: string) => {
-            if (!user?.token) return Promise.reject("Token no disponible");
+            //if (!user?.token) return Promise.reject("Token no disponible");
 
             return fetch({
                 endpoint: url,
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${user?.token}`,
-                },
+                // headers: {
+                //     "Content-Type": "application/json",
+                //     Authorization: `Bearer ${user?.token}`,
+                // },
             })
                 .then((response) => {
                     // Suponiendo que tu función fetch ya devuelve los datos JSON procesados

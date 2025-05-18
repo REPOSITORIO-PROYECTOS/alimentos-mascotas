@@ -4,6 +4,7 @@ import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { CartButton } from "../cart-button";
+import { Phone } from "lucide-react";
 
 export default function Header() {
     const pathname = usePathname();
@@ -61,7 +62,7 @@ export default function Header() {
 
                     <div className="flex items-center gap-4">
                         <div className="">
-                            <CartButton />
+                            {/* <CartButton /> */}
                         </div>
 
                         <div className="block md:hidden">

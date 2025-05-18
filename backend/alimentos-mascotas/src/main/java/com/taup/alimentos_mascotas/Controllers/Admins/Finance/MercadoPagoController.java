@@ -130,7 +130,7 @@ public class MercadoPagoController {
         // Extraer datos del payload
         String action = (String) payload.get("action");
         Map<String, Object> data = (Map<String, Object>) payload.get("data");
-    System.out.println(action);
+        System.out.println(action);
         if (action != null && data != null) {
             String paymentId = (String) data.get("id");
             String status = (String) data.get("status");
@@ -138,6 +138,7 @@ public class MercadoPagoController {
             // Solo procesar si el pago fue aprobado
             if ("payment.updated".equals(action)) {
                 System.out.println("------------------------------DENTRO DEL SEGUNDO IF-------------------------");
+                System.out.println(data.get("items"));
                 // Aquí obtenemos los detalles de los items directamente desde el payload
                 List<Map<String, Object>> items = (List<Map<String, Object>>) data.get("items");
                 if (items != null && !items.isEmpty()) {

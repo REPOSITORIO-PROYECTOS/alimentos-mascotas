@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Link } from "next-view-transitions";
-import { Check, ShoppingBag, Star, Search } from "lucide-react";
+import { Check, ShoppingBag, Star, Search, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -328,8 +328,8 @@ export default function ProductsPage() {
                                 <Button
                                     className={`w-full ${
                                         addedToCart[product.id]
-                                            ? "bg-green-500 hover:bg-green-600"
-                                            : "bg-amber-400 hover:bg-amber-500"
+                                            ? "bg-white"//"bg-green-500 hover:bg-green-600"
+                                            : "bg-white"//"bg-amber-400 hover:bg-amber-500"
                                     } text-black`}
                                     onClick={() => handleAddToCart(product)}
                                 >
@@ -340,8 +340,12 @@ export default function ProductsPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
-                                            Agregar al carrito
+                                            {/* <ShoppingBag className="mr-2 h-4 w-4" />
+                                            Agregar al carrito */}
+                                            <a href="https://wa.me/+5491134677025" className="w-full justify-center flex rounded-xl items-center gap-2 px-3 py-2 bg-green-600 text-white">
+                                                <Phone className="h-5 w-5" />
+                                                Hacer pedido por Whatsapp
+                                            </a>
                                         </>
                                     )}
                                 </Button>
