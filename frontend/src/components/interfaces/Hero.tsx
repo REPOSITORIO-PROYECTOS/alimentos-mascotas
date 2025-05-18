@@ -65,8 +65,8 @@ export default function Hero() {
                                         <img
                                             data-slot="avatar-image"
                                             className="aspect-square size-full"
-                                            alt=""
-                                            src="/placeholder.svg"
+                                            alt="Cliente 1"
+                                            src="/images/preguntas-frecuentes/barker team 1.webp"
                                         />
                                     </span>
                                     <span
@@ -76,8 +76,8 @@ export default function Hero() {
                                         <img
                                             data-slot="avatar-image"
                                             className="aspect-square size-full"
-                                            alt=""
-                                            src="/placeholder.svg"
+                                            alt="Cliente 2"
+                                            src="/images/preguntas-frecuentes/barker team 4.webp"
                                         />
                                     </span>
                                     <span
@@ -87,8 +87,8 @@ export default function Hero() {
                                         <img
                                             data-slot="avatar-image"
                                             className="aspect-square size-full"
-                                            alt=""
-                                            src="/placeholder.svg"
+                                            alt="Cliente 3"
+                                            src="/images/preguntas-frecuentes/barker team 3.webp"
                                         />
                                     </span>
                                     <div className="border-muted2 relative flex h-14 w-14 flex-shrink-0 rounded-full border-2 bg-white">
@@ -194,18 +194,40 @@ export default function Hero() {
                                 </svg>
                             </div>
                             <div className="col-[-2_/_-1] row-[-1_/_-2]">
-                                <div className="flex w-full items-center gap-3">
-                                    <div className="h-12 w-12 flex-shrink-0 rounded-full bg-secondary"></div>
+                                <div className="flex w-full items-center gap-3 mb-3.5">
+                                    <div className="h-12 w-12 flex-shrink-0 rounded-full border-primary border-2 overflow-hidden">
+                                        <img
+                                            data-slot="avatar-image"
+                                            className="aspect-square size-full"
+                                            alt="Cliente 2"
+                                            src="/images/preguntas-frecuentes/barker team 2.webp"
+                                        />
+                                    </div>
                                     <div className="flex w-full flex-col gap-1">
-                                        <div className="h-6 w-[70%] rounded-lg bg-secondary"></div>
-                                        <div className="h-3 w-[40%] rounded-lg bg-secondary"></div>
+                                        <div className=" rounded-lg font-bold text-primary">
+                                            <p>Malvadisco</p>
+                                        </div>
+                                        <div className=" rounded-lg text-sm">
+                                            <p>Son las mejor que probe</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="mt-3 flex w-full items-center gap-3">
-                                    <div className="h-12 w-12 flex-shrink-0 rounded-full bg-secondary"></div>
+                                <div className="flex w-full items-center gap-3">
+                                    <div className="h-12 w-12 flex-shrink-0 rounded-full border-primary border-2 overflow-hidden">
+                                        <img
+                                            data-slot="avatar-image"
+                                            className="aspect-square size-full"
+                                            alt="Cliente 2"
+                                            src="/images/preguntas-frecuentes/barker team 8.webp"
+                                        />
+                                    </div>
                                     <div className="flex w-full flex-col gap-1">
-                                        <div className="h-6 w-[70%] rounded-lg bg-secondary"></div>
-                                        <div className="h-3 w-[40%] rounded-lg bg-secondary"></div>
+                                        <div className=" rounded-lg font-bold text-primary">
+                                            <p>Cosmo</p>
+                                        </div>
+                                        <div className=" rounded-lg text-sm">
+                                            <p>Una experiencia increíble</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
