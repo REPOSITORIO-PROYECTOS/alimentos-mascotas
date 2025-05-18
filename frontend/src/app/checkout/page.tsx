@@ -40,7 +40,7 @@ const formSchema = z.object({
         .min(10, { message: "Ingresa un número de teléfono válido" }),
     address: z
         .string()
-        .min(5, { message: "La dirección debe tener al menos 5 caracteres" }),
+        .min(4, { message: "La dirección debe tener al menos 4 caracteres" }),
     city: z
         .string()
         .min(2, { message: "La ciudad debe tener al menos 2 caracteres" }),
@@ -55,11 +55,13 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CheckoutPage() {
-    const { items, totalPrice, clearCart } = useCartStore();    const { user } = useAuthStore();
+    const { items, totalPrice, clearCart } = useCartStore();
+    const { user } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [shippingCost, setShippingCost] = useState(0);
-    const router = useRouter();    const form = useForm<FormValues>({
+    const router = useRouter();
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "",
@@ -87,7 +89,8 @@ export default function CheckoutPage() {
             await new Promise((resolve) => setTimeout(resolve, 1500));
             const response = await fetch(
                 `https://barker.sistemataup.online/api/mercadopago/pago`,
-                {                    body: JSON.stringify({
+                {
+                    body: JSON.stringify({
                         items: items.map((item) => ({
                             id: item.id,
                             title: item.productName,
@@ -113,8 +116,8 @@ export default function CheckoutPage() {
                             address: data.address,
                             city: data.city,
                             state: data.state,
-                            zipCode: data.zipCode
-                        }
+                            zipCode: data.zipCode,
+                        },
                     }),
                     method: "POST",
                     headers: {
@@ -147,11 +150,12 @@ export default function CheckoutPage() {
                 }
             } catch (error) {
                 console.error("Error parsing JSON response:", responseData);
-            }            console.log("Order submitted:", {
+            }
+            console.log("Order submitted:", {
                 customerInfo: data,
                 items: items,
                 totalAmount: totalPrice + shippingCost,
-                shippingCost: shippingCost
+                shippingCost: shippingCost,
             });
         } catch (error) {
             console.error("Error processing order:", error);
@@ -347,7 +351,8 @@ export default function CheckoutPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    />                                    <FormField
+                                    />{" "}
+                                    <FormField
                                         control={form.control}
                                         name="zipCode"
                                         render={({ field }) => (
@@ -361,7 +366,9 @@ export default function CheckoutPage() {
                                                         {...field}
                                                         onChange={(e) => {
                                                             field.onChange(e);
-                                                            handleZipCodeChange(e.target.value);
+                                                            handleZipCodeChange(
+                                                                e.target.value
+                                                            );
                                                         }}
                                                     />
                                                 </FormControl>
@@ -445,7 +452,9 @@ export default function CheckoutPage() {
 
                             <Separator className="my-4" />
 
-                            <div className="space-y-2">                                <div className="flex justify-between text-sm">
+                            <div className="space-y-2">
+                                {" "}
+                                <div className="flex justify-between text-sm">
                                     <span>Subtotal</span>
                                     <span>${totalPrice.toFixed(2)}</span>
                                 </div>
@@ -460,7 +469,10 @@ export default function CheckoutPage() {
                                 <Separator className="my-2" />
                                 <div className="flex justify-between font-semibold">
                                     <span>Total</span>
-                                    <span>${(totalPrice + shippingCost).toFixed(2)}</span>
+                                    <span>
+                                        $
+                                        {(totalPrice + shippingCost).toFixed(2)}
+                                    </span>
                                 </div>
                             </div>
 
