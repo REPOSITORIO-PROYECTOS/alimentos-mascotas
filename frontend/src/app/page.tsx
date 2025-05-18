@@ -11,9 +11,7 @@ export default function Home() {
             <Hero />
             <Carrusel />
             <Secciones />
-            {/* <Products /> */}
             <TablaDiaria />
-            {/* <Cta /> */}
         </main>
     );
 }
