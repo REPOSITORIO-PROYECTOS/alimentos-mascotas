@@ -1,13 +1,15 @@
-import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getSession } from "@/lib/auth"
-import { forbidden } from "next/navigation"
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { forbidden } from "next/navigation";
 
 export default async function AdminPage() {
-    // Check if user is authenticated
-    const session = await getSession()
-
     // If not authenticated, redirect to login
     // if (!session) {
     //     redirect("/login")
@@ -33,33 +35,45 @@ export default async function AdminPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Usuarios</CardTitle>
-                        <CardDescription>Gestiona los usuarios de la plataforma</CardDescription>
+                        <CardDescription>
+                            Gestiona los usuarios de la plataforma
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">128</p>
-                        <p className="text-xs text-muted-foreground">+14% desde el mes pasado</p>
+                        <p className="text-xs text-muted-foreground">
+                            +14% desde el mes pasado
+                        </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
                         <CardTitle>Ingresos</CardTitle>
-                        <CardDescription>Monitorea los ingresos mensuales</CardDescription>
+                        <CardDescription>
+                            Monitorea los ingresos mensuales
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">€8,350</p>
-                        <p className="text-xs text-muted-foreground">+5.2% desde el mes pasado</p>
+                        <p className="text-xs text-muted-foreground">
+                            +5.2% desde el mes pasado
+                        </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
                         <CardTitle>Actividad</CardTitle>
-                        <CardDescription>Visualiza la actividad reciente</CardDescription>
+                        <CardDescription>
+                            Visualiza la actividad reciente
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">432</p>
-                        <p className="text-xs text-muted-foreground">Acciones en las últimas 24h</p>
+                        <p className="text-xs text-muted-foreground">
+                            Acciones en las últimas 24h
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -73,8 +87,5 @@ export default async function AdminPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
-
-
-
