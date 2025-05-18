@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/pagination";
 import NumberFlow from "@number-flow/react";
 import { useCartStore } from "@/store/cart-store";
+import { useAuthStore } from "@/context/store";
 
 type Product = {
     id: string;
@@ -46,6 +47,7 @@ type PaginationInfo = {
 
 export default function ProductsPage() {
     const [initialAnimation, setInitialAnimation] = useState(true);
+    const { user } = useAuthStore();
     const [count, setCount] = useState(0);
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
@@ -112,7 +114,14 @@ export default function ProductsPage() {
         setLoading(true);
         try {
             const response = await fetch(
-                `https://barker.sistemataup.online/api/productos-front/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`
+                `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user?.token}`,
+                    },
+                }
             );
 
             if (!response.ok) {
@@ -173,43 +182,53 @@ export default function ProductsPage() {
     ];
 
     return (
-        <div className="container relative mx-auto px-4 py-20">
-            {/* Banner de estadísticas */}
-            <div className="bg-amber-400 rounded-lg p-6 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="flex flex-col items-center">
-                            <h2 className="text-3xl font-bold mb-2">
-                                {stat.emoji1}
-                                <NumberFlow
-                                    value={
-                                        initialAnimation
-                                            ? stat.base
-                                            : stat.base + count
-                                    }
-                                    transformTiming={{
-                                        duration: initialAnimation ? 2000 : 750,
-                                        easing: "ease-in-out",
-                                    }}
-                                    spinTiming={{
-                                        duration: initialAnimation ? 2000 : 750,
-                                        easing: "ease-in-out",
-                                    }}
-                                    opacityTiming={{
-                                        duration: 350,
-                                        easing: "ease-out",
-                                    }}
-                                />
-                                {stat.emoji2}
-                            </h2>
-                            <p className="text-sm text-center">{stat.text}</p>
-                        </div>
-                    ))}
+        <section>
+            <div className="container relative z-10 mx-auto px-4 py-20">
+                {/* Banner de estadísticas */}
+                <div className="bg-amber-400 rounded-lg p-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        {stats.map((stat, index) => (
+                            <div
+                                key={index}
+                                className="flex flex-col items-center"
+                            >
+                                <h2 className="text-3xl font-bold mb-2">
+                                    {stat.emoji1}
+                                    <NumberFlow
+                                        value={
+                                            initialAnimation
+                                                ? stat.base
+                                                : stat.base + count
+                                        }
+                                        transformTiming={{
+                                            duration: initialAnimation
+                                                ? 2000
+                                                : 750,
+                                            easing: "ease-in-out",
+                                        }}
+                                        spinTiming={{
+                                            duration: initialAnimation
+                                                ? 2000
+                                                : 750,
+                                            easing: "ease-in-out",
+                                        }}
+                                        opacityTiming={{
+                                            duration: 350,
+                                            easing: "ease-out",
+                                        }}
+                                    />
+                                    {stat.emoji2}
+                                </h2>
+                                <p className="text-sm text-center">
+                                    {stat.text}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-            {/* Buscador */}
-            {/* <div className="mb-6">
+                {/* Buscador */}
+                {/* <div className="mb-6">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
@@ -221,137 +240,140 @@ export default function ProductsPage() {
                 </div>
             </div> */}
 
-            {/* Categorías de navegación */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                {["Deshidratados", "Refrigerados", "Premios", "Snacks"].map(
-                    (category) => (
-                        <Button
-                            key={category}
-                            variant="outline"
-                            className="rounded-full border-amber-400 text-black hover:bg-amber-100"
-                        >
-                            {category}
-                        </Button>
-                    )
-                )}
-            </div>
-
-            {/* Estado de carga */}
-            {loading && (
-                <div className="text-center py-6">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-400 border-t-transparent"></div>
-                    <p className="mt-2">Cargando productos...</p>
-                </div>
-            )}
-
-            {/* Mensaje si no hay productos */}
-            {!loading && products.length === 0 && (
-                <div className="text-center py-8">
-                    <p className="text-lg">No se encontraron productos.</p>
-                    {keyword && (
-                        <p className="text-gray-500 mt-2">
-                            Intenta con otra búsqueda o mira nuestras
-                            categorías.
-                        </p>
+                {/* Categorías de navegación */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    {["Deshidratados", "Refrigerados", "Premios", "Snacks"].map(
+                        (category) => (
+                            <Button
+                                key={category}
+                                variant="outline"
+                                className="rounded-full border-amber-400 text-black hover:bg-amber-100"
+                            >
+                                {category}
+                            </Button>
+                        )
                     )}
                 </div>
-            )}
 
-            {/* Productos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                    <div key={product.id} className="flex flex-col">
-                        <Link
-                            href={`/products/${product.id}`}
-                            className="group"
-                        >
-                            <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
-                                <Image
-                                    src={
-                                        product.imageUrl ||
-                                        "/placeholder.svg?height=300&width=300"
-                                    }
-                                    alt={product.productName}
-                                    width={300}
-                                    height={300}
-                                    className="w-full h-auto object-contain"
-                                />
-                            </div>
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-medium group-hover:underline">
-                                    {product.productName}
-                                </h3>
-                                <div className="flex items-center">
-                                    <span className="text-sm mr-1">4.5</span>
-                                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                                </div>
-                            </div>
-                        </Link>
-
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold">
-                                ${product.sellingPrice.toFixed(2)}
-                            </span>
-                            {product.discountPercent && (
-                                <span className="text-sm line-through text-gray-500">
-                                    $
-                                    {(
-                                        product.sellingPrice *
-                                        (1 + product.discountPercent / 100)
-                                    ).toFixed(2)}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="mt-auto">
-                            <Button
-                                className={`w-full ${
-                                    addedToCart[product.id]
-                                        ? "bg-green-500 hover:bg-green-600"
-                                        : "bg-amber-400 hover:bg-amber-500"
-                                } text-black`}
-                                onClick={() => handleAddToCart(product)}
-                            >
-                                {addedToCart[product.id] ? (
-                                    <>
-                                        <Check className="mr-2 h-4 w-4" />
-                                        Agregado
-                                    </>
-                                ) : (
-                                    <>
-                                        <ShoppingBag className="mr-2 h-4 w-4" />
-                                        Agregar al carrito
-                                    </>
-                                )}
-                            </Button>
-                        </div>
+                {/* Estado de carga */}
+                {loading && (
+                    <div className="text-center py-6">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-400 border-t-transparent"></div>
+                        <p className="mt-2">Cargando productos...</p>
                     </div>
-                ))}
-            </div>
+                )}
 
-            {/* Paginación */}
-            {pagination.totalPages > 1 && (
-                <div className="mt-8">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() =>
-                                        handlePageChange(
-                                            pagination.currentPage - 1
-                                        )
-                                    }
-                                    className={
-                                        pagination.currentPage === 0
-                                            ? "pointer-events-none opacity-50"
-                                            : "cursor-pointer"
-                                    }
-                                />
-                            </PaginationItem>
+                {/* Mensaje si no hay productos */}
+                {!loading && products.length === 0 && (
+                    <div className="text-center py-8">
+                        <p className="text-lg">No se encontraron productos.</p>
+                        {keyword && (
+                            <p className="text-gray-500 mt-2">
+                                Intenta con otra búsqueda o mira nuestras
+                                categorías.
+                            </p>
+                        )}
+                    </div>
+                )}
 
-                            {/* Generar números de página */}
-                            {Array.from({ length: pagination.totalPages }).map(
-                                (_, index) => {
+                {/* Productos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.map((product) => (
+                        <div key={product.id} className="flex flex-col">
+                            <Link
+                                href={`/products/${product.id}`}
+                                className="group"
+                            >
+                                <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
+                                    <Image
+                                        src={
+                                            product.imageUrl ||
+                                            "/placeholder.svg?height=300&width=300"
+                                        }
+                                        alt={product.productName}
+                                        width={300}
+                                        height={300}
+                                        className="w-full h-auto object-contain"
+                                    />
+                                </div>
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-medium group-hover:underline">
+                                        {product.productName}
+                                    </h3>
+                                    <div className="flex items-center">
+                                        <span className="text-sm mr-1">
+                                            4.5
+                                        </span>
+                                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                    </div>
+                                </div>
+                            </Link>
+
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="font-bold">
+                                    ${product.sellingPrice.toFixed(2)}
+                                </span>
+                                {product.discountPercent && (
+                                    <span className="text-sm line-through text-gray-500">
+                                        $
+                                        {(
+                                            product.sellingPrice *
+                                            (1 + product.discountPercent / 100)
+                                        ).toFixed(2)}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="mt-auto">
+                                <Button
+                                    className={`w-full ${
+                                        addedToCart[product.id]
+                                            ? "bg-green-500 hover:bg-green-600"
+                                            : "bg-amber-400 hover:bg-amber-500"
+                                    } text-black`}
+                                    onClick={() => handleAddToCart(product)}
+                                >
+                                    {addedToCart[product.id] ? (
+                                        <>
+                                            <Check className="mr-2 h-4 w-4" />
+                                            Agregado
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            Agregar al carrito
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Paginación */}
+                {pagination.totalPages > 1 && (
+                    <div className="mt-8">
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        onClick={() =>
+                                            handlePageChange(
+                                                pagination.currentPage - 1
+                                            )
+                                        }
+                                        className={
+                                            pagination.currentPage === 0
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                    />
+                                </PaginationItem>
+
+                                {/* Generar números de página */}
+                                {Array.from({
+                                    length: pagination.totalPages,
+                                }).map((_, index) => {
                                     // Solo mostrar algunas páginas para no sobrecargar la UI
                                     if (
                                         index === 0 ||
@@ -395,28 +417,28 @@ export default function ProductsPage() {
                                     }
 
                                     return null;
-                                }
-                            )}
+                                })}
 
-                            <PaginationItem>
-                                <PaginationNext
-                                    onClick={() =>
-                                        handlePageChange(
-                                            pagination.currentPage + 1
-                                        )
-                                    }
-                                    className={
-                                        pagination.currentPage ===
-                                        pagination.totalPages - 1
-                                            ? "pointer-events-none opacity-50"
-                                            : "cursor-pointer"
-                                    }
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
-            )}
+                                <PaginationItem>
+                                    <PaginationNext
+                                        onClick={() =>
+                                            handlePageChange(
+                                                pagination.currentPage + 1
+                                            )
+                                        }
+                                        className={
+                                            pagination.currentPage ===
+                                            pagination.totalPages - 1
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                )}
+            </div>
             {/* Decorative paw prints */}
             {[...Array(16)].map((_, i) => (
                 <div
@@ -431,6 +453,6 @@ export default function ProductsPage() {
                     <img src="/favicon.svg" alt="logo" />
                 </div>
             ))}
-        </div>
+        </section>
     );
 }
