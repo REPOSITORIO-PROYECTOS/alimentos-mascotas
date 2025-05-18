@@ -12,11 +12,22 @@ export type CartItem = {
     stock: number;
 };
 
+interface AddProductParams {
+    id: string;
+    productName: string;
+    imageUrl: string | null;
+    sellingPrice: number;
+    discountPercent: number | null;
+    productCode: string;
+    stock: number;
+    quantity?: number; // Campo opcional para permitir establecer la cantidad al agregar
+}
+
 type CartStore = {
     items: CartItem[];
     totalItems: number;
     totalPrice: number;
-    addItem: (product: any, quantity?: number) => void;
+    addItem: (product: AddProductParams, quantity?: number) => void;
     removeItem: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number) => void;
     clearCart: () => void;
@@ -28,19 +39,24 @@ export const useCartStore = create<CartStore>()(
             items: [],
             totalItems: 0,
             totalPrice: 0,
-
             addItem: (product, quantity = 1) => {
                 const { items } = get();
                 const existingItem = items.find(
                     (item) => item.id === product.id
                 );
 
+                // Si el producto ya tiene cantidad definida, usamos esa
+                const initialQuantity =
+                    product.quantity !== undefined
+                        ? product.quantity
+                        : quantity;
+
                 let updatedItems;
 
                 if (existingItem) {
                     // Don't exceed available stock
                     const newQuantity = Math.min(
-                        existingItem.quantity + quantity,
+                        existingItem.quantity + initialQuantity,
                         product.stock
                     );
 
@@ -51,7 +67,10 @@ export const useCartStore = create<CartStore>()(
                     );
                 } else {
                     // Create new item with the provided quantity (limited by stock)
-                    const newQuantity = Math.min(quantity, product.stock);
+                    const newQuantity = Math.min(
+                        initialQuantity,
+                        product.stock
+                    );
 
                     updatedItems = [
                         ...items,

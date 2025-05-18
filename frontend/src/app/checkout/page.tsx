@@ -21,6 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuthStore } from "@/context/store";
+import { calcularCostoEnvio } from "@/lib/shipping-costs";
 
 // Form schema using Zod
 const formSchema = z.object({
@@ -38,28 +40,27 @@ const formSchema = z.object({
         .min(10, { message: "Ingresa un número de teléfono válido" }),
     address: z
         .string()
-        .min(5, { message: "La dirección debe tener al menos 5 caracteres" }),
+        .min(4, { message: "La dirección debe tener al menos 4 caracteres" }),
     city: z
         .string()
         .min(2, { message: "La ciudad debe tener al menos 2 caracteres" }),
     state: z
         .string()
         .min(2, { message: "El estado debe tener al menos 2 caracteres" }),
-    zipCode: z
-        .string()
-        .min(5, {
-            message: "El código postal debe tener al menos 5 caracteres",
-        }),
+    zipCode: z.string().min(5, {
+        message: "El código postal debe tener al menos 5 caracteres",
+    }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CheckoutPage() {
     const { items, totalPrice, clearCart } = useCartStore();
+    const { user } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
+    const [shippingCost, setShippingCost] = useState(0);
     const router = useRouter();
-
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -74,26 +75,88 @@ export default function CheckoutPage() {
         },
     });
 
+    // Función para actualizar el costo de envío cuando cambia el código postal
+    const handleZipCodeChange = (zipCode: string) => {
+        const cost = calcularCostoEnvio(zipCode);
+        setShippingCost(cost);
+    };
+
     const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true);
 
         try {
             // Simulate API call to process order
             await new Promise((resolve) => setTimeout(resolve, 1500));
+            const response = await fetch(
+                `https://barker.sistemataup.online/api/mercadopago/pago`,
+                {
+                    body: JSON.stringify({
+                        items: items.map((item) => ({
+                            id: item.id,
+                            title: item.productName,
+                            description: item.productCode,
+                            pictureUrl: item.imageUrl || "",
+                            categoryId: item.productCode,
+                            quantity: item.quantity,
+                            currencyId: "ARS",
+                            unitPrice:
+                                item.sellingPrice -
+                                (item.discountPercent
+                                    ? (item.sellingPrice *
+                                          item.discountPercent) /
+                                      100
+                                    : 0),
+                        })),
+                        shippingCost: shippingCost,
+                        shippingInfo: {
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            email: data.email,
+                            phone: data.phone,
+                            address: data.address,
+                            city: data.city,
+                            state: data.state,
+                            zipCode: data.zipCode,
+                        },
+                    }),
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user?.token}`,
+                    },
+                }
+            );
 
+            // Manejo seguro de la respuesta
+            const responseData = await response.text();
+
+            // Check if the response is a direct URL
+            if (responseData.trim().startsWith("http")) {
+                console.log("Redirecting to payment URL:", responseData);
+                window.location.href = responseData.trim();
+                return;
+            }
+
+            // If not a URL, try to parse as JSON
+            let jsonData;
+            try {
+                jsonData = JSON.parse(responseData);
+                console.log("Response from Mercado Pago API:", jsonData);
+
+                // Si tenemos una URL de inicioPago, redirigir al usuario
+                if (jsonData && jsonData.inicioPago) {
+                    router.push(jsonData.inicioPago);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error parsing JSON response:", responseData);
+            }
             console.log("Order submitted:", {
                 customerInfo: data,
                 items: items,
-                totalAmount: totalPrice,
+                totalAmount: totalPrice + shippingCost,
+                shippingCost: shippingCost,
             });
-
-            setOrderSuccess(true);
-            clearCart();
-
-            // Redirect to success page after a delay
-            setTimeout(() => {
-                router.push("/");
-            }, 3000);
         } catch (error) {
             console.error("Error processing order:", error);
         } finally {
@@ -288,7 +351,7 @@ export default function CheckoutPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    />
+                                    />{" "}
                                     <FormField
                                         control={form.control}
                                         name="zipCode"
@@ -301,6 +364,12 @@ export default function CheckoutPage() {
                                                     <Input
                                                         placeholder="Código postal"
                                                         {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(e);
+                                                            handleZipCodeChange(
+                                                                e.target.value
+                                                            );
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -384,18 +453,26 @@ export default function CheckoutPage() {
                             <Separator className="my-4" />
 
                             <div className="space-y-2">
+                                {" "}
                                 <div className="flex justify-between text-sm">
                                     <span>Subtotal</span>
                                     <span>${totalPrice.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Envío</span>
-                                    <span>Gratis</span>
+                                    {shippingCost > 0 ? (
+                                        <span>${shippingCost.toFixed(2)}</span>
+                                    ) : (
+                                        <span>Ingresa código postal</span>
+                                    )}
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex justify-between font-semibold">
                                     <span>Total</span>
-                                    <span>${totalPrice.toFixed(2)}</span>
+                                    <span>
+                                        $
+                                        {(totalPrice + shippingCost).toFixed(2)}
+                                    </span>
                                 </div>
                             </div>
 
