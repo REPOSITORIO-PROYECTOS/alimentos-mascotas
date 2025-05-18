@@ -17,6 +17,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/context/store";
+import { productsBackUp } from "@/lib/products";
 
 type Product = {
     id: string;
@@ -112,35 +113,35 @@ export default function ProductsPage() {
     // Función para obtener productos del API
     const fetchProducts = async (page: number, searchKeyword: string) => {
         setLoading(true);
-        try {
-            const response = await fetch(
-                `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${user?.token}`,
-                    },
-                }
-            );
+        // try {
+        //     const response = await fetch(
+        //         `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
+        //         {
+        //             method: "GET",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 Authorization: `Bearer ${user?.token}`,
+        //             },
+        //         }
+        //     );
 
-            if (!response.ok) {
-                throw new Error("Error al obtener productos");
-            }
+        //     if (!response.ok) {
+        //         throw new Error("Error al obtener productos");
+        //     }
 
-            const data = await response.json();
-            setProducts(data.content || []);
-            setPagination({
-                totalElements: data.totalElements || 0,
-                totalPages: data.totalPages || 0,
-                currentPage: data.number || 0,
-                size: data.size || 10,
-            });
-        } catch (error) {
-            console.error("Error al cargar productos:", error);
-        } finally {
-            setLoading(false);
-        }
+        //     const data = await response.json();
+        //     setProducts(data.content || []);
+        //     setPagination({
+        //         totalElements: data.totalElements || 0,
+        //         totalPages: data.totalPages || 0,
+        //         currentPage: data.number || 0,
+        //         size: data.size || 10,
+        //     });
+        // } catch (error) {
+        //     console.error("Error al cargar productos:", error);
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
     // Función para cambiar de página
@@ -182,7 +183,7 @@ export default function ProductsPage() {
     ];
 
     return (
-        <section>
+        <section className="w-[calc(100%-theme(space.4))] overflow-hidden">
             <div className="container relative z-10 mx-auto px-4 py-20 overflow-hidden">
                 {/* Banner de estadísticas */}
                 <div className="bg-amber-400 rounded-lg p-6 mb-6">
@@ -264,7 +265,7 @@ export default function ProductsPage() {
                 )}
 
                 {/* Mensaje si no hay productos */}
-                {!loading && products.length === 0 && (
+                {/* {!loading && products.length === 0 && (
                     <div className="text-center py-8">
                         <p className="text-lg">No se encontraron productos.</p>
                         {keyword && (
@@ -274,11 +275,11 @@ export default function ProductsPage() {
                             </p>
                         )}
                     </div>
-                )}
+                )} */}
 
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product) => (
+                    {productsBackUp.map((product) => (
                         <div key={product.id} className="flex flex-col">
                             <Link
                                 href={`/products/${product.id}`}
@@ -326,27 +327,27 @@ export default function ProductsPage() {
 
                             <div className="mt-auto">
                                 <Button
+                                    asChild
                                     className={`w-full ${
                                         addedToCart[product.id]
-                                            ? "bg-white"//"bg-green-500 hover:bg-green-600"
-                                            : "bg-white"//"bg-amber-400 hover:bg-amber-500"
+                                            ? "bg-green-500 hover:bg-green-600"
+                                            : "bg-amber-400 hover:bg-amber-500"
                                     } text-black`}
                                     onClick={() => handleAddToCart(product)}
                                 >
                                     {addedToCart[product.id] ? (
-                                        <>
+                                        <span>
                                             <Check className="mr-2 h-4 w-4" />
-                                            Agregado
-                                        </>
+                                            Redirigiendo a Whatsapp...
+                                        </span>
                                     ) : (
-                                        <>
-                                            {/* <ShoppingBag className="mr-2 h-4 w-4" />
-                                            Agregar al carrito */}
-                                            <a href="https://wa.me/+5491134677025" className="w-full justify-center flex rounded-xl items-center gap-2 px-3 py-2 bg-green-600 text-white">
-                                                <Phone className="h-5 w-5" />
-                                                Hacer pedido por Whatsapp
-                                            </a>
-                                        </>
+                                        <Link
+                                            target="_blank"
+                                            href={`https://wa.me/+5491134677025?text=Quiero%20comprar%20el%20producto%20${product.productName}`}
+                                        >
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            Comprar
+                                        </Link>
                                     )}
                                 </Button>
                             </div>
@@ -450,7 +451,7 @@ export default function ProductsPage() {
                     className="absolute z-0 w-16 h-16 opacity-20"
                     style={{
                         top: `${Math.random() * 200}%`,
-                        left: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 80}%`,
                         transform: `rotate(${Math.random() * 360}deg)`,
                     }}
                 >
