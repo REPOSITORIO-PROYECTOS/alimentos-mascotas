@@ -15,42 +15,42 @@ import {
 const galleryImages = [
     {
         id: 1,
-        src: "/product/Rectangle 4756.png",
+        src: "/images/carrusel/1era foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 1",
     },
     {
         id: 2,
-        src: "/product/Rectangle 4757.png",
+        src: "/images/carrusel/2da foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 2",
     },
     {
         id: 3,
-        src: "/product/Rectangle 4758.png",
+        src: "/images/carrusel/3era foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 3",
     },
     {
         id: 4,
-        src: "/product/Rectangle 4759.png",
+        src: "/images/carrusel/4ta foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 4",
     },
     {
         id: 5,
-        src: "/product/Rectangle 4760.png",
+        src: "/images/carrusel/5ta foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 5",
     },
     {
         id: 6,
-        src: "/product/Rectangle 4761.png",
+        src: "/images/carrusel/6ta foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 6",
     },
     {
         id: 7,
-        src: "/product/Rectangle 4762.png",
+        src: "/images/carrusel/7ma foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 7",
     },
     {
         id: 8,
-        src: "/product/Rectangle 4821.jpg",
+        src: "/images/carrusel/8va foto carrusel _recomendados con amor_(600x600).webp",
         alt: "Imagen 8",
     },
 ];
@@ -78,7 +78,7 @@ export function AutoSlideGallery() {
                             className="md:basis-1/2 lg:basis-1/3"
                         >
                             <div className="p-1">
-                                <Card className="py-2 bg-white/30 backdrop-blur-2xl">
+                                <Card className="py-2 bg-secondary backdrop-blur-2xl">
                                     <CardContent className="flex flex-col items-center justify-center px-2">
                                         <div className="aspect-square w-full overflow-hidden rounded-lg">
                                             <img
