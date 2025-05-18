@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
     Accordion,
     AccordionContent,
@@ -46,9 +45,10 @@ export default function FAQPage() {
                                         className="aspect-square relative overflow-hidden rounded-lg"
                                     >
                                         <Image
-                                            src={`/placeholder.svg?height=200&width=200&text=Pet${
+                                            //barker team1.webp
+                                            src={`/images/preguntas-frecuentes/barker team ${
                                                 i + 1
-                                            }`}
+                                            }.webp`}
                                             alt={`Happy pet ${i + 1}`}
                                             width={200}
                                             height={200}
@@ -113,19 +113,58 @@ export default function FAQPage() {
 
 const faqs = [
     {
-        question: "¿Cuáles son los beneficios de los snacks naturales Baker?",
-        answer: "Nuestros snacks naturales están elaborados con ingredientes de alta calidad, sin conservantes ni aditivos artificiales. Ayudan a mantener una dentadura saludable, son fáciles de digerir y son ideales para el entrenamiento.",
+        question:
+            "¿Cuánta cantidad de snacks por día le puedo dar a mi peludo?",
+        answer: (
+            <div className="w-full">
+                <p className="mb-4">
+                    <strong>Como regla general</strong>, los snacks no deben
+                    superar el 10% de las calorías diarias que necesita tu
+                    peludo.
+                </p>
+
+                <ul className="list-disc list-inside space-y-2">
+                    <li>
+                        <span className="font-semibold text-orange-600">
+                            🔸 Perros pequeños (hasta 5 kg):
+                        </span>{" "}
+                        1 a 2 snacks chicos por día
+                    </li>
+                    <li>
+                        <span className="font-semibold text-orange-600">
+                            🔸 Perros medianos (6 a 15 kg):
+                        </span>{" "}
+                        2 a 3 snacks medianos por día
+                    </li>
+                    <li>
+                        <span className="font-semibold text-orange-600">
+                            🔸 Perros grandes (más de 15 kg):
+                        </span>{" "}
+                        hasta 4 snacks medianos o 1 grande por día
+                    </li>
+                </ul>
+
+                <p className="mt-4 text-sm text-gray-600">
+                    Recordá que esta es una guía general. Siempre es ideal
+                    adaptar según el tamaño, actividad y salud de tu peludo. Y
+                    si tenés dudas,{" "}
+                    <span className="font-medium text-blue-600">
+                        ¡consultá con tu veterinario de confianza!
+                    </span>
+                </p>
+            </div>
+        ),
     },
     {
-        question: "¿Cómo debo almacenar los productos Baker?",
-        answer: "Recomendamos almacenar nuestros productos en un lugar fresco y seco, alejado de la luz directa del sol. Una vez abierto el paquete, utiliza un contenedor hermético para mantener la frescura.",
+        question: "¿Cómo están hechos los snacks?",
+        answer: "Nuestros snacks son 100% naturales, elaborados con ingredientes frescos y sin aditivos, conservantes ni químicos.",
     },
     {
-        question: "¿Cuál es el tiempo de entrega de los pedidos?",
-        answer: "Los pedidos se entregan en un plazo de 24-48 horas en zonas urbanas, y de 2-4 días en zonas rurales. Todos los envíos incluyen seguimiento en tiempo real.",
+        question: "¿Cómo son los envíos/  cuánto tarda en llegar el pedido?",
+        answer: "Hacemos envíos a todo el país. Una vez confirmado el pedido, el despacho se realiza dentro de las 24 a 48 hs hábiles. El tiempo de entrega depende de tu localidad, pero suele tardar entre 2 y 5 días hábiles.",
     },
     {
-        question: "¿Los productos son aptos para cachorros?",
-        answer: "Sí, tenemos una línea específica para cachorros con el tamaño y la textura adecuados. Sin embargo, recomendamos consultar con tu veterinario según la edad y raza de tu mascota.",
+        question: "¿Cómo son los medios de pago?",
+        answer: "Podés abonar con tarjeta de crédito, débito, transferencia bancaria o a través de plataformas como Mercado Pago. También aceptamos pagos en efectivo si retirás en punto de entrega (si aplica).",
     },
 ];
