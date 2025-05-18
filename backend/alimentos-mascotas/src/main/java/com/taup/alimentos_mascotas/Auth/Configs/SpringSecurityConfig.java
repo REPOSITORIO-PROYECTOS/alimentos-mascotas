@@ -66,6 +66,8 @@ public class SpringSecurityConfig {
 
 					authenticateEndpoints(exchanges, "/api/ventas/**", "/api/ingredientes/**",
 					 		"/api/productos/**", "/api/recetas/**", "/api/ordenes-compra/**", "/api/resenas/guardar", "/api/resenas/editar/{reviewId}", "/api/ordenes-trabajo/**");
+
+					exchanges.anyExchange().authenticated();
 				})
 				.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.httpBasic(Customizer.withDefaults())

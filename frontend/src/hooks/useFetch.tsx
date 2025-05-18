@@ -49,7 +49,8 @@ export function useFetch() {
             }
 
             const { data } = await axios(requestConfig);
-
+            console.log("data", data);
+            
             if (data.message) {
                 toast.success(data.message, {
                     richColors: true,

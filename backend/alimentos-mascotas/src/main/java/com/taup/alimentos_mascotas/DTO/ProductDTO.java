@@ -32,7 +32,7 @@ public class ProductDTO {
 	@Size(min = 5, max = 500)
 	private String productDetails;
 
-	private FilePart image;
+	//private FilePart image;
 
 	@Positive
 	private BigDecimal sellingPrice;

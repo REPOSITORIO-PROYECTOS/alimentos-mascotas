@@ -157,19 +157,16 @@ export default function ProductForm({
         }
 
         // Agregar el resto de campos
-        formDataObj.append("productName", dataForm.productName);
-        formDataObj.append("productDescription", dataForm.productDescription);
-        formDataObj.append("productDetails", dataForm.productDetails);
-        formDataObj.append("sellingPrice", dataForm.sellingPrice.toString());
-        formDataObj.append("stock", dataForm.stock.toString());
-        formDataObj.append("costPrice", dataForm.costPrice.toString());
-        formDataObj.append(
-            "discountPercent",
-            dataForm.discountPercent?.toString() || "0"
-        );
-
-        // Agregar categorías como un array JSON
-        formDataObj.append("categories", JSON.stringify(dataForm.categories));
+        formDataObj.append("product", JSON.stringify({
+            productName: dataForm.productName,
+            productDescription: dataForm.productDescription,
+            productDetails: dataForm.productDetails,
+            sellingPrice: dataForm.sellingPrice.toString(),
+            stock: dataForm.stock.toString(),
+            costPrice: dataForm.costPrice.toString(),
+            discountPercent: dataForm.discountPercent?.toString() || "0",
+            categories: dataForm.categories,
+        }));
 
         // Agregar campos existentes si es edición
         if (isEditable && datos) {
