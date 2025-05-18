@@ -1,19 +1,21 @@
-import axios, { AxiosRequestConfig, Method } from 'axios'
-import { useRouter } from 'next/navigation'
+import axios, { AxiosRequestConfig, Method } from "axios";
+import { useRouter } from "next/navigation";
 // import useStore from "@/context/store";
-import { toast } from 'sonner'
-
+import { toast } from "sonner";
+import { useAuthStore } from "@/context/store";
 
 interface AuthFetchProps {
-    endpoint: string
-    redirectRoute?: string
-    formData?: any
-    options?: AxiosRequestConfig<any>
-    method?: Method
+    endpoint: string;
+    redirectRoute?: string;
+    formData?: any;
+    options?: AxiosRequestConfig<any>;
+    method?: Method;
+    headers?: any;
 }
 
 export function useFetch() {
-    const router = useRouter()
+    const { user } = useAuthStore();
+    const router = useRouter();
     // const { setUser } = useStore((state) => ({
     //     setUser: state.setUser,
     // }));
@@ -22,16 +24,31 @@ export function useFetch() {
         endpoint,
         formData,
         redirectRoute,
+        headers,
         options,
-        method = 'post' // default method is post
+        method = "post", // default method is post
     }: AuthFetchProps) => {
         try {
-            const { data } = await axios({
-                url: `https://barker.sistemataup.online${endpoint}`,
+            const isFormData = formData instanceof FormData;
+
+            const requestConfig = {
+                url: `https://barker.sistemataup.online/api${endpoint}`,
                 method,
                 data: formData,
-                ...options
-            })
+                headers,
+                ...options,
+            };
+
+            // Si es FormData, aseguramos que no se establece Content-Type
+            // para que el navegador configure automáticamente el boundary
+            if (isFormData) {
+                requestConfig.headers = {
+                    ...requestConfig.headers,
+                    "Content-Type": "multipart/form-data",
+                };
+            }
+
+            const { data } = await axios(requestConfig);
 
             if (data.message) {
                 toast.success(data.message, {
@@ -42,14 +59,14 @@ export function useFetch() {
             //     setUser(data.userLogged)
             // }
             if (redirectRoute) {
-                router.push(redirectRoute)
+                router.push(redirectRoute);
                 router.refresh();
             }
-            return data
+            return data;
         } catch (error: any) {
             console.log(error.response.data.message);
         }
-    }
+    };
 
-    return authRouter
+    return authRouter;
 }
