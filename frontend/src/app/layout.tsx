@@ -38,7 +38,7 @@ export default function RootLayout({
 }>) {
     return (
         <ViewTransitions>
-            <html lang="es">
+            <html lang="es" suppressHydrationWarning>
                 <body
                     className={`${geistSans.variable} ${geistMono.variable} ${bigBottom.variable} antialiased bg-secondary/15`}
                 >
