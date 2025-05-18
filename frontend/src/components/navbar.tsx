@@ -64,19 +64,19 @@ export function Navbar() {
                         </Button>
                     ))}
                     <div
-                        className="absolute bottom-0 -left-2 h-full bg-blue-700 transition-all duration-300 ease-in-out z-0 rounded-md"
+                        className="absolute bottom-0 -left-0.5 h-full bg-primary transition-all duration-300 ease-in-out z-0 rounded-md"
                         style={indicatorStyle}
                     />
                 </div>
                 <div className="space-x-4">
-                    <Button className="bg-blue-600 hover:bg-blue-800">
+                    <Button className="bg-primary hover:bg-primary/80">
                         Manual del Usuario
                         <BookOpenIcon
                             className="w-5 h-5 ml-2"
                             aria-hidden="true"
                         />
                     </Button>
-                    <Button className="bg-blue-600 hover:bg-blue-800">
+                    <Button className="bg-primary hover:bg-primary/80">
                         Soporte
                         <PhoneCall
                             className="w-5 h-5 ml-2"
