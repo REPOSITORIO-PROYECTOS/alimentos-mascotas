@@ -68,18 +68,20 @@ export function Navbar() {
                         style={indicatorStyle}
                     />
                 </div>
-                <div className="space-x-4">
+                <div className="space-x-4 flex items-center">
                     <Button className="bg-primary hover:bg-primary/80">
-                        Manual del Usuario
+                        <span className="hidden xl:inline-flex">
+                            Manual del Usuario
+                        </span>
                         <BookOpenIcon
-                            className="w-5 h-5 ml-2"
+                            className="w-5 h-5 xl:ml-2"
                             aria-hidden="true"
                         />
                     </Button>
                     <Button className="bg-primary hover:bg-primary/80">
-                        Soporte
+                        <span className="hidden xl:inline-flex">Soporte</span>
                         <PhoneCall
-                            className="w-5 h-5 ml-2"
+                            className="w-5 h-5 xl:ml-2"
                             aria-hidden="true"
                         />
                     </Button>

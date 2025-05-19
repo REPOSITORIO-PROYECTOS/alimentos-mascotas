@@ -205,7 +205,7 @@ export default function Hero() {
                                     </div>
                                     <div className="flex w-full flex-col gap-1">
                                         <div className=" rounded-lg font-bold text-primary">
-                                            <p>Malvadisco</p>
+                                            <p>Ruca</p>
                                         </div>
                                         <div className=" rounded-lg text-sm">
                                             <p>Son las mejor que probe</p>
@@ -223,7 +223,7 @@ export default function Hero() {
                                     </div>
                                     <div className="flex w-full flex-col gap-1">
                                         <div className=" rounded-lg font-bold text-primary">
-                                            <p>Cosmo</p>
+                                            <p>Wallas</p>
                                         </div>
                                         <div className=" rounded-lg text-sm">
                                             <p>Una experiencia increíble</p>
