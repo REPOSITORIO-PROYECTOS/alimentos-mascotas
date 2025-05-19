@@ -252,7 +252,6 @@ const columns: ColumnDef<Item>[] = [
 
 export default function TableProducts() {
     const { user } = useAuthStore();
-    console.log("user", user);
     const fetcher = useCallback(
         (url: string) => {
             //if (!user?.token) return Promise.reject("Token no disponible");
@@ -274,7 +273,7 @@ export default function TableProducts() {
                     throw error; // Propaga el error para que SWR lo capture
                 });
         },
-        [user?.token]
+        []
     );
     const id = useId();
     const { finishLoading, loading, startLoading } = useLoading();

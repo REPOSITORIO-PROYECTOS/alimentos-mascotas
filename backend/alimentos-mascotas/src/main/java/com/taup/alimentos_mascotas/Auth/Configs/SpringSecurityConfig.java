@@ -55,9 +55,11 @@ public class SpringSecurityConfig {
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchanges -> {
 					// ? ENDPOINTS PÚBLICOS
-					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones", "/api/productos/**").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones").permitAll();
 					exchanges.pathMatchers(HttpMethod.GET, "/api/productos-front/**", "/api/resenas/pagina", 
-					"/api/resenas/mejores/{productId}").permitAll();
+					"/api/resenas/mejores/{productId}", "/api/productos/**").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/productos/**").permitAll();
+					exchanges.pathMatchers(HttpMethod.GET, "/api/productos/pagina").permitAll();
 					exchanges.pathMatchers("/webjars/**", "/swagger-ui.html", "/swagger-ui/**",
 							"/v3/api-docs/**", "/swagger-resources/**").permitAll();
 
@@ -65,7 +67,7 @@ public class SpringSecurityConfig {
 					//restrictEndpoints(exchanges, HttpMethod.POST, );
 
 					authenticateEndpoints(exchanges, "/api/ventas/**", "/api/ingredientes/**",
-					 		"/api/productos/**", "/api/recetas/**", "/api/ordenes-compra/**", "/api/resenas/guardar", "/api/resenas/editar/{reviewId}", "/api/ordenes-trabajo/**");
+					 		 "/api/recetas/**", "/api/ordenes-compra/**", "/api/resenas/guardar", "/api/resenas/editar/{reviewId}", "/api/ordenes-trabajo/**");
 
 					exchanges.anyExchange().authenticated();
 				})
