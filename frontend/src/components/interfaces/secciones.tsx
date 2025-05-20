@@ -4,22 +4,22 @@ import { Bone, LeafyGreen, Plus } from "lucide-react";
 
 const values = [
     {
-        title: "Snacks deshidratados",
+        title: "Snacks Naturales",
         description:
             "Snacks 100% naturales para cuidar su salud, premiarlos y darles amor",
         extendeDescription:
-            "La dieta ideal para sumar sabor, nutrientes y proteínas a la alimentación diaria de tu peludo. Con ingredientes frescos y naturales, pensada para que disfrute mientras cuida su salud.",
+            "Snacks 100% naturales, saludables sin aditivos, solo ingredientes reales. Perfectos para premiar y entrenar a tu peludo.",
         image: "/images/sections/snacks-deshidratados.webp",
-        icon: LeafyGreen,
+        icon: "🥬",
         variant: "default",
     },
     {
-        title: "Suplementos",
+        title: "Suplementos Nutricionales",
         description: "Nutrición extra para acompañar cada etapa de su vida.",
         extendeDescription:
-            "Snacks 100% naturales, saludables sin aditivos, solo ingredientes reales. Perfectos para premiar y entrenar a tu peludo.",
+            "Apoyo extra para su salud diaria con productos sin químicos, ni conservantes. Para fortalecer sus huesos y su energía",
         image: "/images/sections/suplemento.webp",
-        icon: Bone,
+        icon: "➕",
         variant: "muted",
     },
     {
@@ -27,9 +27,9 @@ const values = [
         description:
             "Dieta preparada con alimentos 100% naturales, Frescura y nutrientes reales en cada bocado",
         extendeDescription:
-            "Apoyo extra para su salud diaria con productos sin químicos, ni conservantes. Para fortalecer sus huesos y su energía.",
+            "La dieta ideal para sumar sabor, nutrientes y proteínas a la alimentación diaria de tu peludo. Con ingredientes frescos y naturales, pensada para que disfrute mientras cuida su salud.",
         image: "/images/sections/alimentacion-natural.webp",
-        icon: Plus,
+        icon: "🦴",
         variant: "default",
     },
 ];
@@ -77,8 +77,10 @@ export default function Secciones() {
                                 }`}
                             >
                                 <CardContent className="flex flex-col items-center justify-between gap-4 p-8 sm:flex-row sm:gap-10">
-                                    <div className="flex w-full gap-4">
-                                        <Icon className="size-8" />
+                                    <div className="flex w-full items-center gap-4">
+                                        <div className="text-3xl">
+                                            {feature.icon}
+                                        </div>
                                         <p className="text-base font-semibold">
                                             {feature.title}
                                         </p>

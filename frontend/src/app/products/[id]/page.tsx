@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,26 +19,124 @@ import {
 } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/context/store";
 
+// Define el tipo para el producto
+type Product = {
+    id: string;
+    productName: string;
+    productDescription: string;
+    productDetails: string | null;
+    imageUrl: string | null;
+    sellingPrice: number;
+    discountPercent: number | null;
+    reviewsIds: string[] | null;
+    categories: string[] | null;
+    costPrice: number;
+    productCode: string;
+    recipeId: string;
+    stock: number;
+    createdAt: string;
+    updatedAt: string | null;
+    modifiedBy: string | null;
+    createdBy: string;
+};
+// {
+//     params,
+// }: {
+//     params: Promise<{ id: string }>;
+// }) {
+//     const resolvedParams = React.use(params);
+//     const productId = Number.parseInt(resolvedParams.id);
+//     const product = products.find((p) => p.id === productId) || products[0];
+//     const [showReviewForm, setShowReviewForm] = useState(false);
+//     const [rating, setRating] = useState(4);
 export default function ProductDetail({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = React.use(params);
-    const productId = Number.parseInt(resolvedParams.id);
-    const product = products.find((p) => p.id === productId) || products[0];
+    const { id } = resolvedParams;
+    const { user } = useAuthStore();
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [rating, setRating] = useState(4);
 
+    // Función para cargar los datos del producto
+    useEffect(() => {
+        const fetchProductDetail = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(
+                    `https://barker.sistemataup.online/api/productos/${id}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${user?.token}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Error al obtener detalles del producto");
+                }
+
+                const data = await response.json();
+                setProduct(data);
+                console.log("Detalle del producto:", data);
+            } catch (error) {
+                console.error("Error al cargar el producto:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProductDetail();
+    }, [id, user?.token]);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-20 max-w-5xl flex justify-center items-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-amber-400 border-t-transparent mb-4"></div>
+                    <p>Cargando información del producto...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="container mx-auto px-4 py-20 max-w-5xl">
+                <div className="text-center py-12">
+                    <h2 className="text-2xl font-bold mb-4">
+                        Producto no encontrado
+                    </h2>
+                    <p>
+                        Lo sentimos, no pudimos encontrar el producto que
+                        buscas.
+                    </p>
+                    <Button
+                        className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
+                        asChild
+                    >
+                        <a href="/products">Volver a productos</a>
+                    </Button>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="container mx-auto px-4 py-20 max-w-5xl">
             {/* Sección de detalle del producto */}
             <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <div className="relative">
                     <Image
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
+                        src={product.imageUrl || "/placeholder.svg"}
+                        alt={product.productName}
                         width={500}
                         height={500}
                         className="rounded-lg w-full h-auto"
@@ -47,22 +144,33 @@ export default function ProductDetail({
                 </div>
 
                 <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+                    <h1 className="text-2xl font-bold mb-2">
+                        {product.productName}
+                    </h1>
 
                     <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                        Deshidratados
+                        {product.categories && product.categories.length > 0
+                            ? product.categories[0]
+                            : "Deshidratados"}
                     </div>
 
                     <div className="mb-4">
                         <span className="text-3xl font-bold">
-                            ${product.price.toFixed(2)}
+                            ${product.sellingPrice.toFixed(2)}
                         </span>
+                        {product.discountPercent && (
+                            <span className="ml-2 text-sm line-through text-gray-500">
+                                $
+                                {(
+                                    product.sellingPrice *
+                                    (1 + product.discountPercent / 100)
+                                ).toFixed(2)}
+                            </span>
+                        )}
                     </div>
 
                     <p className="text-gray-600 mb-6">
-                        Snacks naturales para perros, elaborados con
-                        ingredientes de alta calidad. Sin conservantes ni
-                        aditivos artificiales. Ideal para premiar a tu mascota.
+                        {product.productDescription}
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 mb-6">
