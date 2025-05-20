@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
     experimental: {
         authInterrupts: true,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "res.cloudinary.com",
+                port: "",
+                pathname: "/dfjpi2ypk/image/upload/**",
+            },
+        ],
+    },
 };
 
 export default nextConfig;
