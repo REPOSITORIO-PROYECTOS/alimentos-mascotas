@@ -47,11 +47,13 @@ type PaginationInfo = {
 };
 
 export default function ProductsPage() {
-    const [initialAnimation, setInitialAnimation] = useState(true);
+    // Usar cliente como fuente de verdad para la animación
+    const [initialAnimation, setInitialAnimation] = useState(false);
     const { user } = useAuthStore();
     const [count, setCount] = useState(0);
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
+    const [isClient, setIsClient] = useState(false);
 
     // Nuevos estados para búsqueda y paginación
     const [products, setProducts] = useState<Product[]>([]);
@@ -61,13 +63,17 @@ export default function ProductsPage() {
         totalElements: 0,
         totalPages: 0,
         currentPage: 0,
-        size: 10,
+        size: 9,
     });
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
         null
     );
 
+    // Detectar cuándo estamos en el cliente para iniciar las animaciones
     useEffect(() => {
+        setIsClient(true);
+        setInitialAnimation(true);
+
         // Animación inicial de 0 al número base
         const initialTimer = setTimeout(() => {
             setInitialAnimation(false);
@@ -77,72 +83,85 @@ export default function ProductsPage() {
     }, []);
 
     useEffect(() => {
-        if (!initialAnimation) {
+        if (!initialAnimation && isClient) {
             const interval = setInterval(() => {
                 setCount((prevCount) => (prevCount + 1) % 5); // Ciclo de 0 a 4
             }, 5000); // Cambia cada 5 segundos
 
             return () => clearInterval(interval);
         }
-    }, [initialAnimation]);
+    }, [initialAnimation, isClient]);
 
     // Efecto para cargar productos al iniciar y cuando cambie la página o la búsqueda
-    useEffect(() => {
-        fetchProducts(pagination.currentPage, keyword);
-    }, [pagination.currentPage]);
+    // useEffect(() => {
+    //     fetchProducts(pagination.currentPage, keyword);
+    // }, [pagination.currentPage]);
+
+    // // Efecto para monitorear los cambios en la paginación
+    // useEffect(() => {
+    //     console.log("Estado actual de la paginación:", pagination);
+    // }, [pagination]);
 
     // Función para buscar productos
-    const handleSearch = (value: string) => {
-        setKeyword(value);
+    // const handleSearch = (value: string) => {
+    //     setKeyword(value);
 
-        // Cancelar cualquier búsqueda pendiente
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
+    //     // Cancelar cualquier búsqueda pendiente
+    //     if (searchTimeout) {
+    //         clearTimeout(searchTimeout);
+    //     }
 
-        // Establecer un timeout para evitar demasiadas solicitudes mientras el usuario escribe
-        const timeout = setTimeout(() => {
-            // Reset a la primera página al buscar
-            setPagination((prev) => ({ ...prev, currentPage: 0 }));
-            fetchProducts(0, value);
-        }, 500);
+    //     // Establecer un timeout para evitar demasiadas solicitudes mientras el usuario escribe
+    //     const timeout = setTimeout(() => {
+    //         // Reset a la primera página al buscar
+    //         setPagination((prev) => ({ ...prev, currentPage: 0 }));
+    //         fetchProducts(0, value);
+    //     }, 500);
 
-        setSearchTimeout(timeout);
-    };
+    //     setSearchTimeout(timeout);
+    // };
 
     // Función para obtener productos del API
-    const fetchProducts = async (page: number, searchKeyword: string) => {
-        setLoading(true);
-        // try {
-        //     const response = await fetch(
-        //         `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
-        //         {
-        //             method: "GET",
-        //             headers: {
-        //                 "Content-Type": "application/json",
-        //                 Authorization: `Bearer ${user?.token}`,
-        //             },
-        //         }
-        //     );
+    // const fetchProducts = async (page: number, searchKeyword: string) => {
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(
+    //             `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
+    //             {
+    //                 method: "GET",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${user?.token}`,
+    //                 },
+    //             }
+    //         );
 
-        //     if (!response.ok) {
-        //         throw new Error("Error al obtener productos");
-        //     }
+    //         if (!response.ok) {
+    //             throw new Error("Error al obtener productos");
+    //         }
 
-        //     const data = await response.json();
-        //     setProducts(data.content || []);
-        //     setPagination({
-        //         totalElements: data.totalElements || 0,
-        //         totalPages: data.totalPages || 0,
-        //         currentPage: data.number || 0,
-        //         size: data.size || 10,
-        //     });
-        // } catch (error) {
-        //     console.error("Error al cargar productos:", error);
-        // } finally {
-        //     setLoading(false);
-        // }
-    };
+    //         const data = await response.json();
+    //         console.log("Respuesta del API:", data); // Añadido para depuración
+
+    //         // Calcular el número total de páginas correctamente
+    //         const totalPages = Math.ceil(
+    //             (data.totalElements || 0) / (data.size || pagination.size)
+    //         );
+    //         console.log("Total de páginas calculado:", totalPages); // Añadido para depuración
+
+    //         setProducts(data.content || []);
+    //         setPagination({
+    //             totalElements: data.totalElements || 0,
+    //             totalPages: totalPages,
+    //             currentPage: data.page || 0,
+    //             size: data.size || pagination.size,
+    //         });
+    //     } catch (error) {
+    //         console.error("Error al cargar productos:", error);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     // Función para cambiar de página
     const handlePageChange = (page: number) => {
@@ -195,29 +214,33 @@ export default function ProductsPage() {
                             >
                                 <h2 className="text-3xl font-bold mb-2">
                                     {stat.emoji1}
-                                    <NumberFlow
-                                        value={
-                                            initialAnimation
-                                                ? stat.base
-                                                : stat.base + count
-                                        }
-                                        transformTiming={{
-                                            duration: initialAnimation
-                                                ? 2000
-                                                : 750,
-                                            easing: "ease-in-out",
-                                        }}
-                                        spinTiming={{
-                                            duration: initialAnimation
-                                                ? 2000
-                                                : 750,
-                                            easing: "ease-in-out",
-                                        }}
-                                        opacityTiming={{
-                                            duration: 350,
-                                            easing: "ease-out",
-                                        }}
-                                    />
+                                    {isClient ? (
+                                        <NumberFlow
+                                            value={
+                                                initialAnimation
+                                                    ? 0
+                                                    : stat.base + count
+                                            }
+                                            transformTiming={{
+                                                duration: initialAnimation
+                                                    ? 2000
+                                                    : 750,
+                                                easing: "ease-in-out",
+                                            }}
+                                            spinTiming={{
+                                                duration: initialAnimation
+                                                    ? 2000
+                                                    : 750,
+                                                easing: "ease-in-out",
+                                            }}
+                                            opacityTiming={{
+                                                duration: 350,
+                                                easing: "ease-out",
+                                            }}
+                                        />
+                                    ) : (
+                                        <span>{stat.base}</span>
+                                    )}
                                     {stat.emoji2}
                                 </h2>
                                 <p className="text-sm text-center">
@@ -257,12 +280,12 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Estado de carga */}
-                {loading && (
+                {/* {loading && (
                     <div className="text-center py-6">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-400 border-t-transparent"></div>
                         <p className="mt-2">Cargando productos...</p>
                     </div>
-                )}
+                )} */}
 
                 {/* Mensaje si no hay productos */}
                 {/* {!loading && products.length === 0 && (
@@ -281,10 +304,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {productsBackUp.map((product) => (
                         <div key={product.id} className="flex flex-col">
-                            <Link
-                                href={`/products/${product.id}`}
-                                className="group"
-                            >
+                            <Link href={`#/${product.id}`} className="group">
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                     <Image
                                         src={
@@ -301,12 +321,12 @@ export default function ProductsPage() {
                                     <h3 className="font-medium group-hover:underline">
                                         {product.productName}
                                     </h3>
-                                    <div className="flex items-center">
+                                    {/* <div className="flex items-center">
                                         <span className="text-sm mr-1">
                                             4.5
                                         </span>
                                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </Link>
 
@@ -352,11 +372,11 @@ export default function ProductsPage() {
                                 </Button>
                             </div>
                         </div>
-                    ))}
+                    ))}{" "}
                 </div>
 
                 {/* Paginación */}
-                {pagination.totalPages > 1 && (
+                {pagination.totalElements > pagination.size && (
                     <div className="mt-8">
                         <Pagination>
                             <PaginationContent>
@@ -373,11 +393,10 @@ export default function ProductsPage() {
                                                 : "cursor-pointer"
                                         }
                                     />
-                                </PaginationItem>
-
+                                </PaginationItem>{" "}
                                 {/* Generar números de página */}
                                 {Array.from({
-                                    length: pagination.totalPages,
+                                    length: Math.max(pagination.totalPages, 1),
                                 }).map((_, index) => {
                                     // Solo mostrar algunas páginas para no sobrecargar la UI
                                     if (
@@ -423,7 +442,6 @@ export default function ProductsPage() {
 
                                     return null;
                                 })}
-
                                 <PaginationItem>
                                     <PaginationNext
                                         onClick={() =>
@@ -445,19 +463,48 @@ export default function ProductsPage() {
                 )}
             </div>
             {/* Decorative paw prints */}
-            {[...Array(16)].map((_, i) => (
-                <div
-                    key={i}
-                    className="absolute z-0 w-16 h-16 opacity-20"
-                    style={{
-                        top: `${Math.random() * 200}%`,
-                        left: `${Math.random() * 80}%`,
-                        transform: `rotate(${Math.random() * 360}deg)`,
-                    }}
-                >
-                    <img src="/favicon.svg" alt="logo" />
-                </div>
-            ))}
+            {[...Array(16)].map((_, i) => {
+                // Usar posiciones predeterminadas en lugar de aleatorias para evitar errores de hidratación
+                const positions = [
+                    { top: "10%", left: "5%", rotate: "45deg" },
+                    { top: "15%", left: "25%", rotate: "90deg" },
+                    { top: "25%", left: "15%", rotate: "120deg" },
+                    { top: "30%", left: "60%", rotate: "180deg" },
+                    { top: "40%", left: "80%", rotate: "30deg" },
+                    { top: "45%", left: "30%", rotate: "60deg" },
+                    { top: "55%", left: "70%", rotate: "300deg" },
+                    { top: "60%", left: "10%", rotate: "270deg" },
+                    { top: "70%", left: "50%", rotate: "220deg" },
+                    { top: "75%", left: "85%", rotate: "10deg" },
+                    { top: "85%", left: "40%", rotate: "150deg" },
+                    { top: "90%", left: "20%", rotate: "250deg" },
+                    { top: "95%", left: "65%", rotate: "330deg" },
+                    { top: "100%", left: "75%", rotate: "200deg" },
+                    { top: "120%", left: "35%", rotate: "80deg" },
+                    { top: "150%", left: "55%", rotate: "160deg" },
+                ];
+
+                // Usar el índice para seleccionar una posición predeterminada
+                const position = positions[i] || {
+                    top: "50%",
+                    left: "50%",
+                    rotate: "0deg",
+                };
+
+                return (
+                    <div
+                        key={i}
+                        className="absolute z-0 w-16 h-16 opacity-20"
+                        style={{
+                            top: position.top,
+                            left: position.left,
+                            transform: `rotate(${position.rotate})`,
+                        }}
+                    >
+                        <img src="/favicon.svg" alt="logo" />
+                    </div>
+                );
+            })}
         </section>
     );
 }
