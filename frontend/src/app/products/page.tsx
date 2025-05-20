@@ -112,36 +112,37 @@ export default function ProductsPage() {
 
     // Función para obtener productos del API
     const fetchProducts = async (page: number, searchKeyword: string) => {
+        if(!user?.token) return;
         setLoading(true);
-        // try {
-        //     const response = await fetch(
-        //         `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
-        //         {
-        //             method: "GET",
-        //             headers: {
-        //                 "Content-Type": "application/json",
-        //                 Authorization: `Bearer ${user?.token}`,
-        //             },
-        //         }
-        //     );
+        try {
+            const response = await fetch(
+                `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user?.token}`,
+                    },
+                }
+            );
 
-        //     if (!response.ok) {
-        //         throw new Error("Error al obtener productos");
-        //     }
+            if (!response.ok) {
+                throw new Error("Error al obtener productos");
+            }
 
-        //     const data = await response.json();
-        //     setProducts(data.content || []);
-        //     setPagination({
-        //         totalElements: data.totalElements || 0,
-        //         totalPages: data.totalPages || 0,
-        //         currentPage: data.number || 0,
-        //         size: data.size || 10,
-        //     });
-        // } catch (error) {
-        //     console.error("Error al cargar productos:", error);
-        // } finally {
-        //     setLoading(false);
-        // }
+            const data = await response.json();
+            setProducts(data.content || []);
+            setPagination({
+                totalElements: data.totalElements || 0,
+                totalPages: data.totalPages || 0,
+                currentPage: data.number || 0,
+                size: data.size || 10,
+            });
+        } catch (error) {
+            console.error("Error al cargar productos:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Función para cambiar de página
@@ -312,15 +313,17 @@ export default function ProductsPage() {
 
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="font-bold">
-                                    ${product.sellingPrice.toFixed(2)}
+                                    ${product.costPrice}
                                 </span>
                                 {product.discountPercent && (
                                     <span className="text-sm line-through text-gray-500">
                                         $
                                         {(
-                                            product.sellingPrice *
-                                            (1 + product.discountPercent / 100)
-                                        ).toFixed(2)}
+                                            product.costPrice - (
+                                                product.costPrice *
+                                                (product.discountPercent / 100)
+                                            )
+                                        )}
                                     </span>
                                 )}
                             </div>
