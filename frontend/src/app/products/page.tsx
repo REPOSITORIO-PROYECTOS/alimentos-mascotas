@@ -332,17 +332,20 @@ export default function ProductsPage() {
 
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="font-bold">
-                                    ${product.costPrice}
+                                    $
+                                        {(
+                                            product.sellingPrice - (
+                                                product.sellingPrice *
+                                                (product.discountPercent / 100)
+                                            )
+                                        ).toFixed(2)}
+                                </span>
+                                <span className="font-bold">
+                                    -{product.discountPercent}%
                                 </span>
                                 {product.discountPercent && (
                                     <span className="text-sm line-through text-gray-500">
-                                        $
-                                        {(
-                                            product.costPrice - (
-                                                product.costPrice *
-                                                (product.discountPercent / 100)
-                                            )
-                                        )}
+                                        ${product.sellingPrice.toFixed(2)}
                                     </span>
                                 )}
                             </div>

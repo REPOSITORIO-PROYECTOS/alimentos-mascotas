@@ -8,11 +8,11 @@ export const productsBackUp = [
             "Producto de carne premium, corte fresco y de alta calidad, ideal para perros de tamaño mediano a grande.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/MINI_CARNE_if05sw.png",
-        sellingPrice: 5.94,
+        sellingPrice:  5940,
         discountPercent: 10,
         reviewsIds: ["review001", "review002", "review003"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
-        costPrice: 4.5,
+        costPrice: 5400,
         productCode: "CARNE100",
         recipeId: "recipe001",
         stock: 500,
@@ -30,7 +30,7 @@ export const productsBackUp = [
             "Carne fresca, de corte premium, para alimentación diaria de perros, ideal para todos los tamaños.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/MINI_CARNE_if05sw.png",
-        sellingPrice: 8.756,
+        sellingPrice: 8756,
         discountPercent: 10,
         reviewsIds: ["review004", "review005", "review006"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -52,7 +52,7 @@ export const productsBackUp = [
             "Corazón fresco, corte premium, especialmente preparado para perros.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/MINI_CORAZON_ofnu2i.png",
-        sellingPrice: 4.821,
+        sellingPrice: 4821,
         discountPercent: 10,
         reviewsIds: ["review007", "review008", "review009"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -74,7 +74,7 @@ export const productsBackUp = [
             "Corazón de res, de alta calidad, ideal para perros de tamaño grande.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/MINI_CORAZON_ofnu2i.png",
-        sellingPrice: 6.16,
+        sellingPrice: 6160,
         discountPercent: 10,
         reviewsIds: ["review010", "review011", "review012"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -96,7 +96,7 @@ export const productsBackUp = [
             "Tendones frescos, corte grueso, preparados para la masticación diaria de perros.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565951/TENDON_jkqs5k.png",
-        sellingPrice: 6.327,
+        sellingPrice: 6327,
         discountPercent: 10,
         reviewsIds: ["review013", "review014", "review015"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -118,7 +118,7 @@ export const productsBackUp = [
             "Tendones en tamaño pequeño, perfectos para perros de razas pequeñas o para entrenamiento.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565951/TENDON_jkqs5k.png",
-        sellingPrice: 5.39,
+        sellingPrice: 5390,
         discountPercent: 10,
         reviewsIds: ["review016", "review017", "review018"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -140,7 +140,7 @@ export const productsBackUp = [
             "Hígados frescos y de alta calidad, perfectos para perros de todas las edades.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/MINI_HIGADOS_djtejl.png",
-        sellingPrice: 4.95,
+        sellingPrice: 4950,
         discountPercent: 10,
         reviewsIds: ["review019", "review020", "review021"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -162,7 +162,7 @@ export const productsBackUp = [
             "Pulmón fresco de alta calidad, rico en nutrientes y proteína.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565953/MINI_PULMN_fycssi.png",
-        sellingPrice: 3.22,
+        sellingPrice: 3220,
         discountPercent: 10,
         reviewsIds: ["review022", "review023", "review024"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -184,7 +184,7 @@ export const productsBackUp = [
             "Orejas de cerdo frescas, masticables y nutritivas para perros.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565953/OREJAS_poxjk3.png",
-        sellingPrice: 7.26,
+        sellingPrice: 7260,
         discountPercent: 10,
         reviewsIds: ["review025", "review026", "review027"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -206,7 +206,7 @@ export const productsBackUp = [
             "Orejas de cerdo en presentación más grande, perfectas para perros que disfrutan masticar por más tiempo.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565953/OREJAS_poxjk3.png",
-        sellingPrice: 19.8,
+        sellingPrice: 19800,
         discountPercent: 10,
         reviewsIds: ["review028", "review029", "review030"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -228,7 +228,7 @@ export const productsBackUp = [
             "Orejas de cerdo en gran cantidad, perfectas para mantener a tu perro ocupado y feliz.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565953/OREJAS_poxjk3.png",
-        sellingPrice: 29.15,
+        sellingPrice: 29150,
         discountPercent: 10,
         reviewsIds: ["review031", "review032", "review033"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -250,7 +250,7 @@ export const productsBackUp = [
             "Garritas de cerdo, perfectas para perros de tamaño pequeño o mediano.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565951/GARRITAS_DE_POLLO_vv6qx2.png",
-        sellingPrice: 5.39,
+        sellingPrice: 5390,
         discountPercent: 10,
         reviewsIds: ["review034", "review035", "review036"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -272,7 +272,7 @@ export const productsBackUp = [
             "Hocicos de cerdo, nutritivos y deliciosos para perros de todos los tamaños.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565952/HOCICOS_tbixb1.png",
-        sellingPrice: 4.13,
+        sellingPrice: 4130,
         discountPercent: 10,
         reviewsIds: ["review037", "review038", "review039"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -293,7 +293,7 @@ export const productsBackUp = [
             "Traqueas de cerdo pequeñas, perfectas para perros pequeños o como premio.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565951/TRAQUEA_XL_SEGUNDA_FOTO_bgxcjr.png",
-        sellingPrice: 5.632,
+        sellingPrice: 5632,
         discountPercent: 10,
         reviewsIds: ["review040", "review041", "review042"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -314,7 +314,7 @@ export const productsBackUp = [
             "Traqueas de cerdo, ideal para perros que disfrutan masticar por mucho tiempo.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565951/TRAQUEA_XL_SEGUNDA_FOTO_bgxcjr.png",
-        sellingPrice: 2.706,
+        sellingPrice: 2706,
         discountPercent: 10,
         reviewsIds: ["review043", "review044", "review045"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
@@ -335,7 +335,7 @@ export const productsBackUp = [
             "Orejas de cerdo pequeñas, ideales como premio para perros.",
         imageUrl:
             "https://res.cloudinary.com/dfjpi2ypk/image/upload/v1747565953/OREJAS_poxjk3.png",
-        sellingPrice: 2.2,
+        sellingPrice: 2200,
         discountPercent: 10,
         reviewsIds: ["review046", "review047", "review048"],
         categories: ["Carnes", "Alimentos para mascotas", "Perros"],
