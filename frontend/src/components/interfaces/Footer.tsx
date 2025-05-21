@@ -15,7 +15,7 @@ export default function Footer() {
         <footer className="border-t mt-20">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                    <div>
+                    {/* <div>
                         <h3 className="font-semibold mb-4">Enlaces Útiles</h3>
                         <ul className="space-y-2">
                             {usefulLinks.map((link, index) => (
@@ -77,14 +77,14 @@ export default function Footer() {
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </div> */}
 
                     <div className="col-span-2 md:col-span-4 lg:col-span-1">
                         <h3 className="font-semibold mb-4">
                             ¿Necesitas Ayuda? Llámanos
                         </h3>
                         <p className="font-semibold text-amber-600 mb-2">
-                            +99 0214 2542 223
+                            +54 9 11 3467 7025
                         </p>
                         <div className="text-sm text-gray-600">
                             <p>Lunes - Viernes: 9:00-20:00</p>
@@ -95,21 +95,23 @@ export default function Footer() {
 
                 <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
                     <p className="text-gray-600 text-sm mb-4 md:mb-0">
-                        © 2024 Baker Pet. Todos los derechos reservados.
+                        © {new Date().getFullYear()} Baker Pet. Todos los
+                        derechos reservados.
                     </p>
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-600">
                             Aceptamos:
                         </span>
                         <div className="flex gap-2">
-                            {["visa", "mastercard", "amex", "paypal"].map(
-                                (card) => (
-                                    <div
-                                        key={card}
-                                        className="w-10 h-6 bg-gray-200 rounded"
-                                    ></div>
-                                )
-                            )}
+                            {creditsCard.map((card) => (
+                                <div key={card.label} className="w-10 h-6">
+                                    <img
+                                        src={card.icon}
+                                        alt={card.label}
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -117,6 +119,13 @@ export default function Footer() {
         </footer>
     );
 }
+
+const creditsCard = [
+    { label: "Mercado Pago", icon: "/images/cards-credits/mercado-pago.svg" },
+    { label: "Visa", icon: "/images/cards-credits/visa.svg" },
+    { label: "MasterCard", icon: "/images/cards-credits/mastercard.svg" },
+];
+
 const usefulLinks = [
     { label: "Aviso Legal", href: "#" },
     { label: "Contacto", href: "#" },
