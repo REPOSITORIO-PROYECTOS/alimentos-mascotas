@@ -1,6 +1,7 @@
 import React from "react";
 import SwiperHome from "../swiperHome";
 import { Play, PlusIcon, Rocket } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
     return (
@@ -30,7 +31,7 @@ export default function Hero() {
                             Gracias por ser parte de nuestra familia
                         </p>
                         <div className="mt-11 flex gap-5">
-                            <a
+                            <Link
                                 href="/products"
                                 data-slot="button"
                                 className="items-center justify-center gap-2 whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([className*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-3 group block h-fit w-fit rounded-full px-7 py-6 text-base leading-[1] font-bold"
@@ -41,9 +42,10 @@ export default function Hero() {
                                 >
                                     Ver productos
                                 </span>
-                            </a>
-                            <a
-                                href="#"
+                            </Link>
+                            <Link
+                                href="https://wa.me/+5491134677025?text=Hola!%20Quiero%20saber%20más%20sobre%20los%20productos%20de%20Barker"
+                                target="_blank"
                                 data-slot="button"
                                 className="items-center justify-center gap-2 whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([className*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 has-[>svg]:px-3 group block h-fit w-fit rounded-full px-7 py-6 text-base leading-[1] font-bold"
                             >
@@ -53,7 +55,7 @@ export default function Hero() {
                                 >
                                     Contáctenos
                                 </span>
-                            </a>
+                            </Link>
                         </div>
                         <div className="border-muted2 mt-12 flex gap-14 border-t">
                             <div className="mt-8">
