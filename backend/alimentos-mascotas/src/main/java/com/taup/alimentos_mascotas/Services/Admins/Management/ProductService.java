@@ -2,6 +2,7 @@ package com.taup.alimentos_mascotas.Services.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
 import com.taup.alimentos_mascotas.DTO.ProductDTO;
+import com.taup.alimentos_mascotas.DTO.ProductWithImageDTO;
 import com.taup.alimentos_mascotas.Exceptions.MonoEx;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
 import com.taup.alimentos_mascotas.Repositories.Admins.Management.ProductRepository;
@@ -17,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,88 +46,117 @@ public class ProductService {
 		return productRepo.findAll();
 	}
 
-	@Transactional
-	public Mono<Product> save(ProductDTO productDTO, String username) {
+	// @Transactional
+	// public Mono<Product> save(ProductDTO productDTO, String username) {
 
-    if (productDTO.getId() != null) {
-        return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
-    }
+    // if (productDTO.getId() != null) {
+    //     return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
+    // }
 
-	Product product = new Product();
-	product.setId(productDTO.getId());
-	product.setProductName(productDTO.getProductName());
-	product.setProductDescription(productDTO.getProductDescription());
-	product.setProductDetails(productDTO.getProductDetails());
-	product.setProductCode(productDTO.getProductCode());
-	product.setRecipeId(productDTO.getRecipeId());
-	product.setStock(productDTO.getStock());
-	product.setCostPrice(productDTO.getCostPrice());
-	product.setDiscountPercent(productDTO.getDiscountPercent());
-	product.setReviewsIds(productDTO.getReviewsIds());
-	product.setCategories(productDTO.getCategories());
-	product.setSellingPrice(productDTO.getSellingPrice());
-	product.setUpdatedAt(LocalDateTime.now());
-	product.setModifiedBy(username);
-	product.setImageUrl("");  // Asignamos la URL de la imagen
-	product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
-	product.setCreatedBy(username);  // Establecemos el usuario creador
+	// Product product = new Product();
+	// product.setId(productDTO.getId());
+	// product.setProductName(productDTO.getProductName());
+	// product.setProductDescription(productDTO.getProductDescription());
+	// product.setProductDetails(productDTO.getProductDetails());
+	// product.setProductCode(productDTO.getProductCode());
+	// product.setRecipeId(productDTO.getRecipeId());
+	// product.setStock(productDTO.getStock());
+	// product.setCostPrice(productDTO.getCostPrice());
+	// product.setDiscountPercent(productDTO.getDiscountPercent());
+	// product.setReviewsIds(productDTO.getReviewsIds());
+	// product.setCategories(productDTO.getCategories());
+	// product.setSellingPrice(productDTO.getSellingPrice());
+	// product.setUpdatedAt(LocalDateTime.now());
+	// product.setModifiedBy(username);
+	// product.setImageUrl("");  // Asignamos la URL de la imagen
+	// product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
+	// product.setCreatedBy(username);  // Establecemos el usuario creador
 
-    return productRepo.save(product);
+    // return productRepo.save(product);
         
+	// }
+
+	public Mono<Product> getById(String productId) {
+		return productRepo.findById(productId)
+				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontró el producto con ID: " + productId));
 	}
 
-// 	public Mono<Product> save(ProductDTO productDTO, String username, Mono<FilePart> image) {
-//     if (productDTO.getId() != null) {
-//         return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
-//     }
+	@Transactional
+	public Mono<Product> save(ProductWithImageDTO dto, String username) {
+		if (dto.getId() != null) {
+			return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ya tiene ID, no puede almacenarse como nuevo"));
+		}
 
-//     return image
-//         .doOnNext(filePart -> {
-//             // Verifica si el archivo está presente
-//             if (filePart != null) {
-//                 System.out.println("Archivo recibido: " + filePart.filename());
-//             } else {
-//                 System.out.println("No se ha recibido ningún archivo.");
-//             }
-//         })
-//         .flatMap(filePart -> imageUploadService.uploadImage(filePart, username)) // Suponiendo que tu servicio espera un Mono<FilePart>
-//         .flatMap(imageUrl -> {
-//             Product product = new Product();
-//             // Asignación de propiedades del producto
-//             product.setProductName(productDTO.getProductName());
-//             product.setProductDescription(productDTO.getProductDescription());
-//             product.setProductDetails(productDTO.getProductDetails());
-//             product.setProductCode(productDTO.getProductCode());
-//             product.setRecipeId(productDTO.getRecipeId());
-//             product.setStock(productDTO.getStock());
-//             product.setCostPrice(productDTO.getCostPrice());
-//             product.setDiscountPercent(productDTO.getDiscountPercent());
-//             product.setReviewsIds(productDTO.getReviewsIds());
-//             product.setCategories(productDTO.getCategories());
-//             product.setSellingPrice(productDTO.getSellingPrice());
-//             product.setUpdatedAt(LocalDateTime.now());
-//             product.setModifiedBy(username);
-//             product.setImageUrl(imageUrl);  // Asignamos la URL de la imagen
-//             product.setCreatedAt(LocalDateTime.now());  // Establecemos la fecha de creación
-//             product.setCreatedBy(username);  // Establecemos el usuario creador
+		FilePart imageFile = dto.getImage();
+		Mono<String> imageUrlMono;
+		if (imageFile != null) {
+			imageUrlMono = imageUploadService.uploadImage(imageFile, username);
+		} else {
+			imageUrlMono = Mono.just(""); // O puedes manejarlo como Mono.empty() si prefieres
+		}
 
-//             return productRepo.save(product);
-//         });
-// }
+		return imageUrlMono.flatMap(imageUrl -> {
+			Product product = new Product();
+			product.setProductName(dto.getProductName());
+			product.setProductDescription(dto.getProductDescription());
+			product.setProductDetails(dto.getProductDetails());
+			product.setProductCode(dto.getProductCode());
+			product.setRecipeId(dto.getRecipeId());
+			product.setStock(dto.getStock());
+			product.setCostPrice(dto.getCostPrice());
+			product.setDiscountPercent(dto.getDiscountPercent());
+			product.setReviewsIds(dto.getReviewsIds());
+			product.setCategories(dto.getCategories());
+			product.setSellingPrice(dto.getSellingPrice());
+			product.setUpdatedAt(LocalDateTime.now());
+			product.setModifiedBy(username);
+			product.setImageUrl(imageUrl);
+			product.setCreatedAt(LocalDateTime.now());
+			product.setCreatedBy(username);
+			return productRepo.save(product);
+		});
+	}
 
 
 	@Transactional
-	public Mono<Product> update(Product product, String productId, String username) {
-		if (!product.getId().equals(productId)) {
+	public Mono<Product> update(ProductWithImageDTO dto, String productId, String username) {
+		if (!productId.equals(dto.getId())) {
 			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "Los IDs de los productos a actualizar no coinciden.");
 		}
 
 		return productRepo.findById(productId)
-				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontró el producto con ID: " + productId))
-				.flatMap(existingProduct -> {
-					Product updatedProduct = mappingProductToUpdate(existingProduct, product, username);
-					return productRepo.save(updatedProduct);
+			.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No se encontró el producto con ID: " + productId))
+			.flatMap(existingProduct -> {
+				Mono<String> imageUrlMono;
+				FilePart imageFile = dto.getImage();
+
+				// Si se envía una nueva imagen, súbela; si no, conserva la actual
+				if (imageFile != null) {
+					imageUrlMono = imageUploadService.uploadImage(imageFile, username);
+				} else {
+					imageUrlMono = Mono.just(existingProduct.getImageUrl());
+				}
+
+				return imageUrlMono.flatMap(imageUrl -> {
+					existingProduct.setProductName(dto.getProductName());
+					existingProduct.setProductDescription(dto.getProductDescription());
+					existingProduct.setProductDetails(dto.getProductDetails());
+					existingProduct.setProductCode(dto.getProductCode());
+					existingProduct.setRecipeId(dto.getRecipeId());
+					existingProduct.setStock(dto.getStock());
+					existingProduct.setCostPrice(dto.getCostPrice());
+					existingProduct.setDiscountPercent(dto.getDiscountPercent());
+					existingProduct.setReviewsIds(dto.getReviewsIds());
+					existingProduct.setCategories(dto.getCategories());
+					existingProduct.setSellingPrice(dto.getSellingPrice());
+					existingProduct.setModifiedBy(username);
+					existingProduct.setUpdatedAt(LocalDateTime.now());
+					existingProduct.setImageUrl(imageUrl);
+					// No actualices createdAt ni createdBy en una edición
+
+					return productRepo.save(existingProduct);
 				});
+			});
 	}
 
 	@Transactional

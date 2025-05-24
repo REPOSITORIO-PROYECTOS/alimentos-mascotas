@@ -1,5 +1,7 @@
 package com.taup.alimentos_mascotas.Controllers.Admins.Finance;
 
+import com.taup.alimentos_mascotas.DTO.CashMovementRequestDTO;
+import com.taup.alimentos_mascotas.Models.Admins.Finance.CashMovement;
 import com.taup.alimentos_mascotas.Models.Admins.Finance.CashRegister;
 import com.taup.alimentos_mascotas.Services.Admins.Finance.CashRegisterService;
 import com.taup.alimentos_mascotas.Utils.MonthlyBalance;
@@ -8,16 +10,25 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -84,5 +95,32 @@ public class CashRegisterController {
 		return cashRegisterService.getMonthlyBalance(year, month)
 				.switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,
 						"No se encontraron cierres de caja para el mes especificado")));
+	}
+
+	@PostMapping("/registrar-movimiento")
+	@Operation(summary = "Registrar movimiento en caja", description = "Registra un ingreso o egreso manual en la caja abierta.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Movimiento registrado correctamente"),
+		@ApiResponse(responseCode = "400", description = "Caja no abierta o datos inválidos")
+	})
+	public Mono<ResponseEntity<CashMovement>> registrarMovimiento(
+			Authentication auth,
+			@RequestBody CashMovementRequestDTO request) {
+		return cashRegisterService.registerCashMovement(auth.getName(), request)
+				.thenReturn(ResponseEntity.ok().build());
+	}
+
+	@GetMapping("/items")
+	public Flux<CashMovement> getItems(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "") String keyword,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+		LocalDateTime fromDateTime = from.atStartOfDay();
+		LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+
+		return cashRegisterService.getItems(page, size, keyword, fromDateTime, toDateTime);
 	}
 }

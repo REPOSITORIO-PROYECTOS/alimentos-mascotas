@@ -36,7 +36,9 @@ public class SpringSecurityConfig {
 	@Bean
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:3000", "https://bakerpet.com.ar", "https://www.bakerpet.com.ar", "https://alimentos-mascotas.netlify.app"));
+		config.setAllowedOrigins(List.of("http://localhost:3000", "https://bakerpet.com.ar", 
+			"https://www.bakerpet.com.ar", "https://alimentos-mascotas.netlify.app", 
+			"https://www.barkerpet.com.ar", "https://barkerpet.com.ar"));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		config.setAllowCredentials(true);
@@ -55,25 +57,34 @@ public class SpringSecurityConfig {
 				.csrf(ServerHttpSecurity.CsrfSpec::disable)
 				.authorizeExchange(exchanges -> {
 					// ? ENDPOINTS PÚBLICOS
-					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/notificaciones").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar", "/api/mercadopago/pago").permitAll();
 					exchanges.pathMatchers(HttpMethod.GET, "/api/productos-front/**", "/api/resenas/pagina", 
 					"/api/resenas/mejores/{productId}", "/api/productos/**").permitAll();
-					exchanges.pathMatchers(HttpMethod.POST, "/api/productos/**").permitAll();
-					exchanges.pathMatchers(HttpMethod.GET, "/api/productos/pagina").permitAll();
+					exchanges.pathMatchers(HttpMethod.POST, "/api/productos/guardar", "/api/caja/**").hasAnyAuthority("ROLE_ADMIN");
 					exchanges.pathMatchers("/webjars/**", "/swagger-ui.html", "/swagger-ui/**",
 							"/v3/api-docs/**", "/swagger-resources/**").permitAll();
 
 					// ? ENDPOINTS PRIVADOS
 					//restrictEndpoints(exchanges, HttpMethod.POST, );
 
-					authenticateEndpoints(exchanges, "/api/ventas/**", "/api/ingredientes/**",
-					 		 "/api/recetas/**", "/api/ordenes-compra/**", "/api/resenas/guardar", "/api/resenas/editar/{reviewId}", "/api/ordenes-trabajo/**");
+					adminEndpoints(exchanges, "/api/caja**", "/api/proveedores/**", 
+						"/api/ventas/**", "/api/ingredientes/**", "/api/ordenes-trabajo/**", "/api/recetas/**");
+
+					authenticateEndpoints(exchanges, "/api/ordenes-compra/**", "/api/resenas/guardar", "/api/resenas/editar/{reviewId}");
 
 					exchanges.anyExchange().authenticated();
 				})
 				.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.httpBasic(Customizer.withDefaults())
 				.build();
+	}
+
+	private void adminEndpoints(ServerHttpSecurity.AuthorizeExchangeSpec exchanges, String... paths){
+		for (String path : paths) {
+			exchanges.pathMatchers(HttpMethod.GET, path).hasAnyAuthority("ROLE_ADMIN");
+			exchanges.pathMatchers(HttpMethod.POST, path).hasAnyAuthority("ROLE_ADMIN");
+			exchanges.pathMatchers(HttpMethod.PUT, path).hasAnyAuthority("ROLE_ADMIN");
+		}
 	}
 
 	// **Método auxiliar para endpoints autenticados

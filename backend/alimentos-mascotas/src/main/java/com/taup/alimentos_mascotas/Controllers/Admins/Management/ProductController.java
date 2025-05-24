@@ -2,6 +2,7 @@ package com.taup.alimentos_mascotas.Controllers.Admins.Management;
 
 import com.taup.alimentos_mascotas.DTO.PagedResponse;
 import com.taup.alimentos_mascotas.DTO.ProductDTO;
+import com.taup.alimentos_mascotas.DTO.ProductWithImageDTO;
 import com.taup.alimentos_mascotas.Models.Admins.Management.Product;
 import com.taup.alimentos_mascotas.Services.Admins.Management.ProductService;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 
 @RestController
 @RequestMapping("/api/productos")
@@ -32,20 +34,86 @@ public class ProductController {
 		return productService.findAll();
 	}
 
-	@PostMapping("/guardar")
-	public Mono<Product> save(Authentication auth, 
-							  @RequestBody ProductDTO productDTO 
-                            /*@RequestPart("image") Mono<FilePart> image*/) {
-		String username = auth.getName();
+	@GetMapping("/obtener/{productId}")
+	public Mono<Product> getProduct(@PathVariable String productId) {
+		return productService.getById(productId);
+	}
+	
+
+	// @PostMapping("/guardar")
+	// public Mono<Product> save(Authentication auth, 
+	// 						  @RequestPart("product") Mono<ProductDTO> productDTO,
+    //                           @RequestPart("image") Mono<FilePart> image) {
+	// 	String username = auth.getName();
 		
-		return productService.save(productDTO, username);
+	// 	return productService.save(productDTO, username, image);
+	// }
+
+	@PostMapping(value = "/guardar", consumes = "multipart/form-data")
+	public Mono<Product> save(
+		Authentication auth,
+		@ModelAttribute ProductDTO productDTO, // todos los campos del producto, sin imagen
+		@RequestPart(value = "image", required = false) Mono<FilePart> image // solo la imagen
+	) {
+		String username = auth.getName();
+		return image
+			.switchIfEmpty(Mono.empty())
+			.flatMap(img -> {
+				ProductWithImageDTO dtoWithImage = new ProductWithImageDTO(
+					productDTO.getId(),
+					productDTO.getProductName(),
+					productDTO.getProductDescription(),
+					productDTO.getProductDetails(),
+					productDTO.getSellingPrice(),
+					productDTO.getDiscountPercent(),
+					productDTO.getReviewsIds(),
+					productDTO.getCategories(),
+					productDTO.getCostPrice(),
+					productDTO.getProductCode(),
+					productDTO.getRecipeId(),
+					productDTO.getStock(),
+					productDTO.getCreatedAt(),
+					productDTO.getUpdatedAt(),
+					productDTO.getModifiedBy(),
+					productDTO.getCreatedBy(),
+					img // FilePart image
+				);
+				return productService.save(dtoWithImage, username);
+			});
 	}
 
-	@PutMapping("/editar/{id}")
-	public Mono<Product> update(Authentication auth, @PathVariable String productId, @RequestBody Product product) {
+	@PutMapping(value = "/editar/{productId}", consumes = "multipart/form-data")
+	public Mono<Product> update(
+		Authentication auth,
+		@PathVariable String productId,
+		@ModelAttribute ProductDTO productDTO,
+		@RequestPart(value = "image", required = false) Mono<FilePart> image
+	) {
 		String username = auth.getName();
-
-		return productService.update(product, productId, username);
+		return image
+			.switchIfEmpty(Mono.empty())
+			.flatMap(img -> {
+				ProductWithImageDTO dtoWithImage = new ProductWithImageDTO(
+					productId, // Usar el id de la ruta para asegurar la actualización correcta
+					productDTO.getProductName(),
+					productDTO.getProductDescription(),
+					productDTO.getProductDetails(),
+					productDTO.getSellingPrice(),
+					productDTO.getDiscountPercent(),
+					productDTO.getReviewsIds(),
+					productDTO.getCategories(),
+					productDTO.getCostPrice(),
+					productDTO.getProductCode(),
+					productDTO.getRecipeId(),
+					productDTO.getStock(),
+					productDTO.getCreatedAt(),
+					productDTO.getUpdatedAt(),
+					productDTO.getModifiedBy(),
+					productDTO.getCreatedBy(),
+					img // FilePart image
+				);
+				return productService.update(dtoWithImage, productId, username);
+			});
 	}
 
 	@PostMapping("/{productId}/agregar-receta/{recipeId}")

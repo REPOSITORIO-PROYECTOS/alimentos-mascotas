@@ -1,7 +1,10 @@
 package com.taup.alimentos_mascotas.Services.Admins.Finance;
 
 
+import com.taup.alimentos_mascotas.DTO.CashMovementRequestDTO;
+import com.taup.alimentos_mascotas.Models.Admins.Finance.CashMovement;
 import com.taup.alimentos_mascotas.Models.Admins.Finance.CashRegister;
+import com.taup.alimentos_mascotas.Repositories.Admins.Finance.CashMovementRepository;
 import com.taup.alimentos_mascotas.Repositories.Admins.Finance.CashRegisterRepository;
 import com.taup.alimentos_mascotas.Repositories.Admins.Finance.InvoiceRepository;
 import com.taup.alimentos_mascotas.Repositories.Admins.Finance.PaymentRepository;
@@ -11,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -21,6 +26,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CashRegisterService {
 	private final CashRegisterRepository cashRegisterRepo;
+	private final CashMovementRepository cashMovementRepo;
 	private final PaymentRepository paymentRepo;
 	private final InvoiceRepository invoiceRepo;
 	private final UserService userService;
@@ -190,6 +196,32 @@ public class CashRegisterService {
 								return provisionalView;
 							});
 				});
+	}
+
+	public Flux<CashMovement> getItems(int page, int size, String keyword, LocalDateTime from, LocalDateTime to) {
+		int skip = page * size;
+	
+		return cashMovementRepo.findByTitleContainingIgnoreCaseAndDateBetween(keyword, from, to)
+				.skip(skip)
+				.take(size);
+	}	
+
+	public Mono<CashMovement> registerCashMovement(String username, CashMovementRequestDTO request) {
+    return userService.getFullName(username)
+        .flatMap(fullName -> 
+            cashRegisterRepo.findFirstByIsClosedFalse()
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay una caja abierta actualmente.")))
+                .flatMap(cashRegister -> {
+                    CashMovement movement = new CashMovement();
+                    movement.setCashRegisterId(cashRegister.getId());
+                    movement.setTitle(request.getTitle());
+                    movement.setIncome(request.isIncome());
+                    movement.setAmount(request.getAmount());
+                    movement.setDate(LocalDateTime.now());
+                    movement.setRegisteredBy(fullName.getName() + " " + fullName.getSurname());
+                    return cashMovementRepo.save(movement);
+                })
+        );
 	}
 
 	public Mono<Void> deleteAllCashRegisters() {

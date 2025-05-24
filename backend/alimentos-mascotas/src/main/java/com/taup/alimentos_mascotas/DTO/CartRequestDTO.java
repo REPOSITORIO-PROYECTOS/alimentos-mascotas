@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class CartRequestDTO {
-	private String externalReference;
+	//private String externalReference;
 	private List<CartItemDTO> items;
 }
