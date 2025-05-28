@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +23,13 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuthStore } from "@/context/store";
 import { calcularCostoEnvio } from "@/lib/shipping-costs";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 // Form schema using Zod
 const formSchema = z.object({
@@ -35,20 +42,32 @@ const formSchema = z.object({
     email: z
         .string()
         .email({ message: "Ingresa un correo electrónico válido" }),
-    phone: z
+    areaCode: z
         .string()
-        .min(10, { message: "Ingresa un número de teléfono válido" }),
-    address: z
+        .min(2, { message: "El código de área es obligatorio" }),
+    phoneNumber: z
         .string()
-        .min(4, { message: "La dirección debe tener al menos 4 caracteres" }),
+        .min(8, { message: "Ingresa un número de teléfono válido" }),
+    identificationType: z
+        .string()
+        .min(2, { message: "El tipo de identificación es obligatorio" }),
+    identificationNumber: z
+        .string()
+        .min(5, { message: "El número de identificación es obligatorio" }),
+    streetName: z
+        .string()
+        .min(3, { message: "El nombre de la calle es obligatorio" }),
+    streetNumber: z
+        .string()
+        .min(1, { message: "El número de la calle es obligatorio" }),
     city: z
         .string()
         .min(2, { message: "La ciudad debe tener al menos 2 caracteres" }),
     state: z
         .string()
         .min(2, { message: "El estado debe tener al menos 2 caracteres" }),
-    zipCode: z.string().min(5, {
-        message: "El código postal debe tener al menos 5 caracteres",
+    zipCode: z.string().min(4, {
+        message: "El código postal debe tener al menos 4 caracteres",
     }),
 });
 
@@ -59,21 +78,75 @@ export default function CheckoutPage() {
     const { user } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+    const [paymentMessage, setPaymentMessage] = useState<string>("");
     const [shippingCost, setShippingCost] = useState(0);
     const router = useRouter();
+
+    // Inicializar el formulario
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
             email: "",
-            phone: "",
-            address: "",
+            areaCode: "+54", // Código de área para Argentina por defecto
+            phoneNumber: "",
+            identificationType: "DNI", // DNI por defecto
+            identificationNumber: "",
+            streetName: "",
+            streetNumber: "",
             city: "",
             state: "",
             zipCode: "",
         },
     });
+
+    // Verificar parámetros de la URL al cargar la página
+    useEffect(() => {
+        // Obtener la URL actual
+        const url = new URL(window.location.href);
+        const searchParams = url.searchParams;
+
+        // Verificar si hay parámetros de Mercado Pago
+        const collectionStatus = searchParams.get("collection_status");
+        const status = searchParams.get("status");
+        const paymentId = searchParams.get("payment_id");
+
+        if (collectionStatus || status) {
+            // Determinar el estado del pago
+            const paymentResult = collectionStatus || status;
+            setPaymentStatus(paymentResult);
+
+            // Configurar mensajes según el estado
+            if (paymentResult === "approved") {
+                setOrderSuccess(true);
+                setPaymentMessage(
+                    `¡Pago aprobado! Tu número de transacción es: ${paymentId}`
+                );
+                // Limpiar el carrito si el pago fue exitoso
+                clearCart();
+            } else if (paymentResult === "pending") {
+                setOrderSuccess(true);
+                setPaymentMessage("Tu pago está pendiente de aprobación");
+            } else if (paymentResult === "rejected") {
+                setPaymentMessage(
+                    "El pago fue rechazado. Por favor intenta con otro método de pago."
+                );
+            } else if (paymentResult === "in_process") {
+                setOrderSuccess(true);
+                setPaymentMessage("El pago está siendo procesado");
+            } else {
+                setPaymentMessage(`Estado del pago: ${paymentResult}`);
+            }
+
+            // Limpiar la URL para evitar recargar el estado en futuras navegaciones
+            // Solo en producción para evitar problemas con el desarrollo
+            if (process.env.NODE_ENV === "production") {
+                window.history.replaceState({}, document.title, "/checkout");
+            }
+        }
+    }, [clearCart]);
 
     // Función para actualizar el costo de envío cuando cambia el código postal
     const handleZipCodeChange = (zipCode: string) => {
@@ -87,45 +160,51 @@ export default function CheckoutPage() {
         try {
             // Simulate API call to process order
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            const response = await fetch(
-                `https://barker.sistemataup.online/api/mercadopago/pago`,
-                {
-                    body: JSON.stringify({
-                        items: items.map((item) => ({
-                            id: item.id,
-                            title: item.productName,
-                            description: item.productCode,
-                            pictureUrl: item.imageUrl || "",
-                            categoryId: item.productCode,
-                            quantity: item.quantity,
-                            currencyId: "ARS",
-                            unitPrice:
-                                item.sellingPrice -
-                                (item.discountPercent
-                                    ? (item.sellingPrice *
-                                          item.discountPercent) /
-                                      100
-                                    : 0),
-                        })),
-                        shippingCost: shippingCost,
-                        shippingInfo: {
-                            firstName: data.firstName,
-                            lastName: data.lastName,
-                            email: data.email,
-                            phone: data.phone,
-                            address: data.address,
+            const response = await fetch(`/api/checkout`, {
+                body: JSON.stringify({
+                    items: items.map((item) => ({
+                        id: item.id,
+                        title: item.productName,
+                        description: item.productCode,
+                        pictureUrl: item.imageUrl || "",
+                        categoryId: item.productCode,
+                        quantity: item.quantity,
+                        currencyId: "ARS",
+                        unitPrice:
+                            item.sellingPrice -
+                            (item.discountPercent
+                                ? (item.sellingPrice * item.discountPercent) /
+                                  100
+                                : 0),
+                    })),
+                    shippingCost: shippingCost,
+                    userInfo: {
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        email: data.email,
+                        phone: {
+                            areaCode: data.areaCode,
+                            number: data.phoneNumber,
+                        },
+                        identification: {
+                            type: data.identificationType,
+                            number: data.identificationNumber,
+                        },
+                        address: {
+                            streetName: data.streetName,
+                            streetNumber: data.streetNumber,
+                            zipCode: data.zipCode,
                             city: data.city,
                             state: data.state,
-                            zipCode: data.zipCode,
                         },
-                    }),
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${user?.token}`,
                     },
-                }
-            );
+                }),
+                method: "POST",
+                // headers: {
+                //     "Content-Type": "application/json",
+                //     Authorization: `Bearer ${user?.token}`,
+                // },
+            });
 
             // Manejo seguro de la respuesta
             const responseData = await response.text();
@@ -164,17 +243,56 @@ export default function CheckoutPage() {
         }
     };
 
+    // Renderizar la pantalla de respuesta según el estado del pago
     if (orderSuccess) {
         return (
-            <div className="container max-w-4xl mx-auto py-12 px-4">
-                <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <AlertTitle className="text-green-800">
-                        ¡Pedido realizado con éxito!
+            <div className="container max-w-4xl mx-auto py-20 px-4">
+                <Alert
+                    className={`${
+                        paymentStatus === "approved"
+                            ? "bg-green-50 border-green-200"
+                            : paymentStatus === "rejected"
+                            ? "bg-red-50 border-red-200"
+                            : "bg-yellow-50 border-yellow-200"
+                    }`}
+                >
+                    {paymentStatus === "approved" ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : paymentStatus === "rejected" ? (
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                    ) : (
+                        <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    )}
+                    <AlertTitle
+                        className={`${
+                            paymentStatus === "approved"
+                                ? "text-green-800"
+                                : paymentStatus === "rejected"
+                                ? "text-red-800"
+                                : "text-yellow-800"
+                        }`}
+                    >
+                        {paymentStatus === "approved"
+                            ? "¡Pedido realizado con éxito!"
+                            : paymentStatus === "rejected"
+                            ? "Pago rechazado"
+                            : paymentStatus === "pending"
+                            ? "Pago pendiente"
+                            : paymentStatus === "in_process"
+                            ? "Pago en proceso"
+                            : "¡Gracias por tu compra!"}
                     </AlertTitle>
-                    <AlertDescription className="text-green-700">
-                        Gracias por tu compra. Recibirás un correo electrónico
-                        con los detalles de tu pedido.
+                    <AlertDescription
+                        className={`${
+                            paymentStatus === "approved"
+                                ? "text-green-700"
+                                : paymentStatus === "rejected"
+                                ? "text-red-700"
+                                : "text-yellow-700"
+                        }`}
+                    >
+                        {paymentMessage ||
+                            "Gracias por tu compra. Recibirás un correo electrónico con los detalles de tu pedido."}
                     </AlertDescription>
                 </Alert>
                 <div className="mt-6 text-center">
@@ -191,7 +309,7 @@ export default function CheckoutPage() {
 
     if (items.length === 0) {
         return (
-            <div className="container max-w-4xl mx-auto py-12 px-4">
+            <div className="container max-w-4xl mx-auto py-20 px-4">
                 <Alert>
                     <AlertCircle className="h-5 w-5" />
                     <AlertTitle>Tu carrito está vacío</AlertTitle>
@@ -282,15 +400,98 @@ export default function CheckoutPage() {
                                             </FormItem>
                                         )}
                                     />
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="areaCode"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Código
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="+54"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div className="col-span-2">
+                                            <FormField
+                                                control={form.control}
+                                                name="phoneNumber"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Teléfono
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Número sin código"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
-                                        name="phone"
+                                        name="identificationType"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Teléfono</FormLabel>
+                                                <FormLabel>
+                                                    Tipo de identificación
+                                                </FormLabel>
+                                                <Select
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona un tipo" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="DNI">
+                                                            DNI
+                                                        </SelectItem>
+                                                        <SelectItem value="CI">
+                                                            Cédula
+                                                        </SelectItem>
+                                                        <SelectItem value="LC">
+                                                            Libreta Cívica
+                                                        </SelectItem>
+                                                        <SelectItem value="Otro">
+                                                            Otro
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="identificationNumber"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Número de identificación
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="Ingresa tu número de teléfono"
+                                                        placeholder="Ingresa tu número de documento"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -300,22 +501,40 @@ export default function CheckoutPage() {
                                     />
                                 </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="address"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Dirección</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="Ingresa tu dirección completa"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="streetName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Calle</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Nombre de la calle"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="streetNumber"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Número</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Número de calle"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <FormField
@@ -351,7 +570,7 @@ export default function CheckoutPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    />{" "}
+                                    />
                                     <FormField
                                         control={form.control}
                                         name="zipCode"

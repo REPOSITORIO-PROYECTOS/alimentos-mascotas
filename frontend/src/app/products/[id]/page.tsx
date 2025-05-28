@@ -70,13 +70,13 @@ export default function ProductDetail({
             setLoading(true);
             try {
                 const response = await fetch(
-                    `https://barker.sistemataup.online/api/productos/${id}`,
+                    `https://barker.sistemataup.online/api/productos/obtener/${id}`,
                     {
                         method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${user?.token}`,
-                        },
+                        // headers: {
+                        //     "Content-Type": "application/json",
+                        //     Authorization: `Bearer ${user?.token}`,
+                        // },
                     }
                 );
 

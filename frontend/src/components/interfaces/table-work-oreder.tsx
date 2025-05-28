@@ -95,33 +95,83 @@ import React from "react";
 import { useFetch } from "@/hooks/useFetch";
 import { useLoading } from "@/hooks/useLoading";
 import { toast } from "sonner";
-import ProductForm from "../form-producto";
 import { useAuthStore } from "@/context/store";
+import WorkOrderForm from "../form-work-order"; // Necesitarás crear este componente
 
-type Item = {
+// Definir el tipo para las órdenes de trabajo
+type WorkOrder = {
+    modifiedBy: string;
+    createdBy: string;
     id: string;
-    productName: string;
-    productDescription: string;
-    productDetails: string;
-    imageUrl: string | null;
-    sellingPrice: number;
-    stock: number;
-    discountPercent: number;
-    categories: string[];
-    reviewsIds: string[];
+    productId: string;
     recipeId: string;
-    productCode: string;
-    costPrice: number;
+    quantityToDo: number;
+    priority: "HIGH" | "MEDIUM" | "LOW";
+    status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+    completedAt: string | null;
+    notes: string;
+    estimatedCost: number;
+    realCost: number;
+    productName?: string;
+    recipeName?: string;
 };
 
 // Custom filter function for multi-column searching
-const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
-    const searchableRowContent = `${row.original.productName}`.toLowerCase();
+const multiColumnFilterFn: FilterFn<WorkOrder> = (
+    row,
+    columnId,
+    filterValue
+) => {
+    const searchableRowContent =
+        `${row.original.productId} ${row.original.notes} ${row.original.createdBy}`.toLowerCase();
     const searchTerm = (filterValue ?? "").toLowerCase();
     return searchableRowContent.includes(searchTerm);
 };
 
-const columns: ColumnDef<Item>[] = [
+// Función para formatear fechas
+const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
+};
+
+// Función para obtener el color del estado
+const getStatusColor = (status: WorkOrder["status"]) => {
+    switch (status) {
+        case "PENDING":
+            return "bg-yellow-100 text-yellow-800";
+        case "IN_PROGRESS":
+            return "bg-blue-100 text-blue-800";
+        case "COMPLETED":
+            return "bg-green-100 text-green-800";
+        case "CANCELLED":
+            return "bg-red-100 text-red-800";
+        default:
+            return "bg-gray-100 text-gray-800";
+    }
+};
+
+// Función para obtener el color de la prioridad
+const getPriorityColor = (priority: WorkOrder["priority"]) => {
+    switch (priority) {
+        case "HIGH":
+            return "bg-red-100 text-red-800";
+        case "MEDIUM":
+            return "bg-orange-100 text-orange-800";
+        case "LOW":
+            return "bg-green-100 text-green-800";
+        default:
+            return "bg-gray-100 text-gray-800";
+    }
+};
+
+const columns: ColumnDef<WorkOrder>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -148,81 +198,114 @@ const columns: ColumnDef<Item>[] = [
         enableHiding: false,
     },
     {
-        header: "Código",
-        accessorKey: "productCode",
-        size: 120,
+        header: "ID",
+        accessorKey: "id",
+        size: 100,
+        cell: ({ row }) => (
+            <div className="font-medium">
+                {row.original.id.substring(0, 8)}...
+            </div>
+        ),
+    },
+    {
+        header: "Producto",
+        accessorKey: "productId",
+        cell: ({ row }) => (
+            <div className="font-medium">
+                {row.original.productName || row.original.productId}
+            </div>
+        ),
         filterFn: multiColumnFilterFn,
     },
     {
-        header: "Nombre",
-        accessorKey: "productName",
+        header: "Receta",
+        accessorKey: "recipeId",
         cell: ({ row }) => (
-            <div className="flex items-center gap-2">
-                <div>
-                    <div className="font-medium">
-                        {row.original.productName}
-                    </div>
-                    {row.original.productDetails && (
-                        <div className="text-sm text-muted-foreground">
-                            {row.original.productDetails}
-                        </div>
-                    )}
-                </div>
+            <div className="font-medium">
+                {row.original.recipeName || row.original.recipeId}
             </div>
         ),
-        size: 220,
-        filterFn: multiColumnFilterFn,
     },
     {
-        header: "Descripción",
-        accessorKey: "productDescription",
-        size: 220,
-    },
-    {
-        header: "Stock",
-        accessorKey: "stock",
-        size: 80,
-    },
-    {
-        header: "Precio costo",
-        accessorKey: "costPrice",
+        header: "Cantidad",
+        accessorKey: "quantityToDo",
         cell: ({ row }) => (
-            <div>
+            <div className="text-right">{row.original.quantityToDo}</div>
+        ),
+    },
+    {
+        header: "Prioridad",
+        accessorKey: "priority",
+        cell: ({ row }) => (
+            <div
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityColor(
+                    row.original.priority
+                )}`}
+            >
+                {row.original.priority === "HIGH"
+                    ? "Alta"
+                    : row.original.priority === "MEDIUM"
+                    ? "Media"
+                    : "Baja"}
+            </div>
+        ),
+    },
+    {
+        header: "Estado",
+        accessorKey: "status",
+        cell: ({ row }) => (
+            <div
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                    row.original.status
+                )}`}
+            >
+                {row.original.status === "PENDING"
+                    ? "Pendiente"
+                    : row.original.status === "IN_PROGRESS"
+                    ? "En progreso"
+                    : row.original.status === "COMPLETED"
+                    ? "Completada"
+                    : "Cancelada"}
+            </div>
+        ),
+    },
+    {
+        header: "Completada",
+        accessorKey: "completedAt",
+        cell: ({ row }) => <div>{formatDate(row.original.completedAt)}</div>,
+    },
+    {
+        header: "Costo Estimado",
+        accessorKey: "estimatedCost",
+        cell: ({ row }) => (
+            <div className="text-right">
                 {new Intl.NumberFormat("es-AR", {
                     style: "currency",
                     currency: "ARS",
-                }).format(row.original.costPrice)}
+                }).format(row.original.estimatedCost)}
             </div>
         ),
-        size: 120,
     },
     {
-        header: "Precio venta",
-        accessorKey: "sellingPrice",
+        header: "Costo Real",
+        accessorKey: "realCost",
         cell: ({ row }) => (
-            <div>
+            <div className="text-right">
                 {new Intl.NumberFormat("es-AR", {
                     style: "currency",
                     currency: "ARS",
-                }).format(row.original.sellingPrice)}
+                }).format(row.original.realCost)}
             </div>
         ),
-        size: 120,
     },
-    // {
-    //     header: "Creado",
-    //     accessorKey: "createdAt",
-    //     cell: ({ row }) => (
-    //         <div className="text-sm">
-    //             {row.original.createdAt
-    //                 ? new Date(
-    //                       row.original.createdAt.replace("T", " ")
-    //                   ).toLocaleDateString("es-AR")
-    //                 : "-"}
-    //         </div>
-    //     ),
-    //     size: 100,
-    // },
+    {
+        header: "Creado por",
+        accessorKey: "createdBy",
+    },
+    {
+        header: "Notas",
+        accessorKey: "notes",
+    },
     {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
@@ -232,37 +315,35 @@ const columns: ColumnDef<Item>[] = [
     },
 ];
 
-// const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-export default function TableProducts() {
+export default function TableWorkOrders() {
     const { user } = useAuthStore();
     const fetcher = useCallback((url: string) => {
-        //if (!user?.token) return Promise.reject("Token no disponible");
-
         return fetch({
             endpoint: url,
             method: "GET",
-            // headers: {
-            //     "Content-Type": "application/json",
-            //     Authorization: `Bearer ${user?.token}`,
-            // },
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${user?.token}`,
+            },
         })
             .then((response) => {
-                // Suponiendo que tu función fetch ya devuelve los datos JSON procesados
                 return response;
             })
             .catch((error) => {
                 console.error("Error en fetcher:", error);
-                throw error; // Propaga el error para que SWR lo capture
+                throw error;
             });
     }, []);
     const id = useId();
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        {}
-    );
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+        recipeId: false, // Oculta la columna "Receta"
+        completedAt: false, // Oculta la columna "Completada"
+        notes: false, // Oculta la columna "Notas"
+        createdBy: false, // Oculta la columna "Creado por"
+    });
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: 5,
@@ -272,12 +353,12 @@ export default function TableProducts() {
     const inputRef = useRef<HTMLInputElement>(null);
     const [sorting, setSorting] = useState<SortingState>([
         {
-            id: "productName",
-            desc: false,
+            id: "priority",
+            desc: true,
         },
     ]);
 
-    const [data, setData] = useState<Item[]>([]);
+    const [data, setData] = useState<WorkOrder[]>([]);
     const [totalElements, setTotalElements] = useState<number>(0);
 
     // Debounce function
@@ -292,7 +373,7 @@ export default function TableProducts() {
     }, [searchTerm]);
 
     const swrUrl = useMemo(() => {
-        return `/productos/pagina?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
+        return `/ordenes-trabajo/pagina?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
     }, [pagination.pageIndex, pagination.pageSize, debouncedSearchTerm]);
 
     const {
@@ -304,7 +385,6 @@ export default function TableProducts() {
         keepPreviousData: true,
     });
 
-    console.log("Fetching data from SWR:", data);
     useEffect(() => {
         if (swrData) {
             setData(swrData.content);
@@ -326,12 +406,8 @@ export default function TableProducts() {
                 try {
                     console.log("Deleting row", row.original.id);
                     await fetch({
-                        endpoint: `/productos/eliminar/${row.original.id}`,
+                        endpoint: `/api/ordenes-trabajo/eliminar/${row.original.id}`,
                         method: "delete",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${user?.token}`,
-                        },
                     });
                 } catch (error: any) {
                     console.error(
@@ -339,7 +415,7 @@ export default function TableProducts() {
                         error
                     );
                     toast.error(
-                        `Error al eliminar el producto ${row.original.id}.`
+                        `Error al eliminar la orden de trabajo ${row.original.id}.`
                     );
                 }
             }
@@ -347,7 +423,9 @@ export default function TableProducts() {
             table.resetRowSelection();
         } catch (error: any) {
             console.error("Error al procesar la eliminación:", error);
-            toast.error("Error al eliminar los productos. Inténtalo de nuevo.");
+            toast.error(
+                "Error al eliminar las órdenes de trabajo. Inténtalo de nuevo."
+            );
         } finally {
             finishLoading();
         }
@@ -390,15 +468,15 @@ export default function TableProducts() {
                                 "peer min-w-60 ps-9",
                                 Boolean(
                                     table
-                                        .getColumn("productName")
+                                        .getColumn("productId")
                                         ?.getFilterValue()
                                 ) && "pe-9"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Filtrar por nombre del producto..."
+                            placeholder="Buscar órdenes de trabajo..."
                             type="text"
-                            aria-label="Filtrar por nombre del producto"
+                            aria-label="Filtrar órdenes de trabajo"
                         />
                         <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
                             <ListFilter
@@ -408,7 +486,7 @@ export default function TableProducts() {
                             />
                         </div>{" "}
                         {Boolean(
-                            table.getColumn("productName")?.getFilterValue()
+                            table.getColumn("productId")?.getFilterValue()
                         ) && (
                             <button
                                 className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -503,7 +581,7 @@ export default function TableProducts() {
                                     </div>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                            Estas absolutamente seguro?
+                                            ¿Estás absolutamente seguro?
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
                                             Esta acción no se puede deshacer.
@@ -514,27 +592,27 @@ export default function TableProducts() {
                                             }{" "}
                                             {table.getSelectedRowModel().rows
                                                 .length === 1
-                                                ? "fila"
-                                                : "filas"}
+                                                ? "orden de trabajo"
+                                                : "órdenes de trabajo"}
                                             .
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                 </div>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>
-                                        Cancel
+                                        Cancelar
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                         onClick={handleDeleteRows}
                                     >
-                                        Delete
+                                        Eliminar
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                     )}
-                    {/* Add user button */}
-                    <ProductForm mutate={mutate} />
+                    {/* Add work order button */}
+                    <WorkOrderForm mutate={mutate} />
                 </div>
             </div>
 
@@ -564,7 +642,6 @@ export default function TableProducts() {
                                                     )}
                                                     onClick={header.column.getToggleSortingHandler()}
                                                     onKeyDown={(e) => {
-                                                        // Enhanced keyboard handling for sorting
                                                         if (
                                                             header.column.getCanSort() &&
                                                             (e.key ===
@@ -817,33 +894,32 @@ export default function TableProducts() {
 }
 
 interface RowActionsProps {
-    row: Row<Item>;
+    row: Row<WorkOrder>;
     mutate: ScopedMutator | (() => void);
 }
 
 const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const { finishLoading, startLoading } = useLoading();
-    const { user } = useAuthStore();
-
     const fetch = useFetch();
+    const { user } = useAuthStore();
 
     const handleDeleteRow = async () => {
         try {
             startLoading();
             await fetch({
-                endpoint: `/productos/eliminar/${row.original.id}`,
+                endpoint: `/ordenes-trabajo/eliminar/${row.original.id}`,
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${user?.token}`,
                 },
             });
-            toast.success("Producto eliminado correctamente");
+            toast.success("Orden de trabajo eliminada correctamente");
             await mutate(undefined, true);
         } catch (error) {
-            console.error("Error al eliminar el producto:", error);
-            toast.error("Error al eliminar el producto inténtalo de nuevo.");
+            console.error("Error al eliminar la orden de trabajo:", error);
+            toast.error("Error al eliminar la orden de trabajo");
         } finally {
             finishLoading();
         }
@@ -884,22 +960,23 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                         <DropdownMenuItem>
-                            <span>Archivar</span>
-                            <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
+                            <span>Cambiar estado</span>
                         </DropdownMenuItem>
                         <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Mas</DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger>
+                                Más opciones
+                            </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
                                     <DropdownMenuItem>
-                                        Ejemplo 1
+                                        Ver detalles
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
-                                        Ejemplo 2
+                                        Ver producto
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>
-                                        Ejemplo 3
+                                        Ver receta
                                     </DropdownMenuItem>
                                 </DropdownMenuSubContent>
                             </DropdownMenuPortal>
@@ -907,36 +984,35 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                        <DropdownMenuItem>Enviar</DropdownMenuItem>
-                        <DropdownMenuItem>Imprimir</DropdownMenuItem>
+                        <DropdownMenuItem>Imprimir orden</DropdownMenuItem>
+                        <DropdownMenuItem>Exportar como PDF</DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onSelect={handleDeleteRow}
+                        onClick={handleDeleteRow}
                     >
-                        <span>Borrar</span>
+                        <span>Eliminar</span>
                         <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
             {isEditDialogOpen && (
-                <ProductForm
+                <WorkOrderForm
                     isEditable
                     datos={{
                         id: row.original.id,
-                        productName: row.original.productName,
-                        productDescription: row.original.productDescription,
-                        productDetails: row.original.productDetails || "",
-                        imageUrl: row.original.imageUrl,
-                        sellingPrice: row.original.sellingPrice,
-                        stock: row.original.stock,
-                        discountPercent: row.original.discountPercent,
-                        categories: row.original.categories || [],
-                        reviewsIds: row.original.reviewsIds || [],
+                        productId: row.original.productId,
                         recipeId: row.original.recipeId,
-                        productCode: row.original.productCode,
-                        costPrice: row.original.costPrice,
+                        quantityToDo: row.original.quantityToDo,
+                        priority: row.original.priority,
+                        status: row.original.status,
+                        completedAt: row.original.completedAt,
+                        notes: row.original.notes,
+                        estimatedCost: row.original.estimatedCost,
+                        realCost: row.original.realCost,
+                        modifiedBy: row.original.modifiedBy,
+                        createdBy: row.original.createdBy,
                     }}
                     mutate={mutate}
                     onClose={() => setIsEditDialogOpen(false)}

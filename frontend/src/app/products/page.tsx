@@ -93,75 +93,75 @@ export default function ProductsPage() {
     }, [initialAnimation, isClient]);
 
     // Efecto para cargar productos al iniciar y cuando cambie la página o la búsqueda
-    // useEffect(() => {
-    //     fetchProducts(pagination.currentPage, keyword);
-    // }, [pagination.currentPage]);
+    useEffect(() => {
+        fetchProducts(pagination.currentPage, keyword);
+    }, [pagination.currentPage]);
 
-    // // Efecto para monitorear los cambios en la paginación
-    // useEffect(() => {
-    //     console.log("Estado actual de la paginación:", pagination);
-    // }, [pagination]);
+    // Efecto para monitorear los cambios en la paginación
+    useEffect(() => {
+        console.log("Estado actual de la paginación:", pagination);
+    }, [pagination]);
 
     // Función para buscar productos
-    // const handleSearch = (value: string) => {
-    //     setKeyword(value);
+    const handleSearch = (value: string) => {
+        setKeyword(value);
 
-    //     // Cancelar cualquier búsqueda pendiente
-    //     if (searchTimeout) {
-    //         clearTimeout(searchTimeout);
-    //     }
+        // Cancelar cualquier búsqueda pendiente
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
 
-    //     // Establecer un timeout para evitar demasiadas solicitudes mientras el usuario escribe
-    //     const timeout = setTimeout(() => {
-    //         // Reset a la primera página al buscar
-    //         setPagination((prev) => ({ ...prev, currentPage: 0 }));
-    //         fetchProducts(0, value);
-    //     }, 500);
+        // Establecer un timeout para evitar demasiadas solicitudes mientras el usuario escribe
+        const timeout = setTimeout(() => {
+            // Reset a la primera página al buscar
+            setPagination((prev) => ({ ...prev, currentPage: 0 }));
+            fetchProducts(0, value);
+        }, 500);
 
-    //     setSearchTimeout(timeout);
-    // };
+        setSearchTimeout(timeout);
+    };
 
     // Función para obtener productos del API
-    // const fetchProducts = async (page: number, searchKeyword: string) => {
-    //     setLoading(true);
-    //     try {
-    //         const response = await fetch(
-    //             `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
-    //             {
-    //                 method: "GET",
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                     Authorization: `Bearer ${user?.token}`,
-    //                 },
-    //             }
-    //         );
+    const fetchProducts = async (page: number, searchKeyword: string) => {
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://barker.sistemataup.online/api/productos/pagina?page=${page}&size=${pagination.size}&keyword=${searchKeyword}`,
+                {
+                    method: "GET",
+                    // headers: {
+                    //     "Content-Type": "application/json",
+                    //     Authorization: `Bearer ${user?.token}`,
+                    // },
+                }
+            );
 
-    //         if (!response.ok) {
-    //             throw new Error("Error al obtener productos");
-    //         }
+            if (!response.ok) {
+                throw new Error("Error al obtener productos");
+            }
 
-    //         const data = await response.json();
-    //         console.log("Respuesta del API:", data); // Añadido para depuración
+            const data = await response.json();
+            console.log("Respuesta del API:", data); // Añadido para depuración
 
-    //         // Calcular el número total de páginas correctamente
-    //         const totalPages = Math.ceil(
-    //             (data.totalElements || 0) / (data.size || pagination.size)
-    //         );
-    //         console.log("Total de páginas calculado:", totalPages); // Añadido para depuración
+            // Calcular el número total de páginas correctamente
+            const totalPages = Math.ceil(
+                (data.totalElements || 0) / (data.size || pagination.size)
+            );
+            console.log("Total de páginas calculado:", totalPages); // Añadido para depuración
 
-    //         setProducts(data.content || []);
-    //         setPagination({
-    //             totalElements: data.totalElements || 0,
-    //             totalPages: totalPages,
-    //             currentPage: data.page || 0,
-    //             size: data.size || pagination.size,
-    //         });
-    //     } catch (error) {
-    //         console.error("Error al cargar productos:", error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
+            setProducts(data.content || []);
+            setPagination({
+                totalElements: data.totalElements || 0,
+                totalPages: totalPages,
+                currentPage: data.page || 0,
+                size: data.size || pagination.size,
+            });
+        } catch (error) {
+            console.error("Error al cargar productos:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Función para cambiar de página
     const handlePageChange = (page: number) => {
@@ -280,15 +280,15 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Estado de carga */}
-                {/* {loading && (
+                {loading && (
                     <div className="text-center py-6">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-400 border-t-transparent"></div>
                         <p className="mt-2">Cargando productos...</p>
                     </div>
-                )} */}
+                )}
 
                 {/* Mensaje si no hay productos */}
-                {/* {!loading && products.length === 0 && (
+                {!loading && products.length === 0 && (
                     <div className="text-center py-8">
                         <p className="text-lg">No se encontraron productos.</p>
                         {keyword && (
@@ -298,13 +298,16 @@ export default function ProductsPage() {
                             </p>
                         )}
                     </div>
-                )} */}
+                )}
 
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {productsBackUp.map((product) => (
+                    {products.map((product) => (
                         <div key={product.id} className="flex flex-col">
-                            <Link href={`#/${product.id}`} className="group">
+                            <Link
+                                href={`/products/${product.id}`}
+                                className="group"
+                            >
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                     <Image
                                         src={
@@ -333,15 +336,15 @@ export default function ProductsPage() {
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="font-bold">
                                     $
-                                        {(
-                                            product.sellingPrice - (
-                                                product.sellingPrice *
-                                                (product.discountPercent / 100)
-                                            )
-                                        ).toFixed(2)}
+                                    {(
+                                        product.sellingPrice -
+                                        product.sellingPrice *
+                                            ((product.discountPercent || 0) /
+                                                100)
+                                    ).toFixed(2)}
                                 </span>
                                 <span className="font-bold">
-                                    -{product.discountPercent}%
+                                    -{product.discountPercent || 0}%
                                 </span>
                                 {product.discountPercent && (
                                     <span className="text-sm line-through text-gray-500">
@@ -363,16 +366,13 @@ export default function ProductsPage() {
                                     {addedToCart[product.id] ? (
                                         <span>
                                             <Check className="mr-2 h-4 w-4" />
-                                            Redirigiendo a Whatsapp...
+                                            Agregado al carrito
                                         </span>
                                     ) : (
-                                        <Link
-                                            target="_blank"
-                                            href={`https://wa.me/+5491134677025?text=Quiero%20comprar%20el%20producto%20${product.productName}`}
-                                        >
+                                        <span>
                                             <ShoppingBag className="mr-2 h-4 w-4" />
                                             Comprar
-                                        </Link>
+                                        </span>
                                     )}
                                 </Button>
                             </div>

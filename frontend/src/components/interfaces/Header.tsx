@@ -62,7 +62,7 @@ export default function Header() {
 
                     <div className="flex items-center gap-4">
                         <div className="">
-                            {/* <CartButton /> */}
+                            <CartButton />
                         </div>
 
                         <div className="block md:hidden">
