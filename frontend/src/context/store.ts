@@ -69,9 +69,7 @@ export const useAuthStore = create<AuthState>()(
                         );
                     }
 
-                    const userData: AuthResponse = await response.json();
-
-                    // Actualizar el estado con los datos del usuario
+                    const userData: AuthResponse = await response.json(); // Actualizar el estado con los datos del usuario
                     set({
                         user: {
                             ...userData,
@@ -85,10 +83,13 @@ export const useAuthStore = create<AuthState>()(
                         isAuthenticated: true,
                         isLoading: false,
                     });
+
+                    // Guardar el rol y token en cookies para el middleware
                     const userRole = Array.isArray(userData.roles)
                         ? userData.roles[0]
                         : userData.roles;
-                    document.cookie = `role=${userRole}; path=/; max-age=86400`;
+                    document.cookie = `role=${userRole}; path=/; max-age=86400; secure; samesite=strict`;
+                    document.cookie = `token=${userData.token}; path=/; max-age=86400; secure; samesite=strict`;
 
                     return true;
                 } catch (error) {
@@ -101,15 +102,20 @@ export const useAuthStore = create<AuthState>()(
                     });
                     return false;
                 }
-            },
-
-            // Función de logout
+            }, // Función de logout
             logout: () => {
                 set({
                     user: null,
                     isAuthenticated: false,
                     error: null,
                 });
+
+                // Limpiar todas las cookies relacionadas con la autenticación
+                document.cookie =
+                    "role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                document.cookie =
+                    "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+
                 // Limpiar sessionStorage para mantener compatibilidad
                 sessionStorage.removeItem("user");
             },
