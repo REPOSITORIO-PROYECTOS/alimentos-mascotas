@@ -37,11 +37,6 @@ import {
     PaginationItem,
 } from "@/components/ui/pagination";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -83,7 +78,6 @@ import {
     CircleX,
     Columns3,
     Ellipsis,
-    Filter,
     ListFilter,
     Loader2Icon,
     Trash,
@@ -96,7 +90,7 @@ import {
     useRef,
     useState,
 } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR, { mutate, ScopedMutator } from "swr";
 import React from "react";
 import { useFetch } from "@/hooks/useFetch";
 import { useLoading } from "@/hooks/useLoading";
@@ -125,16 +119,6 @@ const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
     const searchableRowContent = `${row.original.productName}`.toLowerCase();
     const searchTerm = (filterValue ?? "").toLowerCase();
     return searchableRowContent.includes(searchTerm);
-};
-
-const statusFilterFn: FilterFn<Item> = (
-    row,
-    columnId,
-    filterValue: string[]
-) => {
-    if (!filterValue?.length) return true;
-    const status = row.getValue(columnId) as string;
-    return filterValue.includes(status);
 };
 
 const columns: ColumnDef<Item>[] = [
@@ -242,7 +226,7 @@ const columns: ColumnDef<Item>[] = [
     {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => <RowActions row={row} />,
+        cell: ({ row }) => <RowActions row={row} mutate={mutate} />,
         size: 60,
         enableHiding: false,
     },
@@ -252,29 +236,26 @@ const columns: ColumnDef<Item>[] = [
 
 export default function TableProducts() {
     const { user } = useAuthStore();
-    const fetcher = useCallback(
-        (url: string) => {
-            //if (!user?.token) return Promise.reject("Token no disponible");
+    const fetcher = useCallback((url: string) => {
+        //if (!user?.token) return Promise.reject("Token no disponible");
 
-            return fetch({
-                endpoint: url,
-                method: "GET",
-                // headers: {
-                //     "Content-Type": "application/json",
-                //     Authorization: `Bearer ${user?.token}`,
-                // },
+        return fetch({
+            endpoint: url,
+            method: "GET",
+            // headers: {
+            //     "Content-Type": "application/json",
+            //     Authorization: `Bearer ${user?.token}`,
+            // },
+        })
+            .then((response) => {
+                // Suponiendo que tu función fetch ya devuelve los datos JSON procesados
+                return response;
             })
-                .then((response) => {
-                    // Suponiendo que tu función fetch ya devuelve los datos JSON procesados
-                    return response;
-                })
-                .catch((error) => {
-                    console.error("Error en fetcher:", error);
-                    throw error; // Propaga el error para que SWR lo capture
-                });
-        },
-        []
-    );
+            .catch((error) => {
+                console.error("Error en fetcher:", error);
+                throw error; // Propaga el error para que SWR lo capture
+            });
+    }, []);
     const id = useId();
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
@@ -331,18 +312,6 @@ export default function TableProducts() {
         }
     }, [swrData]);
 
-    // const handleDeleteRow = async (row: Row<Item>) => {
-    //   startLoading()
-    //   const updatedData = data.filter((item) => item.id !== row.original.id);
-    //   setData(updatedData);
-    //   await fetch({
-    //     endpoint: `cursos/${row.original.id}`,
-    //     method: 'delete'
-    //   });
-    //   await mutate();
-    //   finishLoading()
-    // }
-
     const handleDeleteRows = async () => {
         try {
             startLoading();
@@ -357,8 +326,12 @@ export default function TableProducts() {
                 try {
                     console.log("Deleting row", row.original.id);
                     await fetch({
-                        endpoint: `/api/productos/eliminar/${row.original.id}`,
+                        endpoint: `/productos/eliminar/${row.original.id}`,
                         method: "delete",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${user?.token}`,
+                        },
                     });
                 } catch (error: any) {
                     console.error(
@@ -843,8 +816,38 @@ export default function TableProducts() {
     );
 }
 
-const RowActions = React.memo(({ row }: { row: Row<Item> }) => {
+interface RowActionsProps {
+    row: Row<Item>;
+    mutate: ScopedMutator | (() => void);
+}
+
+const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const { finishLoading, startLoading } = useLoading();
+    const { user } = useAuthStore();
+
+    const fetch = useFetch();
+
+    const handleDeleteRow = async () => {
+        try {
+            startLoading();
+            await fetch({
+                endpoint: `/productos/eliminar/${row.original.id}`,
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            });
+            toast.success("Producto eliminado correctamente");
+            await mutate(undefined, true);
+        } catch (error) {
+            console.error("Error al eliminar el producto:", error);
+            toast.error("Error al eliminar el producto inténtalo de nuevo.");
+        } finally {
+            finishLoading();
+        }
+    };
 
     return (
         <>
@@ -908,7 +911,10 @@ const RowActions = React.memo(({ row }: { row: Row<Item> }) => {
                         <DropdownMenuItem>Imprimir</DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={handleDeleteRow}
+                    >
                         <span>Borrar</span>
                         <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                     </DropdownMenuItem>
@@ -922,7 +928,7 @@ const RowActions = React.memo(({ row }: { row: Row<Item> }) => {
                         productName: row.original.productName,
                         productDescription: row.original.productDescription,
                         productDetails: row.original.productDetails || "",
-                        // imageUrl: row.original.imageUrl,
+                        imageUrl: row.original.imageUrl,
                         sellingPrice: row.original.sellingPrice,
                         stock: row.original.stock,
                         discountPercent: row.original.discountPercent,
