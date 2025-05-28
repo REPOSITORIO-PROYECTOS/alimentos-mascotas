@@ -72,7 +72,7 @@ const formSchema = z.object({
     productDetails: z.string().min(2, {
         message: "Los detalles deben tener al menos 2 caracteres.",
     }),
-    // imageUrl: imageSchema,
+    imageUrl: imageSchema,
     sellingPrice: z.number().min(1, {
         message: "El precio debe ser mayor a 0.",
     }),
@@ -97,7 +97,7 @@ interface ProductoFormProps {
         productName: string;
         productDescription: string;
         productDetails: string;
-        // imageUrl: string | null;
+        imageUrl: string | null;
         sellingPrice: number;
         stock: number;
         discountPercent: number;
@@ -140,7 +140,7 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            //imageUrl: datos?.imageUrl || null,
+            imageUrl: datos?.imageUrl || null,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
             costPrice: datos?.costPrice || 0,
@@ -154,10 +154,12 @@ export default function ProductForm({
     async function onSubmit(dataForm: z.infer<typeof formSchema>) {
         const formDataObj = new FormData();
 
-        // // Agregar la imagen si existe
-        // if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
-        //     formDataObj.append("image", dataForm.imageUrl[0]);
-        // }
+        // Agregar la imagen si existe
+        if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
+            formDataObj.append("image", dataForm.imageUrl[0]);
+        }
+        // //enviar los datos del producto dentro de un campo llamado "product" pero sin la imagen
+        // formDataObj.append("product", JSON.stringify(dataForm));
 
         // Agregar el resto de campos
         formDataObj.append("productName", dataForm.productName);
@@ -185,11 +187,11 @@ export default function ProductForm({
                     "reviewsIds",
                     JSON.stringify(datos.reviewsIds)
                 );
-            // // No agregamos imageUrl existente porque ya estamos enviando el archivo nuevo
-            // if (!dataForm.imageUrl || dataForm.imageUrl.length === 0) {
-            //     if (datos.imageUrl)
-            //         formDataObj.append("imageUrl", datos.imageUrl);
-            // }
+            // No agregamos imageUrl existente porque ya estamos enviando el archivo nuevo
+            if (!dataForm.imageUrl || dataForm.imageUrl.length === 0) {
+                if (datos.imageUrl)
+                    formDataObj.append("imageUrl", datos.imageUrl);
+            }
         }
 
         startLoading();
@@ -202,7 +204,7 @@ export default function ProductForm({
                 method: isEditable ? "PUT" : "POST",
                 formData: formDataObj,
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${user?.token}`,
                 },
             });
@@ -332,7 +334,7 @@ export default function ProductForm({
                                     </FormItem>
                                 )}
                             />
-                            {/* <FormField
+                            <FormField
                                 control={form.control}
                                 name="imageUrl"
                                 render={({
@@ -421,7 +423,7 @@ export default function ProductForm({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            /> */}
+                            />
                             <div className="grid grid-cols-3 gap-4">
                                 {" "}
                                 <FormField
