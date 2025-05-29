@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.taup.alimentos_mascotas.Models.ModelClass;
 import com.taup.alimentos_mascotas.Utils.OrderStatus;
 import com.taup.alimentos_mascotas.Utils.Priority;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -34,10 +33,8 @@ public class WorkOrder extends ModelClass {
 	@Positive
 	private Map<String, Number> estimatedIngredients;
 
-	@Valid
 	private Priority priority;
 
-	@Valid
 	private OrderStatus status;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss")

@@ -32,6 +32,5 @@ public class Ingredient extends ModelClass {
 	@Positive
 	private Number stock;
 
-	@Valid
 	private MeasurementUnit measurementUnit;
 }

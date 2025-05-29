@@ -38,19 +38,16 @@ public class PurchaseOrder extends ModelClass {
 
 	private Boolean isPaid;
 
-	@Valid
 	private PaymentMethod paymentMethod;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss")
 	private LocalDateTime orderDate;
 
-	@Valid
 	private OrderStatus status;
 
 	@Size(max = 200)
 	private String notes;
 
-	@Valid
 	private Priority priority;
 
 	@NotNull

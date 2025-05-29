@@ -31,13 +31,11 @@ public class BuyOrder extends ModelClass {
 
 	private Map<String, Number> products;
 
-	@Valid
 	private PaymentMethod paymentMethod;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss")
 	private LocalDateTime orderDate;
 
-	@Valid
 	private OrderStatus status;
 
 	private String shippingMethod;

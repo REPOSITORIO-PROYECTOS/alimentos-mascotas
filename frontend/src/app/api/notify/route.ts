@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 const accessToken = `${process.env.MERCADO_PAGO_ACCESS_TOKEN}`;
 const mercadopago = new MercadoPagoConfig({ accessToken });
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
     try {
         // Obtener los datos de la notificación
         const body = await req.json();
