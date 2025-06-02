@@ -46,7 +46,7 @@ interface CashRegisterFormProps {
         id: string;
         cashRegisterId: string;
         title: string;
-        concept: string;
+        description: string;
         amount: number;
         date: string;
         registeredBy: string;
@@ -58,7 +58,7 @@ interface CashRegisterFormProps {
 
 const cashRegisterSchema = z.object({
     title: z.string().min(1, "El título es requerido"),
-    concept: z.string().min(1, "El concepto es requerido"),
+    description: z.string().min(1, "La descripción es requerida"),
     amount: z.number().min(0.01, "El monto debe ser mayor a 0"),
     income: z.boolean(),
 });
@@ -81,7 +81,7 @@ export default function CashRegisterForm({
         resolver: zodResolver(cashRegisterSchema),
         defaultValues: {
             title: "",
-            concept: "",
+            description: "",
             amount: 0,
             income: true,
         },
@@ -91,7 +91,7 @@ export default function CashRegisterForm({
         if (isEditable && datos) {
             form.reset({
                 title: datos.title || "",
-                concept: datos.concept || "",
+                description: datos.description || "",
                 amount: datos.amount || 0,
                 income: datos.income ?? true,
             });
@@ -104,17 +104,24 @@ export default function CashRegisterForm({
                 startLoading();
 
                 const endpoint =
-                    isEditable && datos ? `/caja/${datos.id}` : "/caja";
+                    isEditable && datos
+                        ? `/caja/${datos.id}`
+                        : "/caja/registrar-movimiento";
 
                 const method = isEditable ? "PUT" : "POST";
                 const payload = {
                     ...data,
-                    registeredBy: user?.username || user?.name || "Usuario",
+                    // registeredBy: user?.username || user?.name || "Usuario",
+                    paymentId: "",
                 };
                 await fetch({
                     endpoint,
                     method,
                     formData: payload,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user?.token}`,
+                    },
                 });
 
                 toast.success(
@@ -224,10 +231,10 @@ export default function CashRegisterForm({
 
                             <FormField
                                 control={form.control}
-                                name="concept"
+                                name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Concepto</FormLabel>
+                                        <FormLabel>Descripción</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Descripción del concepto"
@@ -406,10 +413,10 @@ export default function CashRegisterForm({
 
                         <FormField
                             control={form.control}
-                            name="concept"
+                            name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Concepto</FormLabel>
+                                    <FormLabel>Descripción</FormLabel>
                                     <FormControl>
                                         <Textarea
                                             placeholder="Descripción del concepto"
