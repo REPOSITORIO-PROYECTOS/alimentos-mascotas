@@ -28,7 +28,7 @@ interface AuthState {
     login: (
         email: string,
         password: string,
-        role: "ROLE_ADMIN" | "ROLE_CLIENT"
+        role?: "ROLE_ADMIN" | "ROLE_CLIENT"
     ) => Promise<boolean>;
     logout: () => void;
     clearError: () => void;
@@ -44,11 +44,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
 
             // Función de login
-            login: async (
-                email: string,
-                password: string,
-                roles: "ROLE_ADMIN" | "ROLE_CLIENT"
-            ) => {
+            login: async (email: string, password: string) => {
                 set({ isLoading: true, error: null });
 
                 try {
@@ -88,8 +84,8 @@ export const useAuthStore = create<AuthState>()(
                     const userRole = Array.isArray(userData.roles)
                         ? userData.roles[0]
                         : userData.roles;
-                    document.cookie = `role=${userRole}; path=/; max-age=86400; secure; samesite=strict`;
-                    document.cookie = `token=${userData.token}; path=/; max-age=86400; secure; samesite=strict`;
+                    document.cookie = `role=${userRole}; path=/; max-age=28800; secure; samesite=strict`;
+                    document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
 
                     return true;
                 } catch (error) {
