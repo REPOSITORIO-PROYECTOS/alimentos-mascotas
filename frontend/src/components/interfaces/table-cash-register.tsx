@@ -267,9 +267,6 @@ export default function TableCashRegister() {
                     <div className="flex items-center gap-2">
                         <div>
                             <div className="">{row.getValue("title")}</div>
-                            <div className="text-sm text-muted-foreground">
-                                {row.original.concept}
-                            </div>
                         </div>
                     </div>
                 ),
@@ -1027,7 +1024,7 @@ const RowActions = React.memo(
                             id: row.original.id,
                             cashRegisterId: row.original.cashRegisterId,
                             title: row.original.title,
-                            concept: row.original.concept,
+                            description: row.original.concept,
                             amount: row.original.amount,
                             date: row.original.date,
                             registeredBy: row.original.registeredBy,
