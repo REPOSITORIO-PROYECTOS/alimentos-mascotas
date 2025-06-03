@@ -52,7 +52,7 @@ interface ICheckoutRequest {
 
 export async function POST(req: NextRequest) {
     const requestData: ICheckoutRequest = await req.json();
-    const URL = "https://dcc2-190-176-76-254.ngrok-free.app";
+    const URL = "https://barkerpet.com.ar";
 
     try {
         const response = await payment.create({
