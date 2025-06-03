@@ -33,24 +33,45 @@ public class CashRegisterService {
 
 	public Mono<CashRegister> openCashRegister(String username) {
 		return userService.getFullName(username)
-				.flatMap(name ->{
-					return cashRegisterRepo.findFirstByIsClosedFalse()
-							.hasElement() // Verifica si hay elementos
-							.flatMap(hasOpenRegister -> {
-								if (hasOpenRegister) {
-									return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
-											"Ya existe una caja abierta. Cierre la caja actual antes de abrir una nueva."));
-								}
-								// Crear una nueva caja si no hay una abierta
+				.flatMap(name -> 
+					cashRegisterRepo.findFirstByIsClosedFalse()
+						.flatMap(existingCashRegister -> {
+							// Si ya existe una caja abierta, retornar la vista provisional
+							return getOpenCashRegister();
+						})
+						.switchIfEmpty(
+							// Si no hay caja abierta, crear una nueva
+							Mono.<CashRegister>defer(() -> {
 								CashRegister newCashRegister = new CashRegister();
 								newCashRegister.setStartDate(LocalDateTime.now());
 								newCashRegister.setIsClosed(false);
 								newCashRegister.setCreatedBy(name.getName() + " " + name.getSurname());
 								return cashRegisterRepo.save(newCashRegister);
-							});
-				});
-
+							})
+						)
+				);
 	}
+
+	// public Mono<CashRegister> openCashRegister(String username) {
+	// 	return userService.getFullName(username)
+	// 			.flatMap(name ->{
+	// 				return cashRegisterRepo.findFirstByIsClosedFalse()
+	// 						.hasElement() // Verifica si hay elementos
+	// 						.flatMap(hasOpenRegister -> {
+	// 							if (hasOpenRegister) {
+	// 								return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+	// 										"Ya existe una caja abierta. Cierre la caja actual antes de abrir una nueva."));
+	// 							}
+	// 							// Crear una nueva caja si no hay una abierta
+	// 							CashRegister newCashRegister = new CashRegister();
+	// 							newCashRegister.setStartDate(LocalDateTime.now());
+	// 							newCashRegister.setIsClosed(false);
+	// 							newCashRegister.setCreatedBy(name.getName() + " " + name.getSurname());
+	// 							return cashRegisterRepo.save(newCashRegister);
+	// 						});
+	// 			});
+
+	// }
 
 	public Mono<CashRegister> closeCashRegister(String username) {
 		return userService.getFullName(username)
@@ -216,6 +237,7 @@ public class CashRegisterService {
                     movement.setCashRegisterId(cashRegister.getId());
                     movement.setTitle(request.getTitle());
                     movement.setIncome(request.isIncome());
+					movement.setConcept(request.getDescription());
                     movement.setAmount(request.getAmount());
                     movement.setDate(LocalDateTime.now());
                     movement.setRegisteredBy(fullName.getName() + " " + fullName.getSurname());

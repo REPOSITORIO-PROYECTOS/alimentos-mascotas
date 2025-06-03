@@ -81,21 +81,21 @@ public class BuyOrderService {
 		return buyOrderRepo.deleteById(workOrderId);
 	}
 
-	@Transactional
-	public Mono<BuyOrder> saveWithWorkOrder(BuyOrder buyOrder, String username) {
-		if (buyOrder.getId() != null) {
-			return MonoEx.monoError(HttpStatus.BAD_REQUEST, "La orden de compra ya tiene ID, no puede almacenarse como nueva");
-		}
+	// @Transactional
+	// public Mono<BuyOrder> saveWithWorkOrder(BuyOrder buyOrder, String username) {
+	// 	if (buyOrder.getId() != null) {
+	// 		return MonoEx.monoError(HttpStatus.BAD_REQUEST, "La orden de compra ya tiene ID, no puede almacenarse como nueva");
+	// 	}
 
-		buyOrder.setCreatedAt(LocalDateTime.now());
-		buyOrder.setCreatedBy(username);
+	// 	buyOrder.setCreatedAt(LocalDateTime.now());
+	// 	buyOrder.setCreatedBy(username);
 
-		return workOrderService.createWorkOrderFromBuyOrder(buyOrder)
-				.then(buyOrderRepo.save(buyOrder))
-				.onErrorResume(error -> {
-					return MonoEx.monoError(HttpStatus.BAD_REQUEST, error.getMessage());
-				});
-	}
+	// 	return workOrderService.createWorkOrderFromBuyOrder(buyOrder)
+	// 			.then(buyOrderRepo.save(buyOrder))
+	// 			.onErrorResume(error -> {
+	// 				return MonoEx.monoError(HttpStatus.BAD_REQUEST, error.getMessage());
+	// 			});
+	// }
 
 	// ? Metodos locales
 

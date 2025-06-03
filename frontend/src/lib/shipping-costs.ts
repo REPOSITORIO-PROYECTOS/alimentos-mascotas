@@ -474,7 +474,7 @@ export const SHIPPING_COSTS_ZONES = {
             "9000 - 9220", // Chubut
             "9300 - 9407", // Tierra del Fuego (asumo)
         ],
-        precio: 800.0,
+        precio: 8.0,
     },
     DEFAULT: {
         precio: 4000.0,

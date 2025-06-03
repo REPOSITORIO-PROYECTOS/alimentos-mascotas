@@ -144,75 +144,75 @@ public class WorkOrderService {
 		return workOrderRepo.deleteById(workOrderId);
 	}
 
-	@Transactional
-	public Flux<WorkOrder> createWorkOrderFromBuyOrder(BuyOrder buyOrder) {
-		return Flux.fromIterable(buyOrder.getProducts().keySet())
-				.flatMap(this::findProductById)
-				.filter(product -> hasInsufficientStock(product, buyOrder))
-				.collectList()
-				.flatMapMany(products -> createWorkOrdersForProducts(products, buyOrder));
-	}
+	// @Transactional
+	// public Flux<WorkOrder> createWorkOrderFromBuyOrder(BuyOrder buyOrder) {
+	// 	return Flux.fromIterable(buyOrder.getProducts().keySet())
+	// 			.flatMap(this::findProductById)
+	// 			.filter(product -> hasInsufficientStock(product, buyOrder))
+	// 			.collectList()
+	// 			.flatMapMany(products -> createWorkOrdersForProducts(products, buyOrder));
+	// }
 
 	// ? Metodos locales
 
-	private Mono<Product> findProductById(String productId) {
-		return productRepo.findById(productId)
-				.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No hay producto con el ID: "+productId));
-	}
+	// private Mono<Product> findProductById(String productId) {
+	// 	return productRepo.findById(productId)
+	// 			.switchIfEmpty(MonoEx.monoError(HttpStatus.NOT_FOUND, "No hay producto con el ID: "+productId));
+	// }
 
-	private boolean hasInsufficientStock(Product product, BuyOrder buyOrder) {
-		Number stock = product.getStock();
-		Number requestedQuantity = buyOrder.getProducts().get(product.getId());
-		return stock != null && requestedQuantity != null &&
-				stock.doubleValue() < requestedQuantity.doubleValue();
-	}
+	// private boolean hasInsufficientStock(Product product, BuyOrder buyOrder) {
+	// 	Number stock = product.getStock();
+	// 	Number requestedQuantity = buyOrder.getProducts().get(product.getId());
+	// 	return stock != null && requestedQuantity != null &&
+	// 			stock.doubleValue() < requestedQuantity.doubleValue();
+	// }
 
-	private Flux<WorkOrder> createWorkOrdersForProducts(List<Product> products, BuyOrder buyOrder) {
-		return Flux.fromIterable(products)
-				.flatMap(product-> createWorkOrderForProduct(product, buyOrder));
-	}
+	// private Flux<WorkOrder> createWorkOrdersForProducts(List<Product> products, BuyOrder buyOrder) {
+	// 	return Flux.fromIterable(products)
+	// 			.flatMap(product-> createWorkOrderForProduct(product, buyOrder));
+	// }
 
-	private Mono<WorkOrder> createWorkOrderForProduct(Product product, BuyOrder buyOrder) {
-		WorkOrder workOrder = buildWorkOrder(product, buyOrder);
-		return calculateWorkOrderDetails(workOrder, product)
-				.flatMap(workOrderRepo::save);
-	}
+	// private Mono<WorkOrder> createWorkOrderForProduct(Product product, BuyOrder buyOrder) {
+	// 	WorkOrder workOrder = buildWorkOrder(product, buyOrder);
+	// 	return calculateWorkOrderDetails(workOrder, product)
+	// 			.flatMap(workOrderRepo::save);
+	// }
 
-	private WorkOrder buildWorkOrder(Product product, BuyOrder buyOrder) {
-		WorkOrder workOrder = new WorkOrder();
-		workOrder.setProductId(product.getId());
-		workOrder.setQuantityToDo(calculateQuantityToProduce(product, buyOrder));
-		workOrder.setPriority(determinePriority(product, buyOrder));
-		return workOrder;
-	}
+	// private WorkOrder buildWorkOrder(Product product, BuyOrder buyOrder) {
+	// 	WorkOrder workOrder = new WorkOrder();
+	// 	workOrder.setProductId(product.getId());
+	// 	workOrder.setQuantityToDo(calculateQuantityToProduce(product, buyOrder));
+	// 	workOrder.setPriority(determinePriority(product, buyOrder));
+	// 	return workOrder;
+	// }
 
-	private double calculateQuantityToProduce(Product product, BuyOrder buyOrder) {
-		double requestedQuantity = buyOrder.getProducts().get(product.getId()).doubleValue();
-		double actualStock = product.getStock().doubleValue();
-		return requestedQuantity - actualStock;
-	}
+	// private double calculateQuantityToProduce(Product product, BuyOrder buyOrder) {
+	// 	double requestedQuantity = buyOrder.getProducts().get(product.getId()).doubleValue();
+	// 	double actualStock = product.getStock().doubleValue();
+	// 	return requestedQuantity - actualStock;
+	// }
 
-	private Priority determinePriority(Product product, BuyOrder buyOrder) {
-		double requestedQuantity = buyOrder.getProducts().get(product.getId()).doubleValue();
-		return (requestedQuantity > 100 || Boolean.TRUE.equals(buyOrder.getIsPaid()))
-				? Priority.HIGH
-				: Priority.LOW;
-	}
+	// private Priority determinePriority(Product product, BuyOrder buyOrder) {
+	// 	double requestedQuantity = buyOrder.getProducts().get(product.getId()).doubleValue();
+	// 	return (requestedQuantity > 100 || Boolean.TRUE.equals(buyOrder.getIsPaid()))
+	// 			? Priority.HIGH
+	// 			: Priority.LOW;
+	// }
 
-	private Mono<WorkOrder> calculateWorkOrderDetails(WorkOrder workOrder, Product product) {
-		return recipeRepo.findById(product.getRecipeId())
-				.flatMap(recipe -> {
-					Map<String, Number> estimatedIngredients = calculateEstimatedIngredients(recipe, parseBigDecimal(workOrder.getQuantityToDo()));
+	// private Mono<WorkOrder> calculateWorkOrderDetails(WorkOrder workOrder, Product product) {
+	// 	return recipeRepo.findById(product.getRecipeId())
+	// 			.flatMap(recipe -> {
+	// 				Map<String, Number> estimatedIngredients = calculateEstimatedIngredients(recipe, parseBigDecimal(workOrder.getQuantityToDo()));
 
-					workOrder.setEstimatedIngredients(estimatedIngredients);
+	// 				workOrder.setEstimatedIngredients(estimatedIngredients);
 
-					return calculateEstimatedCost(estimatedIngredients)
-							.map(totalCost -> {
-								workOrder.setEstimatedCost(totalCost);
-								return workOrder;
-							});
-				});
-	}
+	// 				return calculateEstimatedCost(estimatedIngredients)
+	// 						.map(totalCost -> {
+	// 							workOrder.setEstimatedCost(totalCost);
+	// 							return workOrder;
+	// 						});
+	// 			});
+	// }
 
 	private Map<String, Number> calculateEstimatedIngredients(Recipe recipe, BigDecimal quantityToProduce) {
 		Map<String, Number> estimatedIngredients = new HashMap<>();

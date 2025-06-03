@@ -2,7 +2,6 @@ package com.taup.alimentos_mascotas.Models.Admins.Management;
 
 import com.taup.alimentos_mascotas.Models.ModelClass;
 import com.taup.alimentos_mascotas.Utils.MeasurementUnit;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
