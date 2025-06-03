@@ -4,10 +4,14 @@ import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { CartButton } from "../cart-button";
-import { Phone } from "lucide-react";
+import UserButton from "../user-buttom";
+import { useAuthStore } from "@/context/store";
+import { Button } from "../ui/button";
+import { CircleUserRoundIcon } from "lucide-react";
 
 export default function Header() {
     const pathname = usePathname();
+    const { user } = useAuthStore();
 
     // No renderizar el Header en rutas de admin
     if (pathname === "/admin" || pathname?.startsWith("/admin/")) {
@@ -61,8 +65,26 @@ export default function Header() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="">
+                        <div className="flex items-center gap-4">
                             <CartButton />
+                            <UserButton />
+                            {!user && (
+                                <Button
+                                    variant="outline"
+                                    aria-label="Login"
+                                    asChild
+                                >
+                                    <Link href="/login">
+                                        <CircleUserRoundIcon
+                                            size={16}
+                                            aria-hidden="true"
+                                        />
+                                        <span className="ml-2">
+                                            Iniciar sesión
+                                        </span>
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
 
                         <div className="block md:hidden">
