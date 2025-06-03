@@ -22,13 +22,8 @@ export default async function AdminPage() {
 
     return (
         <div className="container mx-auto p-4 md:p-6">
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-16 flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Panel de Administración</h1>
-                <form action="/api/auth/logout" method="POST">
-                    <Button type="submit" variant="outline">
-                        Cerrar Sesión
-                    </Button>
-                </form>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
