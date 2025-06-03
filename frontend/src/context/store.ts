@@ -87,6 +87,12 @@ export const useAuthStore = create<AuthState>()(
                     document.cookie = `role=${userRole}; path=/; max-age=28800; secure; samesite=strict`;
                     document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
 
+                    if (userData.roles.includes("ROLE_ADMIN")) {
+                        window.location.href = "/admin";
+                    } else if (userData.roles.includes("ROLE_CLIENT")) {
+                        window.location.href = "/client";
+                    }
+
                     return true;
                 } catch (error) {
                     set({
@@ -114,6 +120,7 @@ export const useAuthStore = create<AuthState>()(
 
                 // Limpiar sessionStorage para mantener compatibilidad
                 sessionStorage.removeItem("user");
+                window.location.href = "/"; // Redirigir al inicio
             },
 
             // Limpiar errores
