@@ -165,7 +165,7 @@ export default function WorkOrderForm({
             } else {
                 toast.error("Error al cargar las recetas. Inténtalo de nuevo.");
                 setRecipesOptions([
-                    { label: "No hay recetas disponibles", value: "S/N" },
+                    { label: "No hay recetas disponibles", value: "654321" },
                 ]);
             }
         } catch (error: any) {
@@ -218,16 +218,23 @@ export default function WorkOrderForm({
             createdBy: user?.id || "",
             priority: data.priority,
             status: data.status,
-            completedAt: data.completedAt
-                ? data.completedAt.toISOString()
-                : null,
+            completedAt: "29-05-2025T12:00:00", // Formato de fecha ISO 8601
             notes: data.notes,
             estimatedCost: data.estimatedCost,
             realCost: data.realCost,
-            usedIngredients: null,
-            ingredientDifferences: null,
-            estimatedIngredients: null,
-            completedQuantity: null,
+            usedIngredients: {
+                harina: 52,
+                agua: 29,
+            },
+            ingredientDifferences: {
+                harina: 2,
+                agua: -1,
+            },
+            estimatedIngredients: {
+                harina: 50,
+                agua: 30,
+            },
+            completedQuantity: 100,
         };
         startLoading();
         try {
