@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BookOpenIcon, PhoneCall } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import UserButton from "./user-buttom";
 
 export function Navbar() {
     const pathname = usePathname();
@@ -71,22 +72,7 @@ export function Navbar() {
                     />
                 </div>
                 <div className="space-x-4 flex items-center">
-                    <Button className="bg-primary hover:bg-primary/80">
-                        <span className="hidden xl:inline-flex">
-                            Manual del Usuario
-                        </span>
-                        <BookOpenIcon
-                            className="w-5 h-5 xl:ml-2"
-                            aria-hidden="true"
-                        />
-                    </Button>
-                    <Button className="bg-primary hover:bg-primary/80">
-                        <span className="hidden xl:inline-flex">Soporte</span>
-                        <PhoneCall
-                            className="w-5 h-5 xl:ml-2"
-                            aria-hidden="true"
-                        />
-                    </Button>
+                    <UserButton />
                 </div>
             </div>
         </nav>
