@@ -32,44 +32,62 @@ import {
 } from "@/components/ui/select";
 
 // Form schema using Zod
-const formSchema = z.object({
-    firstName: z
-        .string()
-        .min(2, { message: "El nombre debe tener al menos 2 caracteres" }),
-    lastName: z
-        .string()
-        .min(2, { message: "El apellido debe tener al menos 2 caracteres" }),
-    email: z
-        .string()
-        .email({ message: "Ingresa un correo electrónico válido" }),
-    areaCode: z
-        .string()
-        .min(2, { message: "El código de área es obligatorio" }),
-    phoneNumber: z
-        .string()
-        .min(8, { message: "Ingresa un número de teléfono válido" }),
-    identificationType: z
-        .string()
-        .min(2, { message: "El tipo de identificación es obligatorio" }),
-    identificationNumber: z
-        .string()
-        .min(5, { message: "El número de identificación es obligatorio" }),
-    streetName: z
-        .string()
-        .min(3, { message: "El nombre de la calle es obligatorio" }),
-    streetNumber: z
-        .string()
-        .min(1, { message: "El número de la calle es obligatorio" }),
-    city: z
-        .string()
-        .min(2, { message: "La ciudad debe tener al menos 2 caracteres" }),
-    state: z
-        .string()
-        .min(2, { message: "El estado debe tener al menos 2 caracteres" }),
-    zipCode: z.string().min(4, {
-        message: "El código postal debe tener al menos 4 caracteres",
-    }),
-});
+const formSchema = z
+    .object({
+        firstName: z
+            .string()
+            .min(2, { message: "El nombre debe tener al menos 2 caracteres" }),
+        lastName: z.string().min(2, {
+            message: "El apellido debe tener al menos 2 caracteres",
+        }),
+        email: z
+            .string()
+            .email({ message: "Ingresa un correo electrónico válido" }),
+        areaCode: z
+            .string()
+            .min(2, { message: "El código de área es obligatorio" }),
+        phoneNumber: z
+            .string()
+            .min(8, { message: "Ingresa un número de teléfono válido" }),
+        identificationType: z
+            .string()
+            .min(2, { message: "El tipo de identificación es obligatorio" }),
+        identificationNumber: z
+            .string()
+            .min(5, { message: "El número de identificación es obligatorio" }),
+        shippingMethod: z
+            .string()
+            .min(1, { message: "Selecciona un método de envío" }),
+        streetName: z.string().optional(),
+        streetNumber: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+    })
+    .refine(
+        (data) => {
+            if (data.shippingMethod === "delivery") {
+                return (
+                    data.streetName &&
+                    data.streetName.length >= 3 &&
+                    data.streetNumber &&
+                    data.streetNumber.length >= 1 &&
+                    data.city &&
+                    data.city.length >= 2 &&
+                    data.state &&
+                    data.state.length >= 2 &&
+                    data.zipCode &&
+                    data.zipCode.length >= 4
+                );
+            }
+            return true;
+        },
+        {
+            message:
+                "Los campos de dirección son obligatorios para el envío a domicilio",
+            path: ["streetName"],
+        }
+    );
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -81,6 +99,7 @@ export default function CheckoutPage() {
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [paymentMessage, setPaymentMessage] = useState<string>("");
     const [shippingCost, setShippingCost] = useState(0);
+    const [shippingMethod, setShippingMethod] = useState<string>("pickup");
     const router = useRouter();
 
     // Inicializar el formulario
@@ -94,6 +113,7 @@ export default function CheckoutPage() {
             phoneNumber: "",
             identificationType: "DNI", // DNI por defecto
             identificationNumber: "",
+            shippingMethod: "pickup", // Retiro por defecto
             streetName: "",
             streetNumber: "",
             city: "",
@@ -146,96 +166,116 @@ export default function CheckoutPage() {
                 window.history.replaceState({}, document.title, "/checkout");
             }
         }
-    }, [clearCart]);
-
-    // Función para actualizar el costo de envío cuando cambia el código postal
+    }, [clearCart]); // Función para actualizar el costo de envío cuando cambia el código postal
     const handleZipCodeChange = (zipCode: string) => {
-        const cost = calcularCostoEnvio(zipCode);
-        setShippingCost(cost);
+        if (shippingMethod === "delivery") {
+            const cost = calcularCostoEnvio(zipCode);
+            setShippingCost(cost);
+        }
+    };
+
+    // Función para manejar el cambio de método de envío
+    const handleShippingMethodChange = (method: string) => {
+        setShippingMethod(method);
+        if (method === "pickup" || method === "agreement") {
+            setShippingCost(0);
+        } else if (method === "delivery") {
+            const zipCode = form.getValues("zipCode");
+            if (zipCode) {
+                const cost = calcularCostoEnvio(zipCode);
+                setShippingCost(cost);
+            }
+        }
     };
 
     const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true);
+        console.log("Submitting order with data:", data);
 
         try {
             // Simulate API call to process order
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            const response = await fetch(`/api/checkout`, {
-                body: JSON.stringify({
-                    items: items.map((item) => ({
-                        id: item.id,
-                        title: item.productName,
-                        description: item.productCode,
-                        pictureUrl: item.imageUrl || "",
-                        categoryId: item.productCode,
-                        quantity: item.quantity,
-                        currencyId: "ARS",
-                        unitPrice:
-                            item.sellingPrice -
-                            (item.discountPercent
-                                ? (item.sellingPrice * item.discountPercent) /
-                                  100
-                                : 0),
-                    })),
-                    shippingCost: shippingCost,
-                    userInfo: {
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        email: data.email,
-                        phone: {
-                            areaCode: data.areaCode,
-                            number: data.phoneNumber,
-                        },
-                        identification: {
-                            type: data.identificationType,
-                            number: data.identificationNumber,
-                        },
-                        address: {
-                            streetName: data.streetName,
-                            streetNumber: data.streetNumber,
-                            zipCode: data.zipCode,
-                            city: data.city,
-                            state: data.state,
-                        },
-                    },
-                }),
-                method: "POST",
-                // headers: {
-                //     "Content-Type": "application/json",
-                //     Authorization: `Bearer ${user?.token}`,
-                // },
-            });
+            // const response = await fetch(`/api/checkout`, {
+            //     body: JSON.stringify({
+            //         items: items.map((item) => ({
+            //             id: item.id,
+            //             title: item.productName,
+            //             description: item.productCode,
+            //             pictureUrl: item.imageUrl || "",
+            //             categoryId: item.productCode,
+            //             quantity: item.quantity,
+            //             currencyId: "ARS",
+            //             unitPrice:
+            //                 item.sellingPrice -
+            //                 (item.discountPercent
+            //                     ? (item.sellingPrice * item.discountPercent) /
+            //                       100
+            //                     : 0),
+            //         })),
+            //         shippingCost: shippingCost,
+            //         shippingMethod: data.shippingMethod,
+            //         userInfo: {
+            //             firstName: data.firstName,
+            //             lastName: data.lastName,
+            //             email: data.email,
+            //             phone: {
+            //                 areaCode: data.areaCode,
+            //                 number: data.phoneNumber,
+            //             },
+            //             identification: {
+            //                 type: data.identificationType,
+            //                 number: data.identificationNumber,
+            //             },
+            //             address:
+            //                 data.shippingMethod === "delivery"
+            //                     ? {
+            //                           streetName: data.streetName,
+            //                           streetNumber: data.streetNumber,
+            //                           zipCode: data.zipCode,
+            //                           city: data.city,
+            //                           state: data.state,
+            //                       }
+            //                     : null,
+            //         },
+            //     }),
+            //     method: "POST",
+            //     // headers: {
+            //     //     "Content-Type": "application/json",
+            //     //     Authorization: `Bearer ${user?.token}`,
+            //     // },
+            // });
 
-            // Manejo seguro de la respuesta
-            const responseData = await response.text();
+            // // Manejo seguro de la respuesta
+            // const responseData = await response.text();
 
-            // Check if the response is a direct URL
-            if (responseData.trim().startsWith("http")) {
-                console.log("Redirecting to payment URL:", responseData);
-                window.location.href = responseData.trim();
-                return;
-            }
+            // // Check if the response is a direct URL
+            // if (responseData.trim().startsWith("http")) {
+            //     console.log("Redirecting to payment URL:", responseData);
+            //     window.location.href = responseData.trim();
+            //     return;
+            // }
 
-            // If not a URL, try to parse as JSON
-            let jsonData;
-            try {
-                jsonData = JSON.parse(responseData);
-                console.log("Response from Mercado Pago API:", jsonData);
+            // // If not a URL, try to parse as JSON
+            // let jsonData;
+            // try {
+            //     jsonData = JSON.parse(responseData);
+            //     console.log("Response from Mercado Pago API:", jsonData);
 
-                // Si tenemos una URL de inicioPago, redirigir al usuario
-                if (jsonData && jsonData.inicioPago) {
-                    router.push(jsonData.inicioPago);
-                    return;
-                }
-            } catch (error) {
-                console.error("Error parsing JSON response:", responseData);
-            }
-            console.log("Order submitted:", {
-                customerInfo: data,
-                items: items,
-                totalAmount: totalPrice + shippingCost,
-                shippingCost: shippingCost,
-            });
+            //     // Si tenemos una URL de inicioPago, redirigir al usuario
+            //     if (jsonData && jsonData.inicioPago) {
+            //         router.push(jsonData.inicioPago);
+            //         return;
+            //     }
+            // } catch (error) {
+            //     console.error("Error parsing JSON response:", responseData);
+            // }
+            // console.log("Order submitted:", {
+            //     customerInfo: data,
+            //     items: items,
+            //     totalAmount: totalPrice + shippingCost,
+            //     shippingCost: shippingCost,
+            //     shippingMethod: data.shippingMethod,
+            // });
         } catch (error) {
             console.error("Error processing order:", error);
         } finally {
@@ -498,104 +538,204 @@ export default function CheckoutPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    />
+                                    />{" "}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     <FormField
                                         control={form.control}
-                                        name="streetName"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Calle</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Nombre de la calle"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="streetNumber"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Número</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Número de calle"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="city"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Ciudad</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Ciudad"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="state"
+                                        name="shippingMethod"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>
-                                                    Estado/Provincia
+                                                    Método de envío
                                                 </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Estado"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="zipCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Código Postal
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Código postal"
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(e);
-                                                            handleZipCodeChange(
-                                                                e.target.value
-                                                            );
-                                                        }}
-                                                    />
-                                                </FormControl>
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        handleShippingMethodChange(
+                                                            value
+                                                        );
+                                                    }}
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona un método de envío" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="pickup">
+                                                            Retirar por el local
+                                                        </SelectItem>
+                                                        <SelectItem value="agreement">
+                                                            Acordar con el
+                                                            vendedor
+                                                        </SelectItem>
+                                                        <SelectItem value="delivery">
+                                                            Envío a domicilio
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
                                 </div>
+
+                                {shippingMethod === "delivery" && (
+                                    <>
+                                        <div className="mt-4 mb-2">
+                                            <h3 className="text-lg font-medium text-gray-900">
+                                                Información de envío
+                                            </h3>
+                                            <p className="text-sm text-gray-600">
+                                                Completa los datos para el envío
+                                                a domicilio
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="streetName"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Calle
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Nombre de la calle"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="streetNumber"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Número
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Número de calle"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="city"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Ciudad
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Ciudad"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="state"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Estado/Provincia
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Estado"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="zipCode"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Código Postal
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Código postal"
+                                                                {...field}
+                                                                onChange={(
+                                                                    e
+                                                                ) => {
+                                                                    field.onChange(
+                                                                        e
+                                                                    );
+                                                                    handleZipCodeChange(
+                                                                        e.target
+                                                                            .value
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {shippingMethod === "pickup" && (
+                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <h3 className="text-lg font-medium text-blue-900 mb-2">
+                                            Retiro en el local
+                                        </h3>
+                                        <p className="text-sm text-blue-700">
+                                            Podrás retirar tu pedido en nuestro
+                                            local ubicado en:
+                                        </p>
+                                        <p className="text-sm font-medium text-blue-800 mt-1">
+                                            [Dirección del local aquí]
+                                        </p>
+                                        <p className="text-sm text-blue-700 mt-2">
+                                            Horarios de atención: Lunes a
+                                            Viernes de 9:00 a 18:00 hs
+                                        </p>
+                                    </div>
+                                )}
+
+                                {shippingMethod === "agreement" && (
+                                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <h3 className="text-lg font-medium text-yellow-900 mb-2">
+                                            Acordar con el vendedor
+                                        </h3>
+                                        <p className="text-sm text-yellow-700">
+                                            Nos pondremos en contacto contigo
+                                            para coordinar la entrega de tu
+                                            pedido. Podrás elegir el método que
+                                            más te convenga.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="pt-4 md:hidden">
                                     <Button
@@ -676,13 +816,31 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between text-sm">
                                     <span>Subtotal</span>
                                     <span>${totalPrice.toFixed(2)}</span>
-                                </div>
+                                </div>{" "}
                                 <div className="flex justify-between text-sm">
                                     <span>Envío</span>
-                                    {shippingCost > 0 ? (
-                                        <span>${shippingCost.toFixed(2)}</span>
+                                    {shippingMethod === "pickup" ? (
+                                        <span className="text-green-600 font-medium">
+                                            Gratis (Retiro)
+                                        </span>
+                                    ) : shippingMethod === "agreement" ? (
+                                        <span className="text-blue-600 font-medium">
+                                            A coordinar
+                                        </span>
+                                    ) : shippingMethod === "delivery" ? (
+                                        shippingCost > 0 ? (
+                                            <span>
+                                                ${shippingCost.toFixed(2)}
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground">
+                                                Ingresa código postal
+                                            </span>
+                                        )
                                     ) : (
-                                        <span>Ingresa código postal</span>
+                                        <span className="text-muted-foreground">
+                                            Selecciona método
+                                        </span>
                                     )}
                                 </div>
                                 <Separator className="my-2" />
