@@ -42,11 +42,23 @@ export async function POST(req: NextRequest) {
                         number: payment.additional_info?.payer?.phone?.number,
                     },
                     address: {
+                        shippingMethod: payment.metadata?.shippingMethod,
                         zip_code:
-                            payment.additional_info?.payer?.address?.zip_code,
+                            payment.additional_info?.payer?.address?.zip_code ||
+                            null,
                         street_name:
                             payment.additional_info?.payer?.address
-                                ?.street_name,
+                                ?.street_name || null,
+                        streetNumber:
+                            payment.additional_info?.payer?.address
+                                ?.street_number || null,
+                        city:
+                            payment.additional_info?.shipments?.receiver_address
+                                ?.city_name || null,
+                        state:
+                            payment.additional_info?.shipments?.receiver_address
+                                ?.state_name || null,
+                        shippingCost: payment.shipping_amount || 0,
                     },
                     items: payment.additional_info?.items?.map((item) => ({
                         id: item.id,
