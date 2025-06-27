@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { CircleUserRoundIcon } from "lucide-react";
 
 export default function Header() {
+    
     const pathname = usePathname();
     const { user } = useAuthStore();
 
@@ -21,7 +22,10 @@ export default function Header() {
     return (
         <header className="bg-primary fixed top-0 z-50 w-full">
             <div className="mx-auto max-w-(--breakpoint-lg) px-4 sm:px-6 lg:px-8">
+
                 <div className="flex h-16 items-center justify-between">
+
+                    {/* Nav para Admins */}
                     <div className="md:flex md:items-center md:gap-12">
                         <Link className="block text-white" href="/">
                             <span className="sr-only">Home</span>

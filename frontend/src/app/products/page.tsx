@@ -19,6 +19,8 @@ import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/context/store";
 import { productsBackUp } from "@/lib/products";
 
+import { toast as sonnerToast } from "sonner";
+
 type Product = {
     id: string;
     productName: string;
@@ -181,8 +183,11 @@ export default function ProductsPage() {
         setTimeout(() => {
             setAddedToCart((prev) => ({ ...prev, [product.id]: false }));
         }, 2000);
+
+        sonnerToast.success("Producto añadido al carrito");
     };
 
+    
     const stats = [
         {
             base: 450,
