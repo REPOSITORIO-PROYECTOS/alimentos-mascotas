@@ -78,8 +78,12 @@ export default function LoginPage() {
 
     return (
         <section className="w-full relative">
+
             <div className="container mx-auto flex h-screen w-full flex-col items-center justify-center">
-                <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+
+                <div className="mx-auto p-4 flex w-full flex-col justify-center space-y-4 mt-32 sm:w-[350px] lg:mt-28 xl:mt-20">
+
+                    {/* Titulo Login */}
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">
                             Iniciar sesión
@@ -88,12 +92,14 @@ export default function LoginPage() {
                             Ingresa tus credenciales para acceder
                         </p>
                     </div>
+                    
 
+                    {/* Login Form */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Acceso Clientes</CardTitle>
-                            <CardDescription className="h-12">
-                                Ingresa con tu correo y contraseña de estudiante
+                            <CardDescription className="h-8">
+                                Ingresa con tu email y contraseña
                             </CardDescription>
                         </CardHeader>
                         <Form {...form}>
@@ -109,7 +115,7 @@ export default function LoginPage() {
                                         name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>DNI</FormLabel>
+                                                <FormLabel>Email</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
@@ -170,7 +176,7 @@ export default function LoginPage() {
                                 <CardFooter>
                                     <Button
                                         type="submit"
-                                        className="w-full mt-6"
+                                        className="w-full mt-6 cursor-pointer"
                                         disabled={isLoading}
                                     >
                                         {isLoading
@@ -182,17 +188,22 @@ export default function LoginPage() {
                         </Form>
                     </Card>
 
-                    <p className="px-8 text-center text-sm text-muted-foreground">
+
+                    {/* Registrar */}
+                    <p className="px-8 text-center text-md text-muted-foreground">
                         ¿No tienes una cuenta?{" "}
                         <Link
-                            href="#"
+                            href="/register"
                             className="underline underline-offset-4 hover:text-primary"
                         >
-                            Contacta con tu institución
+                            Registrate Gratis!
                         </Link>
                     </p>
+
                 </div>
+
             </div>
+
         </section>
     );
 }

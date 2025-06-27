@@ -136,13 +136,17 @@ export default function RegisterPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-            <Card className="w-full max-w-md">
+            
+            
+            <Card className="w-full max-w-lg mt-16 md:mt-24">
+
                 <CardHeader>
                     <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
                     <CardDescription>
                         Completa tus datos para registrarte
                     </CardDescription>
                 </CardHeader>
+                
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
                         {error && (
@@ -248,7 +252,7 @@ export default function RegisterPage() {
                     <CardFooter className="flex flex-col space-y-4">
                         <Button
                             type="submit"
-                            className="w-full"
+                            className="w-full cursor-pointer"
                             disabled={loading}
                         >
                             {loading ? "Registrando..." : "Registrarse"}
@@ -257,21 +261,17 @@ export default function RegisterPage() {
                             <div className="flex justify-between items-center">
                                 <Link
                                     href="/login"
-                                    className="hover:underline underline-offset-4"
+                                    className="hover:underline underline-offset-4 hover:text-primary"
                                 >
                                     ¿Ya tienes cuenta? Iniciar Sesión
-                                </Link>
-                                <Link
-                                    href="/"
-                                    className="hover:underline underline-offset-4"
-                                >
-                                    Volver al inicio
                                 </Link>
                             </div>
                         </div>
                     </CardFooter>
                 </form>
             </Card>
+
+
         </div>
     );
 }
