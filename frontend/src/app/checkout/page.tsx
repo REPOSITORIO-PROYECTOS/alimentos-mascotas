@@ -102,6 +102,15 @@ export default function CheckoutPage() {
     const [shippingMethod, setShippingMethod] = useState<string>("pickup");
     const router = useRouter();
 
+
+    // Redirigir a login si el usuario no está autenticado
+    useEffect(() => {
+        if (user === null && typeof window !== "undefined") {
+            router.push(`/login?redirect=/checkout`);
+        }
+    }, [user, router]);
+
+
     // Inicializar el formulario
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),

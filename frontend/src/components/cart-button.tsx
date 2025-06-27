@@ -183,7 +183,7 @@ export function CartButton() {
 
                             <div className="grid gap-2">
                                 <Button
-                                    className="w-full bg-amber-400 hover:bg-amber-500 text-black"
+                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold cursor-pointer"
                                     onClick={handleCheckout}
                                 >
                                     Proceder al pago

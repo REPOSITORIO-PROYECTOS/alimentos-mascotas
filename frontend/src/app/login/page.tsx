@@ -81,13 +81,11 @@ export default function LoginPage() {
                     router.push("/");
                 }
             }
-
-            console.log("user after login", user);      // debug
-
         } catch (err) {
             console.error("Error durante el inicio de sesión:", err);
         }
     };
+
 
 
 
