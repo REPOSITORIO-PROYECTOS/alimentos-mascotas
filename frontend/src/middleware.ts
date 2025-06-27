@@ -25,6 +25,7 @@ function decodeJWT(token: string) {
 }
 
 export function middleware(request: NextRequest) {
+    
     const { pathname } = request.nextUrl;
 
     // Obtener el token de las cookies (auth-storage de Zustand)
@@ -38,7 +39,9 @@ export function middleware(request: NextRequest) {
 
     // Verificar si el usuario está autenticado
     if (authStorageToken) {
+
         try {
+
             // Extraer la información del usuario del token almacenado por Zustand
             const authData = JSON.parse(decodeURIComponent(authStorageToken));
             user = authData.state.user;
@@ -46,9 +49,7 @@ export function middleware(request: NextRequest) {
 
             // Determinar el rol del usuario
             if (user && user.roles) {
-                userRole = Array.isArray(user.roles)
-                    ? user.roles[0]
-                    : user.roles;
+                userRole = user.roles?.[0] || "";
             }
 
             // Validar también el JWT si existe

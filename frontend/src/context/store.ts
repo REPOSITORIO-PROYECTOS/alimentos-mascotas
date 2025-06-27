@@ -16,7 +16,7 @@ export type User = {
     token: string;
     username: string;
     name: string;
-    roles: "ROLE_ADMIN" | "ROLE_CLIENT" | string[];
+    roles: string[];    // "ROLE_ADMIN" | "ROLE_CLIENT" |
 } | null;
 
 // Definición del estado de autenticación
@@ -28,7 +28,7 @@ interface AuthState {
     login: (
         email: string,
         password: string,
-        role?: "ROLE_ADMIN" | "ROLE_CLIENT"
+        // role?: "ROLE_ADMIN" | "ROLE_CLIENT"             // se recomendó sacar con la actualizacion
     ) => Promise<boolean>;
     logout: () => void;
     clearError: () => void;
@@ -69,12 +69,9 @@ export const useAuthStore = create<AuthState>()(
                     set({
                         user: {
                             ...userData,
-                            // Asegurar que role sea compatible con el tipo esperado
                             roles: Array.isArray(userData.roles)
-                                ? (userData.roles as [
-                                      "ROLE_ADMIN" | "ROLE_CLIENT"
-                                  ])
-                                : userData.roles,
+                                ? userData.roles
+                                : [userData.roles],
                         },
                         isAuthenticated: true,
                         isLoading: false,
@@ -90,7 +87,7 @@ export const useAuthStore = create<AuthState>()(
                     if (userData.roles.includes("ROLE_ADMIN")) {
                         window.location.href = "/admin";
                     } else if (userData.roles.includes("ROLE_CLIENT")) {
-                        window.location.href = "/client";
+                        window.location.href = "/";
                     }
 
                     return true;
