@@ -84,11 +84,11 @@ export const useAuthStore = create<AuthState>()(
                     document.cookie = `role=${userRole}; path=/; max-age=28800; secure; samesite=strict`;
                     document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
 
-                    if (userData.roles.includes("ROLE_ADMIN")) {
+                    /* if (userData.roles.includes("ROLE_ADMIN")) {
                         window.location.href = "/admin";
                     } else if (userData.roles.includes("ROLE_CLIENT")) {
                         window.location.href = "/";
-                    }
+                    } */
 
                     return true;
                 } catch (error) {

@@ -63,18 +63,33 @@ export default function LoginPage() {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            // Limpiar errores previos
             clearError();
 
-            // Llamar a la función login del store
-            await login(data.email, data.password);
+            const success = await login(data.email, data.password);
 
-            toast.success("Inicio de sesión exitoso");
+            if (success) {
+                toast.success("Inicio de sesión exitoso");
+
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get("redirect");
+
+                if (redirect) {
+                    router.push(redirect);
+                } else if (user?.roles.includes("ROLE_ADMIN")) {
+                    router.push("/admin");
+                } else {
+                    router.push("/");
+                }
+            }
+
+            console.log("user after login", user);      // debug
+
         } catch (err) {
-            // El error ya se maneja en el store
             console.error("Error durante el inicio de sesión:", err);
         }
     };
+
+
 
     return (
         <section className="w-full relative">
