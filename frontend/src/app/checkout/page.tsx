@@ -92,6 +92,7 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CheckoutPage() {
+    
     const { items, totalPrice, clearCart } = useCartStore();
     const { user } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,7 +116,7 @@ export default function CheckoutPage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            firstName: "",
+            firstName: "",          // user?.name -> se podra hacer esto para que el checkout ya tenga los datos del user que va a comprar? 
             lastName: "",
             email: "",
             areaCode: "+54", // Código de área para Argentina por defecto

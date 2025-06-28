@@ -183,7 +183,7 @@ export default function Hero() {
                                     />
                                 </div>
                                 <svg
-                                    className="absolute -right-10 -bottom-20 w-12 rotate-45 fill-primary xl:-right-14 xl:-bottom-24 xl:w-16"
+                                    className="hidden sm:absolute -right-10 -bottom-20 w-12 rotate-45 fill-primary xl:-right-14 xl:-bottom-24 xl:w-16"
                                     viewBox="0 0 90 184"
                                     fill="none"
                                     xmlns="http://www.w3.org/2000/svg"

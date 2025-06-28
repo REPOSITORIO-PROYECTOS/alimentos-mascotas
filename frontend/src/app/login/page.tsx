@@ -42,6 +42,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
+    
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -62,32 +63,33 @@ export default function LoginPage() {
     };
 
     const onSubmit = async (data: FormValues) => {
+        
         try {
             clearError();
+            const userRole = await login(data.email, data.password);
 
-            const success = await login(data.email, data.password);
+            if (userRole === false) {
+                toast.error("Credenciales incorrectas");
+                return;
+            }
 
-            if (success) {
-                toast.success("Inicio de sesión exitoso");
+            toast.success("Inicio de sesión exitoso");
 
-                const params = new URLSearchParams(window.location.search);
-                const redirect = params.get("redirect");
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get("redirect");
 
-                if (redirect) {
-                    router.push(redirect);
-                } else if (user?.roles.includes("ROLE_ADMIN")) {
-                    router.push("/admin");
-                } else {
-                    router.push("/");
-                }
+            if (redirect) {
+                router.push(redirect);
+            } else if (userRole === "ROLE_ADMIN") {
+                router.push("/admin");
+            } else {
+                router.push("/");
             }
         } catch (err) {
             console.error("Error durante el inicio de sesión:", err);
+            toast.error("Error en el inicio de sesión");
         }
     };
-
-
-
 
     return (
         <section className="w-full relative">

@@ -16,7 +16,7 @@ export type User = {
     token: string;
     username: string;
     name: string;
-    roles: string[];    // "ROLE_ADMIN" | "ROLE_CLIENT" |
+    roles: string[];    // Sacado: "ROLE_ADMIN" | "ROLE_CLIENT" |
 } | null;
 
 // Definición del estado de autenticación
@@ -29,7 +29,7 @@ interface AuthState {
         email: string,
         password: string,
         // role?: "ROLE_ADMIN" | "ROLE_CLIENT"             // se recomendó sacar con la actualizacion
-    ) => Promise<boolean>;
+    ) => Promise<string | false>;
     logout: () => void;
     clearError: () => void;
 }
@@ -81,16 +81,14 @@ export const useAuthStore = create<AuthState>()(
                     const userRole = Array.isArray(userData.roles)
                         ? userData.roles[0]
                         : userData.roles;
+
+                    // Guardar las cookies
                     document.cookie = `role=${userRole}; path=/; max-age=28800; secure; samesite=strict`;
                     document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
 
-                    /* if (userData.roles.includes("ROLE_ADMIN")) {
-                        window.location.href = "/admin";
-                    } else if (userData.roles.includes("ROLE_CLIENT")) {
-                        window.location.href = "/";
-                    } */
+                    // Retornamos el rol, en vez de true
+                    return userRole;
 
-                    return true;
                 } catch (error) {
                     set({
                         isLoading: false,
