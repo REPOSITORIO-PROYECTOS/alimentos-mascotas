@@ -41,12 +41,14 @@ import reactor.core.publisher.Mono;
                     user.setName(userDetails.getName());
                     user.setSurname(userDetails.getSurname());
                     user.setPhone(userDetails.getPhone());
-                    user.setRoles(
-                        userDetails.getRoles() != null && !userDetails.getRoles().isEmpty()
-                            ? userDetails.getRoles()
-                            : Set.of("ROLE_CLIENT")
-                    );
                     user.setDni(userDetails.getDni());
+                    
+                    if (userDetails.getRoles() != null && !userDetails.getRoles().isEmpty()) {
+                        user.setRoles(userDetails.getRoles());
+                    } else {
+                        user.setRoles(Set.of("ROLE_CLIENT")); 
+                    }
+
                     user.setCreatedBy("Himself");
                     user.setCreatedAt(LocalDateTime.now());
                     user.setModifiedBy("");

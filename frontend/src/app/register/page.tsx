@@ -104,13 +104,13 @@ export default function RegisterPage() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        name: nombre, // Mapea a los nombres de campo solicitados
-                        surname: apellido, // Mapea a los nombres de campo solicitados
+                        name: nombre,       
+                        surname: apellido,  
                         dni,
-                        phone: celular, // Mapea a los nombres de campo solicitados
+                        phone: celular, 
                         email,
                         password,
-                        roles: ["ROLE_CLIENT"], // Asignar rol por defecto
+                        // Ya no se manda mas el rol desde front. 
                     }),
                 }
             );
