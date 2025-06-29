@@ -3,6 +3,7 @@ package com.taup.alimentos_mascotas.Models.Profiles;
 import com.taup.alimentos_mascotas.Models.ModelClass;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +41,6 @@ public class User extends ModelClass {
     @NotBlank(message = "La contraseña no puede estar vacía")
     private String password;
 
-    @NotBlank(message = "El rol no puede estar en blanco.")
+    @NotEmpty(message = "El rol no puede estar vacío.")
     private Set<String> roles = new HashSet<>();
 }

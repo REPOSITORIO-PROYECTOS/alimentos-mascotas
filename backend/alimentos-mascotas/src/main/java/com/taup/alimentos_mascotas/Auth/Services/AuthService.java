@@ -3,6 +3,7 @@ package com.taup.alimentos_mascotas.Auth.Services;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,15 @@ import reactor.core.publisher.Mono;
                     user.setName(userDetails.getName());
                     user.setSurname(userDetails.getSurname());
                     user.setPhone(userDetails.getPhone());
-                    user.setRoles(userDetails.getRoles());
+                    
+                    Set<String> roles = userDetails.getRoles();
+                    if (roles == null || roles.isEmpty()) {
+                        roles = Set.of("ROLE_CLIENT");
+                    }
+                    user.setRoles(roles);
+
+                    // user.setRoles(Set.of("ROLE_CLIENT")); opcion 2 si no..
+
                     user.setDni(userDetails.getDni());
                     user.setCreatedBy("Himself");
                     user.setCreatedAt(LocalDateTime.now());
