@@ -41,15 +41,11 @@ import reactor.core.publisher.Mono;
                     user.setName(userDetails.getName());
                     user.setSurname(userDetails.getSurname());
                     user.setPhone(userDetails.getPhone());
-                    
-                    Set<String> roles = userDetails.getRoles();
-                    if (roles == null || roles.isEmpty()) {
-                        roles = Set.of("ROLE_CLIENT");
-                    }
-                    user.setRoles(roles);
-
-                    // user.setRoles(Set.of("ROLE_CLIENT")); opcion 2 si no..
-
+                    user.setRoles(
+                        userDetails.getRoles() != null && !userDetails.getRoles().isEmpty()
+                            ? userDetails.getRoles()
+                            : Set.of("ROLE_CLIENT")
+                    );
                     user.setDni(userDetails.getDni());
                     user.setCreatedBy("Himself");
                     user.setCreatedAt(LocalDateTime.now());
@@ -59,6 +55,7 @@ import reactor.core.publisher.Mono;
                 })
                 .onErrorMap(e -> new RuntimeException("Error al registrar el usuario"));
     }
+
 
     public Mono<User> updateUserProfile(UserInfo userDetails, String username) {
         return userService.getFullName(username)

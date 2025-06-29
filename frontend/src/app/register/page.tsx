@@ -110,7 +110,7 @@ export default function RegisterPage() {
                         phone: celular, // Mapea a los nombres de campo solicitados
                         email,
                         password,
-                        roles: ["ROLE_ADMIN"], // Asignar rol por defecto
+                        roles: ["ROLE_CLIENT"], // Asignar rol por defecto
                     }),
                 }
             );
