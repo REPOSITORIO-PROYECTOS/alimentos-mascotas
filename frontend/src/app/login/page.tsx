@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -42,14 +42,22 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
-    
+
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
     // Usar el store de autenticación
     const { login, isLoading, error, clearError, user } = useAuthStore();
 
-    // Configuración de react-hook-form con validación de Zod
+    // Obtenemos el redirect al inicio, por si lo necesitamos luego
+    const redirectParam = useMemo(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("redirect");
+        }
+        return null;
+    }, []);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -63,8 +71,9 @@ export default function LoginPage() {
     };
 
     const onSubmit = async (data: FormValues) => {
-        
+
         try {
+
             clearError();
             const userRole = await login(data.email, data.password);
 
@@ -75,16 +84,14 @@ export default function LoginPage() {
 
             toast.success("Inicio de sesión exitoso");
 
-            const params = new URLSearchParams(window.location.search);
-            const redirect = params.get("redirect");
-
-            if (redirect) {
-                router.push(redirect);
+            if (redirectParam) {
+                router.push(redirectParam);
             } else if (userRole === "ROLE_ADMIN") {
                 router.push("/admin");
             } else {
                 router.push("/");
             }
+            
         } catch (err) {
             console.error("Error durante el inicio de sesión:", err);
             toast.error("Error en el inicio de sesión");

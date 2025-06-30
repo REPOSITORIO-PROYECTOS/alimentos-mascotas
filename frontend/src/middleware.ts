@@ -104,15 +104,22 @@ export function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/login", request.url));
         }
     } else {
-        // Usuario autenticado
-        // Si intenta acceder a páginas de autenticación, redirigir según el rol
-        if (authRoutes.some((route) => pathname.startsWith(route))) {
+            // Usuario autenticado
+            // Si intenta acceder a páginas de autenticación, redirigir según el rol
+            if (authRoutes.some((route) => pathname.startsWith(route))) {
+            const redirectParam = request.nextUrl.searchParams.get("redirect");
+
+            if (redirectParam) {
+                return NextResponse.redirect(new URL(redirectParam, request.url));
+            }
+
             if (userRole === "ROLE_ADMIN") {
                 return NextResponse.redirect(new URL("/admin", request.url));
             } else {
                 return NextResponse.redirect(new URL("/", request.url));
             }
         }
+
         // Verificar permisos para rutas de administrador
         if (
             adminRoutes.some((route) => pathname.startsWith(route)) &&
