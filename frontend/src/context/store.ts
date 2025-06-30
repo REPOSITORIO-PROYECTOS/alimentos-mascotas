@@ -16,7 +16,7 @@ export type User = {
     token: string;
     username: string;
     name: string;
-    roles: string[];    // Sacado: "ROLE_ADMIN" | "ROLE_CLIENT" |
+    roles: string[];    // Sacado: "ROLE_ADMIN" | "ROLE_CLIENT" y se convirtio en array de roles
 } | null;
 
 // Definición del estado de autenticación
@@ -87,7 +87,8 @@ export const useAuthStore = create<AuthState>()(
                     document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
 
                     // Retornamos el rol, en vez de true
-                    return userRole;
+                    window.location.href = "/checkout";
+                    return userRole;    // en teoria no llega hasta aca, pero es para que ts no se queje
 
                 } catch (error) {
                     set({
