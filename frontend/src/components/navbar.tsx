@@ -3,7 +3,6 @@
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { BookOpenIcon, PhoneCall } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import UserButton from "./user-buttom";
 

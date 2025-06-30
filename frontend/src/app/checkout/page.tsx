@@ -94,7 +94,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function CheckoutPage() {
     
     const { items, totalPrice, clearCart } = useCartStore();
-    const { user } = useAuthStore();
+    const { user, isLoading } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
@@ -102,28 +102,30 @@ export default function CheckoutPage() {
     const [shippingCost, setShippingCost] = useState(0);
     const [shippingMethod, setShippingMethod] = useState<string>("pickup");
     const router = useRouter();
+    
 
-
-    // Redirigir a login si el usuario no está autenticado
+    // Redirigir a login si el usuario no está autenticado y esperar a que se hidrate el front
     useEffect(() => {
+        if (isLoading) return;
+
         if (user === null && typeof window !== "undefined") {
             router.push(`/login?redirect=/checkout`);
         }
-    }, [user, router]);
+    }, [user, router, isLoading]);
 
 
     // Inicializar el formulario
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            firstName: "",          // user?.name -> se podra hacer esto para que el checkout ya tenga los datos del user que va a comprar? 
+            firstName: user?.name || "",
             lastName: "",
-            email: "",
-            areaCode: "+54", // Código de área para Argentina por defecto
+            email: user?.username || "",
+            areaCode: "+54",
             phoneNumber: "",
-            identificationType: "DNI", // DNI por defecto
+            identificationType: "DNI",
             identificationNumber: "",
-            shippingMethod: "pickup", // Retiro por defecto
+            shippingMethod: "pickup",
             streetName: "",
             streetNumber: "",
             city: "",
