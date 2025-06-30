@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { z } from "zod";
 
-// Definiendo el esquema de validación con Zod
+// Esquema de validación con Zod
 const registerSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
     apellido: z.string().min(1, "El apellido es requerido"),
@@ -110,7 +110,7 @@ export default function RegisterPage() {
                         phone: celular, 
                         email,
                         password,
-                        // Ya no se manda mas el rol desde front. 
+                        roles: ["ROLE_CLIENT"], 
                     }),
                 }
             );
@@ -137,7 +137,6 @@ export default function RegisterPage() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted p-4">
             
-            
             <Card className="w-full max-w-lg mt-16 md:mt-24">
 
                 <CardHeader>
@@ -147,6 +146,7 @@ export default function RegisterPage() {
                     </CardDescription>
                 </CardHeader>
                 
+                {/* Form para Registro */}
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
                         {error && (
@@ -270,7 +270,6 @@ export default function RegisterPage() {
                     </CardFooter>
                 </form>
             </Card>
-
 
         </div>
     );

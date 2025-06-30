@@ -34,29 +34,38 @@ import reactor.core.publisher.Mono;
     // Métodos para registrar diferentes tipos de usuarios
     public Mono<User> registerUser(UserInfo userDetails) {
         return Mono.just("")
-                .flatMap(name -> {
-                    User user = new User();
-                    user.setEmail(userDetails.getEmail());
-                    user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-                    user.setName(userDetails.getName());
-                    user.setSurname(userDetails.getSurname());
-                    user.setPhone(userDetails.getPhone());
-                    user.setDni(userDetails.getDni());
-                    
-                    if (userDetails.getRoles() != null && !userDetails.getRoles().isEmpty()) {
-                        user.setRoles(userDetails.getRoles());
-                    } else {
-                        user.setRoles(Set.of("ROLE_CLIENT")); 
-                    }
+            .flatMap(name -> {
+                User user = new User();
+                user.setEmail(userDetails.getEmail());
+                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                user.setName(userDetails.getName());
+                user.setSurname(userDetails.getSurname());
+                user.setPhone(userDetails.getPhone());
+                user.setDni(userDetails.getDni());
+                user.setCreatedBy("Himself");
+                user.setCreatedAt(LocalDateTime.now());
+                user.setModifiedBy("");
+                user.setUpdatedAt(LocalDateTime.now());
 
-                    user.setCreatedBy("Himself");
-                    user.setCreatedAt(LocalDateTime.now());
-                    user.setModifiedBy("");
-                    user.setUpdatedAt(LocalDateTime.now());
-                    return userRepository.save(user);
-                })
-                .onErrorMap(e -> new RuntimeException("Error al registrar el usuario"));
+                // ✅ Validar roles
+                Set<String> incomingRoles = userDetails.getRoles();
+                if (incomingRoles == null || incomingRoles.isEmpty()) {
+                    user.setRoles(Set.of("ROLE_CLIENT"));
+                } else {
+                    // Solo permitir ROLE_CLIENT
+                    if (incomingRoles.size() == 1 && incomingRoles.contains("ROLE_CLIENT")) {
+                        user.setRoles(incomingRoles);
+                    } else {
+                        // Lanzar error si intentan mandar admin
+                        return Mono.error(new RuntimeException("Rol inválido en registro de usuario."));
+                    }
+                }
+
+                return userRepository.save(user);
+            })
+            .onErrorMap(e -> new RuntimeException("Error al registrar el usuario", e));
     }
+
 
 
     public Mono<User> updateUserProfile(UserInfo userDetails, String username) {
