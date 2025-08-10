@@ -45,7 +45,6 @@ type Product = {
     createdBy: string;
 };
 
-
 export default function ProductDetail({
   params,
 }: {
@@ -95,8 +94,10 @@ export default function ProductDetail({
         const data = await response.json();
         setProduct(data);
         console.log("Detalle del producto:", data);
+
       } catch (error) {
         console.error("Error al cargar el producto:", error);
+
       } finally {
         setLoading(false);
       }
@@ -178,7 +179,7 @@ export default function ProductDetail({
                 
                 {/* Título del Producto */}
                 <h1 className="text-3xl font-semibold mb-2 underline-offset-4">
-                {product.productName}
+                    {product.productName}
                 </h1>
 
                 {/* Tag de Categoría */}

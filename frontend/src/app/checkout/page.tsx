@@ -136,6 +136,7 @@ export default function CheckoutPage() {
 
     // Verificar parámetros de la URL al cargar la página
     useEffect(() => {
+
         // Obtener la URL actual
         const url = new URL(window.location.href);
         const searchParams = url.searchParams;
@@ -158,17 +159,25 @@ export default function CheckoutPage() {
                 );
                 // Limpiar el carrito si el pago fue exitoso
                 clearCart();
+                
             } else if (paymentResult === "pending") {
+
                 setOrderSuccess(true);
                 setPaymentMessage("Tu pago está pendiente de aprobación");
+
             } else if (paymentResult === "rejected") {
+
                 setPaymentMessage(
                     "El pago fue rechazado. Por favor intenta con otro método de pago."
                 );
+
             } else if (paymentResult === "in_process") {
+
                 setOrderSuccess(true);
                 setPaymentMessage("El pago está siendo procesado");
+
             } else {
+                
                 setPaymentMessage(`Estado del pago: ${paymentResult}`);
             }
 

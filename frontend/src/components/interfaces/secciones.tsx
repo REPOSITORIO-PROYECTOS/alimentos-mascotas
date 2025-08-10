@@ -39,7 +39,7 @@ export default function Secciones() {
         <section className="py-32">
             <div className="container mx-auto px-4">
                 <h2 className="text-4xl text-primary font-sans font-semibold">
-                    Nuestras categorias
+                    Nuestros Productos
                 </h2>
 
                 <div className="mt-12 grid grid-cols-1 gap-10 sm:grid-cols-2">

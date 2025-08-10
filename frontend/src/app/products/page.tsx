@@ -144,7 +144,7 @@ export default function ProductsPage() {
             }
 
             const data = await response.json();
-            console.log("Respuesta del API:", data); // Añadido para depuración
+            /* console.log("Respuesta del API:", data); */ // Añadido para depuración
 
             // Calcular el número total de páginas correctamente
             const totalPages = Math.ceil(
@@ -189,22 +189,22 @@ export default function ProductsPage() {
 
     
     const stats = [
-        {
-            base: 450,
-            emoji2: "🐕",
-            text: "Perritos felices por comer suplementos Baker Pet",
-        },
-        {
-            base: 150,
-            emoji2: "🐈",
-            text: "Gatos menos estresados por comer alimentos saludables",
-        },
-        {
-            base: 600,
-            emoji1: "😺",
-            emoji2: "🐶",
-            text: "Animales felices por no comer alimentos con aditivos tóxicos",
-        },
+    {
+        base: 450,
+        emoji2: "🐕",
+        text: "Perritos felices por comer suplementos Baker Pet",
+    },
+    {
+        base: 150,
+        emoji2: "🐈",
+        text: "Gatos menos estresados por comer alimentos saludables",
+    },
+    {
+        base: 600,
+        emoji1: "😺",
+        emoji2: "🐶",
+        text: "Animales felices por no comer alimentos con aditivos tóxicos",
+    },
     ];
 
     return (

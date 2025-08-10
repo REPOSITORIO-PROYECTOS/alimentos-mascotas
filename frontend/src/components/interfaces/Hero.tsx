@@ -99,10 +99,10 @@ export default function Hero() {
                                 </div>
                                 <div className="mt-4 flex flex-wrap items-center gap-4">
                                     <div className="text-5xl font-medium text-muted-2-foreground">
-                                        7K
+                                        +7K
                                     </div>
                                     <div className="max-w-28 text-base leading-tight font-light text-muted-2-foreground">
-                                        De clientes satisfechos
+                                        Miembros del Barker Team!
                                     </div>
                                 </div>
                             </div>

@@ -40,7 +40,7 @@ export function CartButton() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative [&_svg]:size-5"
+                    className="relative [&_svg]:size-5 cursor-pointer"
                 >
                     <ShoppingCart />
                     {totalItems > 0 && (

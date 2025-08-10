@@ -44,7 +44,7 @@ export default function RootLayout({
                     className={`${geistSans.variable} ${geistMono.variable} ${bigBottom.variable} antialiased bg-secondary/15`}
                 >
                     <Header />
-                    {children}
+                        {children}
                     <Toaster position="bottom-right" richColors/>
 
                     <Footer />
