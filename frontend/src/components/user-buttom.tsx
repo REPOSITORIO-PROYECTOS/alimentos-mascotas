@@ -80,7 +80,7 @@ export default function UserButton() {
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                                <Link href="#Soporte">
+                                <Link href="/soporte">
                                     <PhoneCall
                                         size={16}
                                         className="opacity-60"

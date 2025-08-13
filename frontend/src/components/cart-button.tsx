@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export function CartButton() {
+
     const route = useRouter();
     const {
         items,
@@ -28,8 +29,8 @@ export function CartButton() {
     } = useCartStore();
     const [isOpen, setIsOpen] = useState(false);
 
+    // Redirige al checkout y la store se encarga de los productos en el
     const handleCheckout = () => {
-        // Implement checkout logic here
         route.push("/checkout");
         setIsOpen(false);
     };
@@ -40,7 +41,7 @@ export function CartButton() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative [&_svg]:size-5 cursor-pointer"
+                    className="relative [&_svg]:size-5 cursor-pointer !text-amber-950"
                 >
                     <ShoppingCart />
                     {totalItems > 0 && (

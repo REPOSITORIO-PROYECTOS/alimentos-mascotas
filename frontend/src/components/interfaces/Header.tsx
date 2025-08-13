@@ -10,6 +10,8 @@ import { Button } from "../ui/button";
 import { CircleUserRoundIcon } from "lucide-react";
 import Image from "next/image";
 
+// NAV BAR DE LA APP
+
 export default function Header() {
     
     const pathname = usePathname();
@@ -22,9 +24,8 @@ export default function Header() {
 
     return (
         <header className="bg-primary fixed top-0 z-50 w-full overflow-x-hidden">
+
             <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 w-full">
-
-
 
                 <div className="flex h-16 items-center justify-between">
 
@@ -42,13 +43,13 @@ export default function Header() {
                         </Link>
                     </div>
 
-
+                    {/* Pestañas del Nav */}
                     <div className="hidden md:block">
                         <nav aria-label="Global">
                             <ul className="flex items-center gap-8 text-sm">
                                 <li>
                                     <Link
-                                        className="text-white transition text-xl font-semibold hover:text-white/75"
+                                        className="text-white transition text-xl font-semibold hover:text-amber-900"
                                         href="/"
                                     >
                                         Inicio
@@ -56,7 +57,7 @@ export default function Header() {
                                 </li>
                                 <li>
                                     <Link
-                                        className="text-white transition text-xl font-semibold hover:text-white/75"
+                                        className="text-white transition text-xl font-semibold hover:text-amber-900"
                                         href="/products"
                                     >
                                         Productos
@@ -64,7 +65,7 @@ export default function Header() {
                                 </li>
                                 <li>
                                     <Link
-                                        className="text-white transition text-xl font-semibold hover:text-white/75"
+                                        className="text-white transition text-xl font-semibold hover:text-amber-900"
                                         href="/preguntas-frecuentes"
                                     >
                                         Preguntas frecuentes
@@ -74,8 +75,7 @@ export default function Header() {
                         </nav>
                     </div>
 
-
-                    {/* DIV Carrito + Desplegable Usuario */}
+                    {/* Carrito + Desplegable Usuario */}
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-4">
 

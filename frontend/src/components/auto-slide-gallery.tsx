@@ -77,8 +77,8 @@ export function AutoSlideGallery() {
                             key={image.id}
                             className="md:basis-1/2 lg:basis-1/3"
                         >
-                            <div className="p-1">
-                                <Card className="py-2 bg-secondary backdrop-blur-2xl">
+                            <div>
+                                <Card className="py-4 px-2 bg-secondary backdrop-blur-2xl">
                                     <CardContent className="flex flex-col items-center justify-center px-2">
                                         <div className="aspect-square w-full overflow-hidden rounded-lg">
                                             <img

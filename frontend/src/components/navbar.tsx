@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import UserButton from "./user-buttom";
 
+// NAVBAR DE PANEL DE ADMIN, no de la app general - EL DE LA APP ES <Header.tsx>
+
 export function Navbar() {
     const pathname = usePathname();
     const [activeIndex, setActiveIndex] = useState(0);
