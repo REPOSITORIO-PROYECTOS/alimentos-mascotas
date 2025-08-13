@@ -635,6 +635,7 @@ export default function TableCashRegister() {
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                         onClick={handleDeleteRows}
+                                        className="text-white"
                                     >
                                         Eliminar
                                     </AlertDialogAction>

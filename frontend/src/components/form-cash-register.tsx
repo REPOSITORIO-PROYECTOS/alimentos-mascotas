@@ -377,15 +377,14 @@ export default function CashRegisterForm({
             <AlertDialogTrigger asChild>
                 <Button>
                     <Plus className="mr-2 h-4 w-4" />
-                    Agregar Item
+                    Registrar Ingreso / Egreso
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="max-w-md">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Nuevo Item de Caja</AlertDialogTitle>
+                    <AlertDialogTitle>Ingresos y Egresos de la Caja</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Complete los campos para agregar un nuevo item a la caja
-                        registradora.
+                        Complete los campos para agregar un nuevo item a la caja registradora.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -419,7 +418,7 @@ export default function CashRegisterForm({
                                     <FormLabel>Descripción</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Descripción del concepto"
+                                            placeholder="Concepto del movimiento de dinero"
                                             {...field}
                                         />
                                     </FormControl>

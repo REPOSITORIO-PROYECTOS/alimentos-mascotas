@@ -57,6 +57,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
 
+  // POST Crear Admin
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -131,7 +132,7 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto p-4 md:p-6">
 
-      <div className="mb-16 flex items-center justify-between">
+      <div className="my-12 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
       </div>
 
@@ -280,13 +281,13 @@ export default function AdminPage() {
             </DialogContent>
           </Dialog>
 
-          <Button className="cursor pointer">
+          <Button className="cursor-pointer">
             <Link href="/admin/inventario" className="ml-2">
               Añadir un Producto
             </Link>
           </Button>
 
-          <Button className="cursor pointer">
+          <Button className="cursor-pointer">
             <Link href="/soporte" className="ml-2">
               Soporte del Sistema
             </Link>
