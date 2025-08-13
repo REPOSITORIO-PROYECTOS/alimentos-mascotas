@@ -55,7 +55,7 @@ export function Navbar() {
                             key={item.href}
                             variant="ghost"
                             className={`
-                                relative z-10 transition-colors duration-200
+                                relative z-10 transition-colors duration-200 cursor-pointer
                                 ${
                                     pathname === item.href
                                         ? "text-white hover:text-white hover:bg-transparent"

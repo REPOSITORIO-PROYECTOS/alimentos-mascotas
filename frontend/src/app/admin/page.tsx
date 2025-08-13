@@ -1,86 +1,289 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { forbidden } from "next/navigation";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Link } from "next-view-transitions";
 
-export default async function AdminPage() {
-    // If not authenticated, redirect to login
-    // if (!session) {
-    //     redirect("/login")
-    // }
+// Validación igual que en /register
+const registerSchema = z.object({
+  nombre: z.string().min(1, "El nombre es requerido"),
+  apellido: z.string().min(1, "El apellido es requerido"),
+  dni: z
+    .string()
+    .regex(/^\d{7,8}$/, "El DNI debe contener 7 u 8 dígitos numéricos"),
+  celular: z
+    .string()
+    .regex(/^\d{10,11}$/, "El celular debe contener 10 u 11 dígitos"),
+  email: z.string().email("El formato de email no es válido"),
+  password: z
+    .string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .regex(
+      /^(?=.*[A-Za-z])(?=.*\d)/,
+      "Debe contener al menos una letra y un número"
+    ),
+});
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-    // // If authenticated but not admin, show forbidden
-    // if (session.role !== "admin") {
-    //     forbidden()
-    // }
+export default function AdminPage() {
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [dni, setDni] = useState("");
+  const [celular, setCelular] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    return (
-        <div className="container mx-auto p-4 md:p-6">
-            <div className="mb-16 flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Panel de Administración</h1>
-            </div>
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Usuarios</CardTitle>
-                        <CardDescription>
-                            Gestiona los usuarios de la plataforma
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-2xl font-bold">128</p>
-                        <p className="text-xs text-muted-foreground">
-                            +14% desde el mes pasado
-                        </p>
-                    </CardContent>
-                </Card>
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Ingresos</CardTitle>
-                        <CardDescription>
-                            Monitorea los ingresos mensuales
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-2xl font-bold">€8,350</p>
-                        <p className="text-xs text-muted-foreground">
-                            +5.2% desde el mes pasado
-                        </p>
-                    </CardContent>
-                </Card>
+    const formData: RegisterFormData = {
+      nombre,
+      apellido,
+      dni,
+      celular,
+      email,
+      password,
+    };
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Actividad</CardTitle>
-                        <CardDescription>
-                            Visualiza la actividad reciente
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-2xl font-bold">432</p>
-                        <p className="text-xs text-muted-foreground">
-                            Acciones en las últimas 24h
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+    const validation = registerSchema.safeParse(formData);
+    if (!validation.success) {
+      setError(validation.error.errors[0]?.message || "Error en el formulario");
+      return;
+    }
 
-            <div className="mt-8">
-                <h2 className="mb-4 text-xl font-semibold">Acciones Rápidas</h2>
-                <div className="flex flex-wrap gap-4">
-                    <Button>Crear Usuario</Button>
-                    <Button variant="outline">Generar Informe</Button>
-                    <Button variant="outline">Configuración</Button>
+    setLoading(true);
+
+    // Desde panel de admin solo se pueden crear mas admin
+    try {
+      const res = await fetch(
+        "https://barker.sistemataup.online/api/auth/registrar",
+        {
+            method: "POST",
+            headers: { 
+            "Content-Type": "application/json" 
+        },
+            body: JSON.stringify({
+                name: nombre,
+                surname: apellido,
+                dni,
+                phone: celular,
+                email,
+                password,
+                roles: ["ROLE_ADMIN"],
+          }),
+        }
+      );
+
+      if (res.ok) {
+        toast.success("Administrador creado con éxito");
+        setNombre("");
+        setApellido("");
+        setDni("");
+        setCelular("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+
+      } else {
+        const data = await res.json();
+        setError(data.message || "Error al crear administrador");
+        toast.error("Error al crear administrador");
+      }
+    } catch {
+      setError("Error de conexión con el servidor");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4 md:p-6">
+
+      <div className="mb-16 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Panel de Administración</h1>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Usuarios</CardTitle>
+            <CardDescription>
+              Gestiona los usuarios de la plataforma
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">128</p>
+            <p className="text-xs text-muted-foreground">
+              +14% desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Ingresos</CardTitle>
+            <CardDescription>
+              Monitorea los ingresos mensuales
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">€8,350</p>
+            <p className="text-xs text-muted-foreground">
+              +5.2% desde el mes pasado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actividad</CardTitle>
+            <CardDescription>
+              Visualiza la actividad reciente
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">432</p>
+            <p className="text-xs text-muted-foreground">
+              Acciones en las últimas 24h
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="mb-4 text-xl font-semibold">Acciones Rápidas</h2>
+        <div className="flex flex-wrap gap-4">
+          {/* Modal para crear usuario admin */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Crear Usuario</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Crear Administrador</DialogTitle>
+                <DialogDescription>
+                  Completa los datos para registrar un nuevo administrador
+                </DialogDescription>
+              </DialogHeader>
+
+              {error && (
+                <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                  {error}
                 </div>
-            </div>
+              )}
+
+              <form onSubmit={handleCreateAdmin} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Nombre</Label>
+                    <Input
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Apellido</Label>
+                    <Input
+                      value={apellido}
+                      onChange={(e) => setApellido(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>DNI</Label>
+                    <Input
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Celular</Label>
+                    <Input
+                      value={celular}
+                      onChange={(e) => setCelular(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label>Contraseña</Label>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label>Confirmar Contraseña</Label>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? "Creando..." : "Crear Administrador"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button>
+            <Link href="/admin/inventario" className="ml-2">
+              Añadir un Producto
+            </Link>
+          </Button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
