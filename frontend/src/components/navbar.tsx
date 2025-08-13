@@ -5,6 +5,13 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import UserButton from "./user-buttom";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MenuIcon } from "lucide-react";
 
 // NAVBAR DE PANEL DE ADMIN, no de la app general - EL DE LA APP ES <Header.tsx>
 
@@ -12,7 +19,7 @@ export function Navbar() {
     const pathname = usePathname();
     const [activeIndex, setActiveIndex] = useState(0);
     const [indicatorStyle, setIndicatorStyle] = useState({});
-    const navRef = useRef<HTMLDivElement>(null);
+    const navRef = useRef < HTMLDivElement > (null);
 
     const navItems = [
         { href: "/admin", label: "Home" },
@@ -29,8 +36,8 @@ export function Navbar() {
         const newActiveIndex = navItems.findIndex(
             (item) => item.href === pathname
         );
-        setActiveIndex(newActiveIndex);
-    }, [pathname]);
+        setActiveIndex(newActiveIndex >= 0 ? newActiveIndex : 0);
+    }, [pathname, navItems]);
 
     useEffect(() => {
         if (navRef.current) {
@@ -48,14 +55,37 @@ export function Navbar() {
 
     return (
         <nav className="bg-white shadow-md">
-            <div className="container mx-auto px-6 py-3 flex justify-between items-center space-x-4">
-                <div className="space-x-2 relative" ref={navRef}>
+            <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+                {/* Menú desplegable para móviles - Lado Izquierdo */}
+                <div className="md:hidden">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                aria-label="Open navigation menu"
+                            >
+                                <MenuIcon size={16} aria-hidden="true" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="max-w-xs w-full">
+                            {navItems.map((item) => (
+                                <DropdownMenuItem key={item.href} asChild>
+                                    <Link href={item.href}>{item.label}</Link>
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
+                {/* Navegación para escritorio */}
+                <div className="hidden md:flex space-x-2 relative" ref={navRef}>
                     {navItems.map((item, index) => (
                         <Button
                             key={item.href}
                             variant="ghost"
                             className={`
-                                relative z-10 transition-colors duration-200 cursor-pointer
+                                relative z-10 transition-colors duration-200
                                 ${
                                     pathname === item.href
                                         ? "text-white hover:text-white hover:bg-transparent"
@@ -72,7 +102,9 @@ export function Navbar() {
                         style={indicatorStyle}
                     />
                 </div>
-                <div className="space-x-4 flex items-center">
+
+                {/* Botón de Usuario - Lado Derecho */}
+                <div className="flex items-center">
                     <UserButton />
                 </div>
             </div>

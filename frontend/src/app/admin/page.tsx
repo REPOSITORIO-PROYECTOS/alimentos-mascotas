@@ -45,6 +45,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AdminPage() {
+
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [dni, setDni] = useState("");
@@ -54,6 +55,7 @@ export default function AdminPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,11 +113,12 @@ export default function AdminPage() {
         setEmail("");
         setPassword("");
         setConfirmPassword("");
-
+        setOpen(false);
       } else {
         const data = await res.json();
         setError(data.message || "Error al crear administrador");
         toast.error("Error al crear administrador");
+        setOpen(false);
       }
     } catch {
       setError("Error de conexión con el servidor");
@@ -183,9 +186,9 @@ export default function AdminPage() {
         <h2 className="mb-4 text-xl font-semibold">Acciones Rápidas</h2>
         <div className="flex flex-wrap gap-4">
           {/* Modal para crear usuario admin */}
-          <Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button>Crear Usuario</Button>
+              <Button className="cursor-pointer">Crear Usuario</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -270,16 +273,22 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <Button type="submit" disabled={loading} className="w-full">
+                <Button type="submit" disabled={loading} className="w-full cursor-pointer">
                   {loading ? "Creando..." : "Crear Administrador"}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
 
-          <Button>
+          <Button className="cursor pointer">
             <Link href="/admin/inventario" className="ml-2">
               Añadir un Producto
+            </Link>
+          </Button>
+
+          <Button className="cursor pointer">
+            <Link href="/soporte" className="ml-2">
+              Soporte del Sistema
             </Link>
           </Button>
         </div>
