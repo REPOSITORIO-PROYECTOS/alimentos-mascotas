@@ -134,6 +134,8 @@ export default function CheckoutPage() {
         },
     });
 
+    console.log("Datos del usuario en el store:", user);
+    
     // Verificar parámetros de la URL al cargar la página
     useEffect(() => {
 
