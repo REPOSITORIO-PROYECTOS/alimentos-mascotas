@@ -16,6 +16,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { z } from "zod";
+import { toast } from "sonner";
 
 // Esquema de validación con Zod
 const registerSchema = z.object({
@@ -116,19 +117,25 @@ export default function RegisterPage() {
             );
 
             if (response.ok) {
+
+                toast.success("Usuario creado correctamente! Gracias por sumarte al Barker Team!");
                 // Redireccionar al login o a una página de confirmación
                 router.push("/login?registered=true");
+
             } else {
                 const data = await response.json();
                 setError(
                     data.message ||
                         "Error al registrar usuario. Por favor, intenta de nuevo."
                 );
+                toast.error("Error al registrar usuario. Por favor, intenta de nuevo.");
             }
+
         } catch (err) {
             setError(
                 "Ocurrió un error al registrar. Por favor, intenta de nuevo."
             );
+
         } finally {
             setLoading(false);
         }
