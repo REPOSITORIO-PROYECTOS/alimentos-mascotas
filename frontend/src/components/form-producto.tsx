@@ -196,6 +196,12 @@ export default function ProductForm({
         }
 
         startLoading();
+
+        for (const [key, value] of formDataObj.entries()) {
+            console.log(key, value);
+        }
+
+
         try {
             const endpoint = isEditable
                 ? `/productos/editar/${datos?.id}`
@@ -228,6 +234,11 @@ export default function ProductForm({
                 form.reset();
             }
             return response;
+
+            for (const [key, value] of formDataObj.entries()) {
+            console.log(key, value);
+            }
+
         } catch (error: any) {
             const errorMessage =
                 (typeof error === "object" && error.response
