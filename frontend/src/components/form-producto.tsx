@@ -109,26 +109,24 @@ const getFormSchema = (isEditable: boolean) => {
         productDetails: z.string().min(2, {
             message: "Los detalles deben tener al menos 2 caracteres.",
         }),
-        // PASO 2: Hacer el campo opcional en la base y dejar que `.refine` maneje la lógica
         imageUrl: imageSchema.optional(),
-        sellingPrice: z.number().min(1, {
+        sellingPrice: z.coerce.number().min(1, {
             message: "El precio debe ser mayor a 0.",
         }),
-        stock: z.number().min(1, {
+        stock: z.coerce.number().min(1, {
             message: "El stock debe ser mayor a 0.",
         }),
-        discountPercent: z.number().min(0, {
+        discountPercent: z.coerce.number().min(0, {
             message: "El descuento debe ser mayor o igual a 0.",
+        }),
+        costPrice: z.coerce.number().min(1, {
+            message: "El precio de costo debe ser mayor a 0.",
         }),
         categories: z.array(z.string()).min(1, {
             message: "Debe seleccionar al menos una categoria.",
         }),
-        costPrice: z.number().min(1, {
-            message: "El precio de costo debe ser mayor a 0.",
-        }),
     });
 };
-
 
 interface ProductoFormProps {
     isEditable?: boolean;
@@ -184,8 +182,6 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            // Inicializar la imagen como `undefined` para que el input de archivo esté vacío
-            // y no intente usar el `imageUrl` string de los `datos` existentes.
             imageUrl: undefined,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
@@ -473,29 +469,20 @@ export default function ProductForm({
                             />
                             <div className="grid grid-cols-3 gap-4">
                                 {" "}
-                                <FormField
-                                    control={form.control}
-                                    name="sellingPrice"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Precio venta</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseFloat(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                            <FormField
+                            control={form.control}
+                            name="sellingPrice"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Precio venta</FormLabel>
+                                    <FormControl>
+                                        {/* Ya no necesitas el onChange personalizado */}
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                            />
                                 <FormField
                                     control={form.control}
                                     name="stock"
@@ -506,13 +493,6 @@ export default function ProductForm({
                                                 <Input
                                                     type="number"
                                                     {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -529,13 +509,6 @@ export default function ProductForm({
                                                 <Input
                                                     type="number"
                                                     {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -608,14 +581,6 @@ export default function ProductForm({
                                                     <Input
                                                         type="number"
                                                         {...field}
-                                                        onChange={(e) =>
-                                                            field.onChange(
-                                                                parseFloat(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            )
-                                                        }
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
