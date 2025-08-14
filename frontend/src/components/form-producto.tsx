@@ -36,35 +36,58 @@ import { useAuthStore } from "@/context/store";
 
 const isFileListDefined = typeof FileList !== "undefined";
 
-const imageSchema = z
-  .union([
-    z.instanceof(FileList)
-      .refine(
-        (files) =>
-          files.length === 0 ||
-          ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(files[0]?.type),
-        { message: "Formato de imagen no válido. Solo JPEG, PNG, JPG y WEBP." }
-      )
-      .refine(
-        (files) => files.length === 0 || files[0]?.size <= 5 * 1024 * 1024,
-        { message: "El tamaño de la imagen no debe exceder los 5MB." }
-      ),
-    z.null(), // permite null
-    z.undefined(), // permite undefined
-  ]);
-
-
+const imageSchema = isFileListDefined
+    ? z
+          .instanceof(FileList)
+          .refine((files) => files.length > 0, {
+              message: "Debe seleccionar un archivo de imagen.",
+          })
+          .refine(
+              (files) => {
+                  const validTypes = [
+                      "image/jpeg",
+                      "image/png",
+                      "image/jpg",
+                      "image/webp",
+                  ];
+                  return validTypes.includes(files[0]?.type);
+              },
+              {
+                  message:
+                      "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+              }
+          )
+          .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
+              message: "El tamaño de la imagen no debe exceder los 5MB.",
+          })
+    : z.any();
 
 const formSchema = z.object({
-    productName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
-    productDescription: z.string().min(2, { message: "La descripcion debe tener al menos 2 caracteres." }),
-    productDetails: z.string().min(2, { message: "Los detalles deben tener al menos 2 caracteres." }),
-    imageUrl: imageSchema, // ahora es opcional
-    sellingPrice: z.number().min(1, { message: "El precio debe ser mayor a 0." }),
-    stock: z.number().min(1, { message: "El stock debe ser mayor a 0." }),
-    discountPercent: z.number().min(0, { message: "El descuento debe ser mayor o igual a 0." }),
-    categories: z.array(z.string()).min(1, { message: "Debe seleccionar al menos una categoria." }),
-    costPrice: z.number().min(1, { message: "El precio de costo debe ser mayor a 0." }),
+    productName: z.string().min(2, {
+        message: "El nombre debe tener al menos 2 caracteres.",
+    }),
+    productDescription: z.string().min(2, {
+        message: "La descripcion debe tener al menos 2 caracteres.",
+    }),
+    productDetails: z.string().min(2, {
+        message: "Los detalles deben tener al menos 2 caracteres.",
+    }),
+    imageUrl: imageSchema,
+    sellingPrice: z.number().min(1, {
+        message: "El precio debe ser mayor a 0.",
+    }),
+    stock: z.number().min(1, {
+        message: "El stock debe ser mayor a 0.",
+    }),
+    discountPercent: z.number().min(0, {
+        message: "El descuento debe ser mayor o igual a 0.",
+    }),
+    categories: z.array(z.string()).min(1, {
+        message: "Debe seleccionar al menos una categoria.",
+    }),
+    costPrice: z.number().min(1, {
+        message: "El precio de costo debe ser mayor a 0.",
+    }),
 });
 
 interface ProductoFormProps {
@@ -117,7 +140,7 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            imageUrl: null, // <-- para que arranque vacío
+            imageUrl: datos?.imageUrl || null,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
             costPrice: datos?.costPrice || 0,
