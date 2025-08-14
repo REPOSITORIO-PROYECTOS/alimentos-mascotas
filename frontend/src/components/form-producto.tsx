@@ -36,6 +36,60 @@ import { useAuthStore } from "@/context/store";
 
 const isFileListDefined = typeof FileList !== "undefined";
 
+const imageSchema = isFileListDefined
+    ? z
+          .instanceof(FileList)
+          .refine((files) => files.length > 0, {
+              message: "Debe seleccionar un archivo de imagen.",
+          })
+          .refine(
+              (files) => {
+                  const validTypes = [
+                      "image/jpeg",
+                      "image/png",
+                      "image/jpg",
+                      "image/webp",
+                  ];
+                  return validTypes.includes(files[0]?.type);
+              },
+              {
+                  message:
+                      "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+              }
+          )
+          .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
+              message: "El tamaño de la imagen no debe exceder los 5MB.",
+          })
+    : z.any();
+
+const formSchema = z.object({
+    productName: z.string().min(2, {
+        message: "El nombre debe tener al menos 2 caracteres.",
+    }),
+    productDescription: z.string().min(2, {
+        message: "La descripcion debe tener al menos 2 caracteres.",
+    }),
+    productDetails: z.string().min(2, {
+        message: "Los detalles deben tener al menos 2 caracteres.",
+    }),
+    imageUrl: imageSchema,
+    sellingPrice: z.number().min(1, {
+        message: "El precio debe ser mayor a 0.",
+    }),
+    stock: z.number().min(1, {
+        message: "El stock debe ser mayor a 0.",
+    }),
+    discountPercent: z.number().min(0, {
+        message: "El descuento debe ser mayor o igual a 0.",
+    }),
+    categories: z.array(z.string()).min(1, {
+        message: "Debe seleccionar al menos una categoria.",
+    }),
+    costPrice: z.number().min(1, {
+        message: "El precio de costo debe ser mayor a 0.",
+    }),
+});
+
 interface ProductoFormProps {
     isEditable?: boolean;
     datos?: {
@@ -53,7 +107,7 @@ interface ProductoFormProps {
         productCode: string;
         costPrice: number;
     };
-    mutate: ScopedMutator | (() => void);
+    mutate: ScopedMutator | (() => void); // Acepta tanto ScopedMutator como una función sin argumentos
     onClose?: () => void;
 }
 
@@ -63,7 +117,6 @@ export default function ProductForm({
     mutate,
     onClose,
 }: ProductoFormProps) {
-    // ... (El estado y los hooks no cambian)
     const [categoryOptions, setCategoryOptions] = useState<
         { label: string; value: string }[]
     >([
@@ -79,103 +132,73 @@ export default function ProductForm({
     const [open, setOpen] = useState(false);
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
-
-    const formSchema = z
-        .object({
-            productName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
-            productDescription: z.string().min(2, { message: "La descripción debe tener al menos 2 caracteres." }),
-            productDetails: z.string().min(2, { message: "Los detalles deben tener al menos 2 caracteres." }),
-            imageUrl: z.any(),
-            sellingPrice: z.number().min(1, { message: "El precio debe ser mayor a 0." }),
-            stock: z.number().min(1, { message: "El stock debe ser mayor a 0." }),
-            discountPercent: z.number().min(0, { message: "El descuento debe ser mayor o igual a 0." }),
-            categories: z.array(z.string()).min(1, { message: "Debe seleccionar al menos una categoría." }),
-            costPrice: z.number().min(1, { message: "El precio de costo debe ser mayor a 0." }),
-        })
-        .superRefine((data, ctx) => {
-            const image = data.imageUrl;
-            if (!isEditable) {
-                if (!isFileListDefined || !(image instanceof FileList) || image.length === 0) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar un archivo de imagen.", path: ["imageUrl"] });
-                    return;
-                }
-            }
-            if (isFileListDefined && image instanceof FileList && image.length > 0) {
-                const file = image[0];
-                const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-                if (!validTypes.includes(file?.type)) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Formato de imagen no válido.", path: ["imageUrl"] });
-                }
-                if (file?.size > 5 * 1024 * 1024) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "La imagen no debe exceder los 5MB.", path: ["imageUrl"] });
-                }
-            }
-        });
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            productName: "",
-            productDescription: "",
-            productDetails: "",
-            sellingPrice: 0,
-            stock: 0,
-            imageUrl: null,
-            discountPercent: 0,
-            categories: [],
-            costPrice: 0,
+            productName: datos?.productName || "",
+            productDescription: datos?.productDescription || "",
+            productDetails: datos?.productDetails || "",
+            sellingPrice: datos?.sellingPrice || 0,
+            stock: datos?.stock || 0,
+            imageUrl: datos?.imageUrl || null,
+            discountPercent: datos?.discountPercent || 0,
+            categories: datos?.categories || [],
+            costPrice: datos?.costPrice || 0,
         },
     });
 
     useEffect(() => {
-        if (isEditable && datos) {
-            form.reset({
-                productName: datos.productName,
-                productDescription: datos.productDescription,
-                productDetails: datos.productDetails,
-                sellingPrice: datos.sellingPrice,
-                stock: datos.stock,
-                discountPercent: datos.discountPercent,
-                categories: datos.categories,
-                costPrice: datos.costPrice,
-            });
-        }
+        // El formulario está listo para usar
         setIsLoading(false);
-    }, [isEditable, datos, form]);
-
-    // <--- AÑADIDO PARA DEBUG: Función para manejar errores de validación
-    const onInvalid = (errors: any) => {
-        console.error("ERRORES DE VALIDACIÓN:", errors);
-        toast.error("Hay errores en el formulario. Por favor, revisa los campos marcados en rojo.");
-    };
-
+    }, []);
     async function onSubmit(dataForm: z.infer<typeof formSchema>) {
-        // <--- AÑADIDO PARA DEBUG: Confirmar que onSubmit se está ejecutando
-        console.log("VALIDACIÓN SUPERADA. Datos del formulario:", dataForm);
-        toast.info("Procesando formulario...");
-
         const formDataObj = new FormData();
 
+        // Agregar la imagen si existe
         if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
             formDataObj.append("image", dataForm.imageUrl[0]);
         }
+        // //enviar los datos del producto dentro de un campo llamado "product" pero sin la imagen
+        // formDataObj.append("product", JSON.stringify(dataForm));
 
+        // Agregar el resto de campos
         formDataObj.append("productName", dataForm.productName);
         formDataObj.append("productDescription", dataForm.productDescription);
         formDataObj.append("productDetails", dataForm.productDetails);
         formDataObj.append("sellingPrice", dataForm.sellingPrice.toString());
         formDataObj.append("stock", dataForm.stock.toString());
         formDataObj.append("costPrice", dataForm.costPrice.toString());
-        formDataObj.append("discountPercent", dataForm.discountPercent?.toString() || "0");
+        formDataObj.append(
+            "discountPercent",
+            dataForm.discountPercent?.toString() || "0"
+        );
+
+        // Agregar categorías como un array JSON
         formDataObj.append("categories", JSON.stringify(dataForm.categories));
 
+        // Agregar campos existentes si es edición
         if (isEditable && datos) {
             formDataObj.append("id", datos.id);
+            if (datos.productCode)
+                formDataObj.append("productCode", datos.productCode);
+            if (datos.recipeId) formDataObj.append("recipeId", datos.recipeId);
+            if (datos.reviewsIds)
+                formDataObj.append(
+                    "reviewsIds",
+                    JSON.stringify(datos.reviewsIds)
+                );
+            // No agregamos imageUrl existente porque ya estamos enviando el archivo nuevo
+            if (!dataForm.imageUrl || dataForm.imageUrl.length === 0) {
+                if (datos.imageUrl)
+                    formDataObj.append("imageUrl", datos.imageUrl);
+            }
         }
 
         startLoading();
         try {
-            const endpoint = isEditable ? `/productos/editar/${datos?.id}` : "/productos/guardar";
+            const endpoint = isEditable
+                ? `/productos/editar/${datos?.id}`
+                : "/productos/guardar";
             const response = await fetch({
                 endpoint,
                 method: isEditable ? "PUT" : "POST",
@@ -186,22 +209,33 @@ export default function ProductForm({
                 },
             });
             if (response) {
-                // El toast de éxito ya estaba aquí, lo cual es correcto.
-                toast.success(isEditable ? "Producto actualizado correctamente." : "Producto creado correctamente.");
+                console.log(response);
+                // Llamada a mutate compatible con ambos casos
                 if (typeof mutate === "function") {
-                    await mutate(undefined, true);
+                    if (isEditable) {
+                        await mutate(undefined, true); // Si es ScopedMutator, pasa los argumentos necesarios
+                    } else {
+                        await mutate(undefined, true); // Si es una función sin argumentos, llámala sin parámetros
+                    }
                 }
+                toast.success(
+                    isEditable
+                        ? "Producto actualizado correctamente."
+                        : "Producto creado correctamente."
+                );
                 isEditable ? onClose?.() : setOpen(false);
                 form.reset();
             }
-            // No es necesario retornar la respuesta aquí a menos que otro componente la use
+            return response;
         } catch (error: any) {
-            // <--- MODIFICADO PARA DEBUG: Loguear el objeto de error completo
-            console.error("ERROR EN LA PETICIÓN (catch):", error);
             const errorMessage =
-                error?.response?.data?.message ||
-                error?.message ||
-                (isEditable ? "Error al actualizar el producto." : "Error al crear el producto.");
+                (typeof error === "object" && error.response
+                    ? error.response.data?.message
+                    : error?.message) ||
+                (isEditable
+                    ? "Error al actualizar el producto. Inténtalo de nuevo."
+                    : "Error al crear el producto. Inténtalo de nuevo.");
+            console.error("Error en onSubmit: ", errorMessage);
             toast.error(errorMessage);
         } finally {
             finishLoading();
@@ -210,52 +244,369 @@ export default function ProductForm({
 
     return (
         <div className="flex items-center gap-3">
-            <AlertDialog open={isEditable ? true : open} onOpenChange={isEditable ? onClose : setOpen}>
+            <AlertDialog
+                open={isEditable ? true : open}
+                onOpenChange={isEditable ? onClose : setOpen}
+            >
                 <AlertDialogTrigger asChild>
                     {isEditable ? null : (
                         <Button className="ml-auto" variant="outline">
-                            <Plus className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                            <Plus
+                                className="-ms-1 me-2 opacity-60"
+                                size={16}
+                                strokeWidth={2}
+                                aria-hidden="true"
+                            />
                             Agregar Producto
                         </Button>
                     )}
                 </AlertDialogTrigger>
                 <AlertDialogContent className="sm:max-w-lg">
-                    {/* ... (El header no cambia) ... */}
                     <div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
                         <div
                             className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border"
                             aria-hidden="true"
                         >
-                            <CircleAlert className="opacity-80" size={16} strokeWidth={2} />
-                        </div>
+                            <CircleAlert
+                                className="opacity-80"
+                                size={16}
+                                strokeWidth={2}
+                            />
+                        </div>{" "}
                         <AlertDialogHeader>
-                            <AlertDialogTitle>{isEditable ? "Editar Producto" : "Agregar Nuevo Producto"}</AlertDialogTitle>
-                            <AlertDialogDescription>Complete los detalles del producto para continuar.</AlertDialogDescription>
+                            <AlertDialogTitle>
+                                {isEditable
+                                    ? "Editar Producto"
+                                    : "Agregar Nuevo Producto"}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Complete los detalles del producto para
+                                continuar.
+                            </AlertDialogDescription>
                         </AlertDialogHeader>
                     </div>
-
-                    {/* <--- CAMBIO IMPORTANTE: Pasamos `onInvalid` a handleSubmit */}
                     <Form {...form}>
                         <form
-                            onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+                            onSubmit={form.handleSubmit(onSubmit)}
                             className="space-y-4 mt-4 py-6 px-2 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
                         >
-                           {/* ... (Todos los FormField permanecen iguales) ... */}
-                           {/* ... */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="productName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nombre</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="productDescription"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descripcion</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>{" "}
+                            <FormField
+                                control={form.control}
+                                name="productDetails"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Detalles</FormLabel>
+                                        <FormControl>
+                                            <textarea
+                                                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="imageUrl"
+                                render={({
+                                    field: { value, onChange, ...fieldProps },
+                                }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex items-center justify-center w-full">
+                                                <label
+                                                    htmlFor="dropzone-file"
+                                                    className={cn(
+                                                        "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer",
+                                                        form.formState.errors
+                                                            .imageUrl
+                                                            ? "border-destructive bg-destructive/10 dark:bg-destructive/20 dark:border-destructive hover:bg-destructive/10 dark:hover:border-destructive"
+                                                            : "border-zinc-300 bg-zinc-50 dark:hover:bg-zinc-800 dark:bg-zinc-900 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:border-zinc-500"
+                                                    )}
+                                                >
+                                                    <div
+                                                        className={cn(
+                                                            "flex flex-col items-center justify-center pt-5 pb-6",
+                                                            form.formState
+                                                                .errors.imageUrl
+                                                                ? "text-destructive"
+                                                                : "text-zinc-500 dark:text-zinc-400"
+                                                        )}
+                                                    >
+                                                        <CloudUpload className="h-10 w-10" />
+                                                        {value &&
+                                                        value.length > 0 ? (
+                                                            <>
+                                                                <p className="mb-2 text-sm font-semibold">
+                                                                    Imagen
+                                                                    seleccionada
+                                                                </p>
+                                                                <p className="text-sm">
+                                                                    {
+                                                                        value[0]
+                                                                            .name
+                                                                    }
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="mb-2 text-sm">
+                                                                    <span className="font-semibold">
+                                                                        Click
+                                                                        para
+                                                                        subir
+                                                                        una
+                                                                        imagen
+                                                                    </span>{" "}
+                                                                    o saca una
+                                                                    foto desde
+                                                                    el teléfono
+                                                                </p>
+                                                                <p className="text-xs">
+                                                                    JPEG, PNG,
+                                                                    JPG o WEBP
+                                                                    (MAX. 2MB)
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <Input
+                                                        id="dropzone-file"
+                                                        type="file"
+                                                        accept="image/*;capture=camera"
+                                                        className={cn(
+                                                            "hidden",
+                                                            form.formState
+                                                                .errors
+                                                                .imageUrl &&
+                                                                "border-destructive"
+                                                        )}
+                                                        onChange={(e) =>
+                                                            onChange(
+                                                                e.target.files
+                                                            )
+                                                        }
+                                                        {...fieldProps}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-3 gap-4">
+                                {" "}
+                                <FormField
+                                    control={form.control}
+                                    name="sellingPrice"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Precio venta</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    {...field}
+                                                    onChange={(e) =>
+                                                        field.onChange(
+                                                            parseFloat(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    }
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="stock"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Stock</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    {...field}
+                                                    onChange={(e) =>
+                                                        field.onChange(
+                                                            parseInt(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    }
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="discountPercent"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descuento (%)</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    {...field}
+                                                    onChange={(e) =>
+                                                        field.onChange(
+                                                            parseInt(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    }
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>{" "}
+                            <FormField
+                                control={form.control}
+                                name="categories"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Categorías</FormLabel>
+                                        <FormControl>
+                                            <MultipleSelector
+                                                value={field.value.map(
+                                                    (category) => ({
+                                                        label: category,
+                                                        value: category,
+                                                    })
+                                                )}
+                                                onChange={(options) => {
+                                                    field.onChange(
+                                                        options.map(
+                                                            (option) =>
+                                                                option.value
+                                                        )
+                                                    );
+                                                }}
+                                                defaultOptions={[
+                                                    {
+                                                        label: "Alimentos",
+                                                        value: "alimentos",
+                                                    },
+                                                    {
+                                                        label: "Accesorios",
+                                                        value: "accesorios",
+                                                    },
+                                                    {
+                                                        label: "Juguetes",
+                                                        value: "juguetes",
+                                                    },
+                                                    {
+                                                        label: "Salud",
+                                                        value: "salud",
+                                                    },
+                                                    {
+                                                        label: "Higiene",
+                                                        value: "higiene",
+                                                    },
+                                                ]}
+                                                placeholder="Seleccionar categorías"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />{" "}
+                            <FormField
+                                control={form.control}
+                                name="costPrice"
+                                render={({ field }) => {
+                                    return (
+                                        <>
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Precio costo
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        {...field}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            )
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        </>
+                                    );
+                                }}
+                            />
                         </form>
                     </Form>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => (isEditable ? onClose?.() : setOpen(false))}>
+                        <AlertDialogCancel onClick={() => setOpen(false)}>
                             Cancelar
                         </AlertDialogCancel>
-                        {/* <--- CAMBIO IMPORTANTE: Pasamos `onInvalid` a handleSubmit también aquí */}
-                        <AlertDialogAction onClick={form.handleSubmit(onSubmit, onInvalid)} disabled={loading}>
+                        <AlertDialogAction
+                            onClick={form.handleSubmit(onSubmit)}
+                        >
                             {loading ? (
-                                <Loader2Icon className="animate-spin" size={16} strokeWidth={2} />
+                                <Loader2Icon
+                                    className="animate-spin"
+                                    size={16}
+                                    strokeWidth={2}
+                                />
                             ) : (
-                                <Plus className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                                <Plus
+                                    className="-ms-1 me-2 opacity-60"
+                                    size={16}
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                />
                             )}
-                            {loading ? (isEditable ? "Actualizando..." : "Creando...") : isEditable ? "Actualizar" : "Crear"}
+                            {loading
+                                ? isEditable
+                                    ? "Actualizando..."
+                                    : "Creando..."
+                                : isEditable
+                                ? "Actualizar"
+                                : "Crear"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

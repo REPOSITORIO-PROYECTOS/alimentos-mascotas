@@ -184,11 +184,9 @@ export default function CashRegisterForm({
             setShowDeleteAlert(false);
             setOpen(false);
             if (onClose) onClose();
-
         } catch (error: any) {
             console.error("Error al eliminar:", error);
             toast.error("Error al eliminar el item de caja");
-            
         } finally {
             finishLoading();
         }
@@ -311,7 +309,6 @@ export default function CashRegisterForm({
                                     variant="outline"
                                     onClick={() => onClose()}
                                     disabled={loading}
-                                    className="cursor-pointer"
                                 >
                                     Cancelar
                                 </Button>
@@ -324,12 +321,11 @@ export default function CashRegisterForm({
                                                 setShowDeleteAlert(true)
                                             }
                                             disabled={loading}
-                                            className="!text-white cursor-pointer"
                                         >
                                             Eliminar
                                         </Button>
                                     )}
-                                    <Button className="!text-white cursor-pointer" type="submit" disabled={loading}> 
+                                    <Button type="submit" disabled={loading}>
                                         {loading && (
                                             <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                                         )}
