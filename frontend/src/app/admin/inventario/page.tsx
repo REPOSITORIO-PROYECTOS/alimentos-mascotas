@@ -1,4 +1,3 @@
-import Panel from "@/components/interfaces/panel";
 import TableProducts from "@/components/interfaces/table-products";
 
 export default function Page() {

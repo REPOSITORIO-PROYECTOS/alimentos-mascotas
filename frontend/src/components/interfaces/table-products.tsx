@@ -121,6 +121,7 @@ const multiColumnFilterFn: FilterFn<Item> = (row, columnId, filterValue) => {
     return searchableRowContent.includes(searchTerm);
 };
 
+// Columnas de la Tabla - Coinciden con los campos del JSON
 const columns: ColumnDef<Item>[] = [
     {
         id: "select",
@@ -209,20 +210,6 @@ const columns: ColumnDef<Item>[] = [
         ),
         size: 120,
     },
-    // {
-    //     header: "Creado",
-    //     accessorKey: "createdAt",
-    //     cell: ({ row }) => (
-    //         <div className="text-sm">
-    //             {row.original.createdAt
-    //                 ? new Date(
-    //                       row.original.createdAt.replace("T", " ")
-    //                   ).toLocaleDateString("es-AR")
-    //                 : "-"}
-    //         </div>
-    //     ),
-    //     size: 100,
-    // },
     {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
@@ -234,6 +221,7 @@ const columns: ColumnDef<Item>[] = [
 
 // const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+// Componente que renderiza la tabla
 export default function TableProducts() {
     const { user } = useAuthStore();
     const fetcher = useCallback((url: string) => {
@@ -870,47 +858,22 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuGroup>
+
                         <DropdownMenuItem
                             onSelect={() => setIsEditDialogOpen(true)}
                         >
                             <span>Editar</span>
                             <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
                         </DropdownMenuItem>
+
                         <DropdownMenuItem>
-                            <span>Duplicar</span>
-                            <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                            <span>Archivar</span>
+                            <span>Marcar Agotado</span>
                             <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
                         </DropdownMenuItem>
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Mas</DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                                <DropdownMenuSubContent>
-                                    <DropdownMenuItem>
-                                        Ejemplo 1
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        Ejemplo 2
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        Ejemplo 3
-                                    </DropdownMenuItem>
-                                </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
                     </DropdownMenuGroup>
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem>Enviar</DropdownMenuItem>
-                        <DropdownMenuItem>Imprimir</DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onSelect={handleDeleteRow}
@@ -918,6 +881,7 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                         <span>Borrar</span>
                         <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                     </DropdownMenuItem>
+                    
                 </DropdownMenuContent>
             </DropdownMenu>
             {isEditDialogOpen && (
