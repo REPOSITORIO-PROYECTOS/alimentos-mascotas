@@ -62,32 +62,31 @@ const imageSchema = isFileListDefined
           })
     : z.any();
 
-const formSchema = z.object({
-    productName: z.string().min(2, {
-        message: "El nombre debe tener al menos 2 caracteres.",
-    }),
-    productDescription: z.string().min(2, {
-        message: "La descripcion debe tener al menos 2 caracteres.",
-    }),
-    productDetails: z.string().min(2, {
-        message: "Los detalles deben tener al menos 2 caracteres.",
-    }),
-    imageUrl: imageSchema,
-    sellingPrice: z.number().min(1, {
-        message: "El precio debe ser mayor a 0.",
-    }),
-    stock: z.number().min(1, {
-        message: "El stock debe ser mayor a 0.",
-    }),
-    discountPercent: z.number().min(0, {
-        message: "El descuento debe ser mayor o igual a 0.",
-    }),
-    categories: z.array(z.string()).min(1, {
-        message: "Debe seleccionar al menos una categoria.",
-    }),
-    costPrice: z.number().min(1, {
-        message: "El precio de costo debe ser mayor a 0.",
-    }),
+
+type ProductFormData = z.infer<typeof createFormSchema> | z.infer<typeof editFormSchema>;
+
+const createFormSchema = z.object({
+  productName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
+  productDescription: z.string().min(2, { message: "La descripcion debe tener al menos 2 caracteres." }),
+  productDetails: z.string().min(2, { message: "Los detalles deben tener al menos 2 caracteres." }),
+  imageUrl: imageSchema, // obligatoria
+  sellingPrice: z.number().min(1, { message: "El precio debe ser mayor a 0." }),
+  stock: z.number().min(1, { message: "El stock debe ser mayor a 0." }),
+  discountPercent: z.number().min(0, { message: "El descuento debe ser mayor o igual a 0." }),
+  categories: z.array(z.string()).min(1, { message: "Debe seleccionar al menos una categoria." }),
+  costPrice: z.number().min(1, { message: "El precio de costo debe ser mayor a 0." }),
+});
+
+const editFormSchema = z.object({
+  productName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
+  productDescription: z.string().min(2, { message: "La descripcion debe tener al menos 2 caracteres." }),
+  productDetails: z.string().min(2, { message: "Los detalles deben tener al menos 2 caracteres." }),
+  imageUrl: z.any().optional(), // opcional
+  sellingPrice: z.number().min(1, { message: "El precio debe ser mayor a 0." }),
+  stock: z.number().min(1, { message: "El stock debe ser mayor a 0." }),
+  discountPercent: z.number().min(0, { message: "El descuento debe ser mayor o igual a 0." }),
+  categories: z.array(z.string()).min(1, { message: "Debe seleccionar al menos una categoria." }),
+  costPrice: z.number().min(1, { message: "El precio de costo debe ser mayor a 0." }),
 });
 
 interface ProductoFormProps {
@@ -132,8 +131,9 @@ export default function ProductForm({
     const [open, setOpen] = useState(false);
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+
+    const form = useForm<z.infer<typeof createFormSchema | typeof editFormSchema>>({
+        resolver: zodResolver(isEditable ? editFormSchema : createFormSchema),
         defaultValues: {
             productName: datos?.productName || "",
             productDescription: datos?.productDescription || "",
@@ -151,7 +151,8 @@ export default function ProductForm({
         // El formulario está listo para usar
         setIsLoading(false);
     }, []);
-    async function onSubmit(dataForm: z.infer<typeof formSchema>) {
+
+    async function onSubmit(dataForm: ProductFormData) {
         const formDataObj = new FormData();
 
         // Agregar la imagen si existe

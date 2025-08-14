@@ -870,8 +870,9 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                             <span>Marcar Agotado</span>
                             <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
                         </DropdownMenuItem>
-                    </DropdownMenuGroup>
 
+                    </DropdownMenuGroup>
+                    
                     <DropdownMenuSeparator />
 
                     <DropdownMenuItem
@@ -881,7 +882,6 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
                         <span>Borrar</span>
                         <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                     </DropdownMenuItem>
-                    
                 </DropdownMenuContent>
             </DropdownMenu>
             {isEditDialogOpen && (
