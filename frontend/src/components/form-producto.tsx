@@ -36,60 +36,6 @@ import { useAuthStore } from "@/context/store";
 
 const isFileListDefined = typeof FileList !== "undefined";
 
-const imageSchema = isFileListDefined
-    ? z
-          .instanceof(FileList)
-          .refine((files) => files.length > 0, {
-              message: "Debe seleccionar un archivo de imagen.",
-          })
-          .refine(
-              (files) => {
-                  const validTypes = [
-                      "image/jpeg",
-                      "image/png",
-                      "image/jpg",
-                      "image/webp",
-                  ];
-                  return validTypes.includes(files[0]?.type);
-              },
-              {
-                  message:
-                      "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
-              }
-          )
-          .refine((files) => files[0]?.size <= 5 * 1024 * 1024, {
-              message: "El tamaño de la imagen no debe exceder los 5MB.",
-          })
-    : z.any();
-
-const formSchema = z.object({
-    productName: z.string().min(2, {
-        message: "El nombre debe tener al menos 2 caracteres.",
-    }),
-    productDescription: z.string().min(2, {
-        message: "La descripcion debe tener al menos 2 caracteres.",
-    }),
-    productDetails: z.string().min(2, {
-        message: "Los detalles deben tener al menos 2 caracteres.",
-    }),
-    imageUrl: imageSchema,
-    sellingPrice: z.number().min(1, {
-        message: "El precio debe ser mayor a 0.",
-    }),
-    stock: z.number().min(1, {
-        message: "El stock debe ser mayor a 0.",
-    }),
-    discountPercent: z.number().min(0, {
-        message: "El descuento debe ser mayor o igual a 0.",
-    }),
-    categories: z.array(z.string()).min(1, {
-        message: "Debe seleccionar al menos una categoria.",
-    }),
-    costPrice: z.number().min(1, {
-        message: "El precio de costo debe ser mayor a 0.",
-    }),
-});
-
 interface ProductoFormProps {
     isEditable?: boolean;
     datos?: {
@@ -107,7 +53,7 @@ interface ProductoFormProps {
         productCode: string;
         costPrice: number;
     };
-    mutate: ScopedMutator | (() => void); // Acepta tanto ScopedMutator como una función sin argumentos
+    mutate: ScopedMutator | (() => void);
     onClose?: () => void;
 }
 
@@ -132,73 +78,137 @@ export default function ProductForm({
     const [open, setOpen] = useState(false);
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
+
+    // --- CAMBIO PRINCIPAL: El esquema se define DENTRO del componente ---
+    const formSchema = z
+        .object({
+            productName: z.string().min(2, {
+                message: "El nombre debe tener al menos 2 caracteres.",
+            }),
+            productDescription: z.string().min(2, {
+                message: "La descripción debe tener al menos 2 caracteres.",
+            }),
+            productDetails: z.string().min(2, {
+                message: "Los detalles deben tener al menos 2 caracteres.",
+            }),
+            imageUrl: z.any(), // Se define como 'any' para la validación condicional
+            sellingPrice: z.number().min(1, {
+                message: "El precio debe ser mayor a 0.",
+            }),
+            stock: z.number().min(1, {
+                message: "El stock debe ser mayor a 0.",
+            }),
+            discountPercent: z.number().min(0, {
+                message: "El descuento debe ser mayor o igual a 0.",
+            }),
+            categories: z.array(z.string()).min(1, {
+                message: "Debe seleccionar al menos una categoría.",
+            }),
+            costPrice: z.number().min(1, {
+                message: "El precio de costo debe ser mayor a 0.",
+            }),
+        })
+        .superRefine((data, ctx) => {
+            const image = data.imageUrl;
+
+            // Si estamos en modo CREACIÓN, la imagen es obligatoria
+            if (!isEditable) {
+                if (!isFileListDefined || !(image instanceof FileList) || image.length === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Debe seleccionar un archivo de imagen.",
+                        path: ["imageUrl"],
+                    });
+                    return; // Detenemos la validación aquí si falla
+                }
+            }
+
+            // Esta validación se aplica si se ha subido un archivo nuevo (tanto en creación como en edición)
+            if (isFileListDefined && image instanceof FileList && image.length > 0) {
+                const file = image[0];
+                const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+                if (!validTypes.includes(file?.type)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+                        path: ["imageUrl"],
+                    });
+                }
+                if (file?.size > 5 * 1024 * 1024) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "El tamaño de la imagen no debe exceder los 5MB.",
+                        path: ["imageUrl"],
+                    });
+                }
+            }
+            // Si estamos en modo EDICIÓN y no se sube un archivo nuevo, no se hace nada y la validación pasa.
+        });
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            productName: datos?.productName || "",
-            productDescription: datos?.productDescription || "",
-            productDetails: datos?.productDetails || "",
-            sellingPrice: datos?.sellingPrice || 0,
-            stock: datos?.stock || 0,
-            imageUrl: datos?.imageUrl || null,
-            discountPercent: datos?.discountPercent || 0,
-            categories: datos?.categories || [],
-            costPrice: datos?.costPrice || 0,
+            productName: "",
+            productDescription: "",
+            productDetails: "",
+            sellingPrice: 0,
+            stock: 0,
+            imageUrl: null, // Importante: iniciar como null para el campo de archivo
+            discountPercent: 0,
+            categories: [],
+            costPrice: 0,
         },
     });
 
     useEffect(() => {
-        // El formulario está listo para usar
+        // Cargar los datos iniciales en el formulario cuando esté en modo de edición
+        if (isEditable && datos) {
+            form.reset({
+                productName: datos.productName,
+                productDescription: datos.productDescription,
+                productDetails: datos.productDetails,
+                sellingPrice: datos.sellingPrice,
+                stock: datos.stock,
+                discountPercent: datos.discountPercent,
+                categories: datos.categories,
+                costPrice: datos.costPrice,
+                // No establecemos imageUrl aquí, ya que el input de archivo no puede tener un valor programático.
+                // El usuario decidirá si sube uno nuevo.
+            });
+        }
         setIsLoading(false);
-    }, []);
+    }, [isEditable, datos, form]);
+
     async function onSubmit(dataForm: z.infer<typeof formSchema>) {
         const formDataObj = new FormData();
 
-        // Agregar la imagen si existe
+        // Agregar la imagen SÓLO si es un objeto FileList (es decir, se subió un archivo nuevo)
         if (dataForm.imageUrl && dataForm.imageUrl.length > 0) {
             formDataObj.append("image", dataForm.imageUrl[0]);
         }
-        // //enviar los datos del producto dentro de un campo llamado "product" pero sin la imagen
-        // formDataObj.append("product", JSON.stringify(dataForm));
 
-        // Agregar el resto de campos
+        // Agregar el resto de los campos
         formDataObj.append("productName", dataForm.productName);
         formDataObj.append("productDescription", dataForm.productDescription);
         formDataObj.append("productDetails", dataForm.productDetails);
         formDataObj.append("sellingPrice", dataForm.sellingPrice.toString());
         formDataObj.append("stock", dataForm.stock.toString());
         formDataObj.append("costPrice", dataForm.costPrice.toString());
-        formDataObj.append(
-            "discountPercent",
-            dataForm.discountPercent?.toString() || "0"
-        );
-
-        // Agregar categorías como un array JSON
+        formDataObj.append("discountPercent", dataForm.discountPercent?.toString() || "0");
         formDataObj.append("categories", JSON.stringify(dataForm.categories));
 
-        // Agregar campos existentes si es edición
         if (isEditable && datos) {
             formDataObj.append("id", datos.id);
-            if (datos.productCode)
-                formDataObj.append("productCode", datos.productCode);
-            if (datos.recipeId) formDataObj.append("recipeId", datos.recipeId);
-            if (datos.reviewsIds)
-                formDataObj.append(
-                    "reviewsIds",
-                    JSON.stringify(datos.reviewsIds)
-                );
-            // No agregamos imageUrl existente porque ya estamos enviando el archivo nuevo
-            if (!dataForm.imageUrl || dataForm.imageUrl.length === 0) {
-                if (datos.imageUrl)
-                    formDataObj.append("imageUrl", datos.imageUrl);
-            }
+            // Si no se proporcionó una nueva imagen y existe una antigua, el backend debería mantenerla.
+            // Si tu backend necesita explícitamente la URL antigua, puedes descomentar la siguiente línea:
+            // if ((!dataForm.imageUrl || dataForm.imageUrl.length === 0) && datos.imageUrl) {
+            //     formDataObj.append("imageUrl", datos.imageUrl);
+            // }
         }
 
         startLoading();
         try {
-            const endpoint = isEditable
-                ? `/productos/editar/${datos?.id}`
-                : "/productos/guardar";
+            const endpoint = isEditable ? `/productos/editar/${datos?.id}` : "/productos/guardar";
             const response = await fetch({
                 endpoint,
                 method: isEditable ? "PUT" : "POST",
@@ -210,18 +220,11 @@ export default function ProductForm({
             });
             if (response) {
                 console.log(response);
-                // Llamada a mutate compatible con ambos casos
                 if (typeof mutate === "function") {
-                    if (isEditable) {
-                        await mutate(undefined, true); // Si es ScopedMutator, pasa los argumentos necesarios
-                    } else {
-                        await mutate(undefined, true); // Si es una función sin argumentos, llámala sin parámetros
-                    }
+                    await mutate(undefined, true);
                 }
                 toast.success(
-                    isEditable
-                        ? "Producto actualizado correctamente."
-                        : "Producto creado correctamente."
+                    isEditable ? "Producto actualizado correctamente." : "Producto creado correctamente."
                 );
                 isEditable ? onClose?.() : setOpen(false);
                 form.reset();
@@ -229,12 +232,8 @@ export default function ProductForm({
             return response;
         } catch (error: any) {
             const errorMessage =
-                (typeof error === "object" && error.response
-                    ? error.response.data?.message
-                    : error?.message) ||
-                (isEditable
-                    ? "Error al actualizar el producto. Inténtalo de nuevo."
-                    : "Error al crear el producto. Inténtalo de nuevo.");
+                (typeof error === "object" && error.response ? error.response.data?.message : error?.message) ||
+                (isEditable ? "Error al actualizar el producto. Inténtalo de nuevo." : "Error al crear el producto. Inténtalo de nuevo.");
             console.error("Error en onSubmit: ", errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -244,19 +243,11 @@ export default function ProductForm({
 
     return (
         <div className="flex items-center gap-3">
-            <AlertDialog
-                open={isEditable ? true : open}
-                onOpenChange={isEditable ? onClose : setOpen}
-            >
+            <AlertDialog open={isEditable ? true : open} onOpenChange={isEditable ? onClose : setOpen}>
                 <AlertDialogTrigger asChild>
                     {isEditable ? null : (
                         <Button className="ml-auto" variant="outline">
-                            <Plus
-                                className="-ms-1 me-2 opacity-60"
-                                size={16}
-                                strokeWidth={2}
-                                aria-hidden="true"
-                            />
+                            <Plus className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
                             Agregar Producto
                         </Button>
                     )}
@@ -267,22 +258,11 @@ export default function ProductForm({
                             className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border"
                             aria-hidden="true"
                         >
-                            <CircleAlert
-                                className="opacity-80"
-                                size={16}
-                                strokeWidth={2}
-                            />
-                        </div>{" "}
+                            <CircleAlert className="opacity-80" size={16} strokeWidth={2} />
+                        </div>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                {isEditable
-                                    ? "Editar Producto"
-                                    : "Agregar Nuevo Producto"}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Complete los detalles del producto para
-                                continuar.
-                            </AlertDialogDescription>
+                            <AlertDialogTitle>{isEditable ? "Editar Producto" : "Agregar Nuevo Producto"}</AlertDialogTitle>
+                            <AlertDialogDescription>Complete los detalles del producto para continuar.</AlertDialogDescription>
                         </AlertDialogHeader>
                     </div>
                     <Form {...form}>
@@ -309,7 +289,7 @@ export default function ProductForm({
                                     name="productDescription"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Descripcion</FormLabel>
+                                            <FormLabel>Descripción</FormLabel>
                                             <FormControl>
                                                 <Input {...field} />
                                             </FormControl>
@@ -317,7 +297,7 @@ export default function ProductForm({
                                         </FormItem>
                                     )}
                                 />
-                            </div>{" "}
+                            </div>
                             <FormField
                                 control={form.control}
                                 name="productDetails"
@@ -337,18 +317,18 @@ export default function ProductForm({
                             <FormField
                                 control={form.control}
                                 name="imageUrl"
-                                render={({
-                                    field: { value, onChange, ...fieldProps },
-                                }) => (
+                                render={({ field: { value, onChange, ...fieldProps } }) => (
                                     <FormItem className="w-full">
+                                        <FormLabel>
+                                            Imagen del Producto {isEditable && <span className="text-muted-foreground text-xs">(Opcional si no desea cambiarla)</span>}
+                                        </FormLabel>
                                         <FormControl>
                                             <div className="flex items-center justify-center w-full">
                                                 <label
                                                     htmlFor="dropzone-file"
                                                     className={cn(
                                                         "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer",
-                                                        form.formState.errors
-                                                            .imageUrl
+                                                        form.formState.errors.imageUrl
                                                             ? "border-destructive bg-destructive/10 dark:bg-destructive/20 dark:border-destructive hover:bg-destructive/10 dark:hover:border-destructive"
                                                             : "border-zinc-300 bg-zinc-50 dark:hover:bg-zinc-800 dark:bg-zinc-900 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:border-zinc-500"
                                                     )}
@@ -356,65 +336,32 @@ export default function ProductForm({
                                                     <div
                                                         className={cn(
                                                             "flex flex-col items-center justify-center pt-5 pb-6",
-                                                            form.formState
-                                                                .errors.imageUrl
+                                                            form.formState.errors.imageUrl
                                                                 ? "text-destructive"
                                                                 : "text-zinc-500 dark:text-zinc-400"
                                                         )}
                                                     >
                                                         <CloudUpload className="h-10 w-10" />
-                                                        {value &&
-                                                        value.length > 0 ? (
+                                                        {value && value.length > 0 ? (
                                                             <>
-                                                                <p className="mb-2 text-sm font-semibold">
-                                                                    Imagen
-                                                                    seleccionada
-                                                                </p>
-                                                                <p className="text-sm">
-                                                                    {
-                                                                        value[0]
-                                                                            .name
-                                                                    }
-                                                                </p>
+                                                                <p className="mb-2 text-sm font-semibold">Imagen seleccionada</p>
+                                                                <p className="text-sm">{value[0].name}</p>
                                                             </>
                                                         ) : (
                                                             <>
                                                                 <p className="mb-2 text-sm">
-                                                                    <span className="font-semibold">
-                                                                        Click
-                                                                        para
-                                                                        subir
-                                                                        una
-                                                                        imagen
-                                                                    </span>{" "}
-                                                                    o saca una
-                                                                    foto desde
-                                                                    el teléfono
+                                                                    <span className="font-semibold">Click para subir una imagen</span> o arrástrala aquí
                                                                 </p>
-                                                                <p className="text-xs">
-                                                                    JPEG, PNG,
-                                                                    JPG o WEBP
-                                                                    (MAX. 2MB)
-                                                                </p>
+                                                                <p className="text-xs">JPEG, PNG, JPG o WEBP (MAX. 5MB)</p>
                                                             </>
                                                         )}
                                                     </div>
                                                     <Input
                                                         id="dropzone-file"
                                                         type="file"
-                                                        accept="image/*;capture=camera"
-                                                        className={cn(
-                                                            "hidden",
-                                                            form.formState
-                                                                .errors
-                                                                .imageUrl &&
-                                                                "border-destructive"
-                                                        )}
-                                                        onChange={(e) =>
-                                                            onChange(
-                                                                e.target.files
-                                                            )
-                                                        }
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => onChange(e.target.files)}
                                                         {...fieldProps}
                                                     />
                                                 </label>
@@ -425,7 +372,6 @@ export default function ProductForm({
                                 )}
                             />
                             <div className="grid grid-cols-3 gap-4">
-                                {" "}
                                 <FormField
                                     control={form.control}
                                     name="sellingPrice"
@@ -436,13 +382,7 @@ export default function ProductForm({
                                                 <Input
                                                     type="number"
                                                     {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseFloat(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
+                                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -459,13 +399,7 @@ export default function ProductForm({
                                                 <Input
                                                     type="number"
                                                     {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
+                                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -482,20 +416,14 @@ export default function ProductForm({
                                                 <Input
                                                     type="number"
                                                     {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
+                                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
                                                 />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                            </div>{" "}
+                            </div>
                             <FormField
                                 control={form.control}
                                 name="categories"
@@ -504,109 +432,51 @@ export default function ProductForm({
                                         <FormLabel>Categorías</FormLabel>
                                         <FormControl>
                                             <MultipleSelector
-                                                value={field.value.map(
-                                                    (category) => ({
-                                                        label: category,
-                                                        value: category,
-                                                    })
-                                                )}
+                                                value={field.value.map((category) => ({
+                                                    label: category,
+                                                    value: category,
+                                                }))}
                                                 onChange={(options) => {
-                                                    field.onChange(
-                                                        options.map(
-                                                            (option) =>
-                                                                option.value
-                                                        )
-                                                    );
+                                                    field.onChange(options.map((option) => option.value));
                                                 }}
-                                                defaultOptions={[
-                                                    {
-                                                        label: "Alimentos",
-                                                        value: "alimentos",
-                                                    },
-                                                    {
-                                                        label: "Accesorios",
-                                                        value: "accesorios",
-                                                    },
-                                                    {
-                                                        label: "Juguetes",
-                                                        value: "juguetes",
-                                                    },
-                                                    {
-                                                        label: "Salud",
-                                                        value: "salud",
-                                                    },
-                                                    {
-                                                        label: "Higiene",
-                                                        value: "higiene",
-                                                    },
-                                                ]}
+                                                defaultOptions={categoryOptions}
                                                 placeholder="Seleccionar categorías"
                                             />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />{" "}
+                            />
                             <FormField
                                 control={form.control}
                                 name="costPrice"
-                                render={({ field }) => {
-                                    return (
-                                        <>
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Precio costo
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="number"
-                                                        {...field}
-                                                        onChange={(e) =>
-                                                            field.onChange(
-                                                                parseFloat(
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            )
-                                                        }
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        </>
-                                    );
-                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Precio costo</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                {...field}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
                         </form>
                     </Form>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setOpen(false)}>
+                        <AlertDialogCancel onClick={() => (isEditable ? onClose?.() : setOpen(false))}>
                             Cancelar
                         </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={form.handleSubmit(onSubmit)}
-                        >
+                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={loading}>
                             {loading ? (
-                                <Loader2Icon
-                                    className="animate-spin"
-                                    size={16}
-                                    strokeWidth={2}
-                                />
+                                <Loader2Icon className="animate-spin" size={16} strokeWidth={2} />
                             ) : (
-                                <Plus
-                                    className="-ms-1 me-2 opacity-60"
-                                    size={16}
-                                    strokeWidth={2}
-                                    aria-hidden="true"
-                                />
+                                <Plus className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
                             )}
-                            {loading
-                                ? isEditable
-                                    ? "Actualizando..."
-                                    : "Creando..."
-                                : isEditable
-                                ? "Actualizar"
-                                : "Crear"}
+                            {loading ? (isEditable ? "Actualizando..." : "Creando...") : isEditable ? "Actualizar" : "Crear"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
