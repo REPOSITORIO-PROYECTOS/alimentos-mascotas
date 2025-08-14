@@ -37,27 +37,30 @@ import { useAuthStore } from "@/context/store";
 const isFileListDefined = typeof FileList !== "undefined";
 
 const imageSchema = isFileListDefined
-    ? z
-        .instanceof(FileList)
-        .refine(
-            (files) => files.length === 0 || [
-                "image/jpeg",
-                "image/png",
-                "image/jpg",
-                "image/webp",
-            ].includes(files[0]?.type),
-            {
-                message: "Formato de imagen no válido. Solo JPEG, PNG, JPG y WEBP.",
-            }
-        )
-        .refine(
-            (files) => files.length === 0 || files[0]?.size <= 5 * 1024 * 1024,
-            {
-                message: "El tamaño de la imagen no debe exceder los 5MB.",
-            }
-        )
-        .optional()
-    : z.any().optional();
+  ? z
+      .union([
+        z
+          .instanceof(FileList)
+          .refine(
+            (files) => files.length === 0, // permite vacío
+            { message: "" } // mensaje vacío, nunca marcará error si está vacío
+          ),
+        z
+          .instanceof(FileList)
+          .refine(
+            (files) => {
+              const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+              return files.length > 0 && validTypes.includes(files[0]?.type);
+            },
+            { message: "Formato de imagen no válido. Solo JPEG, PNG, JPG y WEBP." }
+          )
+          .refine(
+            (files) => files.length > 0 && files[0]?.size <= 5 * 1024 * 1024,
+            { message: "El tamaño de la imagen no debe exceder los 5MB." }
+          ),
+      ])
+      .optional()
+  : z.any().optional();
 
 
 const formSchema = z.object({
