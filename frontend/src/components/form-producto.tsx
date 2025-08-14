@@ -62,33 +62,73 @@ const imageSchema = isFileListDefined
           })
     : z.any();
 
-const formSchema = z.object({
-    productName: z.string().min(2, {
-        message: "El nombre debe tener al menos 2 caracteres.",
-    }),
-    productDescription: z.string().min(2, {
-        message: "La descripcion debe tener al menos 2 caracteres.",
-    }),
-    productDetails: z.string().min(2, {
-        message: "Los detalles deben tener al menos 2 caracteres.",
-    }),
-    imageUrl: imageSchema,
-    sellingPrice: z.number().min(1, {
-        message: "El precio debe ser mayor a 0.",
-    }),
-    stock: z.number().min(1, {
-        message: "El stock debe ser mayor a 0.",
-    }),
-    discountPercent: z.number().min(0, {
-        message: "El descuento debe ser mayor o igual a 0.",
-    }),
-    categories: z.array(z.string()).min(1, {
-        message: "Debe seleccionar al menos una categoria.",
-    }),
-    costPrice: z.number().min(1, {
-        message: "El precio de costo debe ser mayor a 0.",
-    }),
-});
+const getFormSchema = (isEditable: boolean) => {
+    // La validación de la imagen ahora depende del modo del formulario
+    const imageSchema = isFileListDefined
+        ? z.instanceof(FileList).refine(
+              (files) => {
+                  // Si estamos editando, no tener un archivo es válido.
+                  if (isEditable && (!files || files.length === 0)) {
+                      return true;
+                  }
+                  // Si estamos creando, el archivo es obligatorio.
+                  return files?.length > 0;
+              },
+              {
+                  message: "Debe seleccionar un archivo de imagen.",
+              }
+          )
+        .refine(
+            (files) => {
+                if (!files || files.length === 0) return true; // Si no hay archivo, no validar tipo
+                const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+                return validTypes.includes(files[0]?.type);
+            },
+            {
+                message: "Formato de imagen no válido. Solo se permiten JPEG, PNG, JPG y WEBP.",
+            }
+        )
+        .refine(
+            (files) => {
+                if (!files || files.length === 0) return true; // Si no hay archivo, no validar tamaño
+                return files[0]?.size <= 5 * 1024 * 1024;
+            },
+            {
+                message: "El tamaño de la imagen no debe exceder los 5MB.",
+            }
+        )
+        : z.any();
+
+    return z.object({
+        productName: z.string().min(2, {
+            message: "El nombre debe tener al menos 2 caracteres.",
+        }),
+        productDescription: z.string().min(2, {
+            message: "La descripcion debe tener al menos 2 caracteres.",
+        }),
+        productDetails: z.string().min(2, {
+            message: "Los detalles deben tener al menos 2 caracteres.",
+        }),
+        // PASO 2: Hacer el campo opcional en la base y dejar que `.refine` maneje la lógica
+        imageUrl: imageSchema.optional(),
+        sellingPrice: z.number().min(1, {
+            message: "El precio debe ser mayor a 0.",
+        }),
+        stock: z.number().min(1, {
+            message: "El stock debe ser mayor a 0.",
+        }),
+        discountPercent: z.number().min(0, {
+            message: "El descuento debe ser mayor o igual a 0.",
+        }),
+        categories: z.array(z.string()).min(1, {
+            message: "Debe seleccionar al menos una categoria.",
+        }),
+        costPrice: z.number().min(1, {
+            message: "El precio de costo debe ser mayor a 0.",
+        }),
+    });
+};
+
 
 interface ProductoFormProps {
     isEditable?: boolean;
@@ -132,7 +172,11 @@ export default function ProductForm({
     const [open, setOpen] = useState(false);
     const { finishLoading, loading, startLoading } = useLoading();
     const fetch = useFetch();
+
+    const formSchema = getFormSchema(isEditable);
+
     const form = useForm<z.infer<typeof formSchema>>({
+        // Usar el esquema dinámico para la validación
         resolver: zodResolver(formSchema),
         defaultValues: {
             productName: datos?.productName || "",
@@ -140,12 +184,15 @@ export default function ProductForm({
             productDetails: datos?.productDetails || "",
             sellingPrice: datos?.sellingPrice || 0,
             stock: datos?.stock || 0,
-            imageUrl: datos?.imageUrl || null,
+            // Inicializar la imagen como `undefined` para que el input de archivo esté vacío
+            // y no intente usar el `imageUrl` string de los `datos` existentes.
+            imageUrl: undefined,
             discountPercent: datos?.discountPercent || 0,
             categories: datos?.categories || [],
             costPrice: datos?.costPrice || 0,
         },
     });
+
 
     useEffect(() => {
         // El formulario está listo para usar
@@ -252,7 +299,7 @@ export default function ProductForm({
                     {isEditable ? null : (
                         <Button className="ml-auto" variant="outline">
                             <Plus
-                                className="-ms-1 me-2 opacity-60"
+                                className="-ms-1 me-2 opacity-60 cursor-pointer"
                                 size={16}
                                 strokeWidth={2}
                                 aria-hidden="true"

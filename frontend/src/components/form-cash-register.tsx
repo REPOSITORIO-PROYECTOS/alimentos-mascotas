@@ -384,7 +384,7 @@ export default function CashRegisterForm({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Ingresos y Egresos de la Caja</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Complete los campos para agregar un nuevo item a la caja registradora.
+                        Complete los campos para registrar un nuevo movimiento externo a la caja registradora.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
