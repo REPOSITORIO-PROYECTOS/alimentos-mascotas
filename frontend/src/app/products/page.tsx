@@ -103,9 +103,11 @@ export default function ProductsPage() {
 
     // GET Productos
     const fetchProducts = async () => {
+
         setLoading(true);
+
         try {
-            const response = await fetch("http://82.25.69.192:8080/api/store/products");
+            const response = await fetch("https://barker.sistemataup.online/api/store/products");
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
