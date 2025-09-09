@@ -6,29 +6,29 @@ import { Link } from "next-view-transitions";
 import { Check, ShoppingBag, Star, Search, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
 import NumberFlow from "@number-flow/react";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/context/store";
 
 import { toast as sonnerToast } from "sonner";
 
-// Nuevo tipo de Product basado en el JSON de Django
+// Tipo de la respuesta completa de la API de Django
+type ApiResponse = {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Product[];
+};
+
+// ... tu tipo Product existente ...
 type Product = {
     id: number;
     name: string;
     category: string;
     description: string;
-    price: string; // Puede que necesitemos convertirlo a number
-    stock: string; // Puede que necesitemos convertirlo a number
-    image: string;
+    price: string;
+    stock: string;
+    image: string | null; // Puede ser null
     is_sellable: boolean;
     components: Array<{
         component: number;
@@ -38,10 +38,8 @@ type Product = {
     }>;
 };
 
-// Hemos eliminado PaginationInfo ya que el nuevo API no la proporciona directamente.
-// Si Django implementa paginación, la reintroduciremos.
-
 export default function ProductsPage() {
+    
     const [initialAnimation, setInitialAnimation] = useState(false);
     const { user } = useAuthStore();
     const [count, setCount] = useState(0);
@@ -52,7 +50,7 @@ export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [keyword, setKeyword] = useState("");
-    // Eliminamos el estado de paginación ya que el nuevo endpoint no lo usa
+
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
         null
     );
@@ -103,34 +101,22 @@ export default function ProductsPage() {
         setSearchTimeout(timeout);
     };
 
-    // Función para obtener productos del API de Django
+    // GET Productos
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            // Nuevo endpoint de Django
-            const response = await fetch(
-                /* `https://barkerpet.com.ar/api/store/products` */
-                `http://82.25.69.192:8080/api/store/products`,
-                {
-                    method: "GET",
-                    // Puedes añadir headers si tu API de Django requiere autenticación
-                    // headers: {
-                    //     "Content-Type": "application/json",
-                    //     Authorization: `Bearer ${user?.token}`,
-                    // },
-                }
-            );
-
+            const response = await fetch("http://82.25.69.192:8080/api/store/products");
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
+            // CAMBIO CLAVE AQUÍ: Esperamos el tipo ApiResponse
+            const data: ApiResponse = await response.json();
+            console.log("Respuesta completa de la API:", data); // Para ver la estructura
+            console.log("Listado de productos (results):", data.results);
 
-            const data: Product[] = await response.json();      // Esperamos un array de productos
-            console.log("Respuesta del API de Django:", data);
+            // Accede al array 'results' dentro del objeto de respuesta
+            setProducts(data.results || []);
 
-            setProducts(data || []);
-            // Ya no necesitamos actualizar el estado de paginación aquí
-            
         } catch (error) {
             console.error("Error al cargar productos:", error);
         } finally {
@@ -141,20 +127,14 @@ export default function ProductsPage() {
     // La función handlePageChange y la lógica de paginación se eliminan
     // ya que el nuevo API de Django no la proporciona directamente.
 
-    const handleAddToCart = (product: Product) => {
-        // Asegúrate de que el objeto `product` que se añade al carrito
-        // tenga las propiedades esperadas por `useCartStore`.
-        // Si `useCartStore` espera el formato antiguo, necesitarás mapear el producto de Django
-        // a ese formato antes de añadirlo. Por simplicidad, asumimos que `addItem`
-        // puede manejar el objeto `Product` de Django.
+        const handleAddToCart = (product: Product) => {
         addItem({
             id: product.id.toString(), // Convertir a string si es necesario para el carrito
             productName: product.name,
             productDescription: product.description,
             imageUrl: product.image,
             sellingPrice: parseFloat(product.price), // Convertir a number
-            // Otras propiedades que necesite el carrito
-            discountPercent: 0, // No está en el JSON actual, puedes añadir un valor por defecto o lógica
+            discountPercent: 0, // El JSON actual no tiene, se deja 0 por defecto
             stock: parseFloat(product.stock) // Convertir a number
         } as any); // Usar `any` temporalmente si no quieres crear un tipo intermedio para el carrito
 
@@ -296,10 +276,11 @@ export default function ProductsPage() {
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                     <Image
                                         src={
-                                            product.image ||
-                                            "/placeholder.svg?height=300&width=300"
+                                            product.image
+                                            ? `http://82.25.69.192:8080${product.image}`
+                                            : "/placeholder.svg?height=300&width=300"
                                         }
-                                        alt={product.name} // Usar product.name
+                                        alt={product.name}
                                         width={300}
                                         height={300}
                                         className="w-full h-auto object-contain"

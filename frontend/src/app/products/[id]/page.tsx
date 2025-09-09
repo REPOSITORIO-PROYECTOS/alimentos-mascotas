@@ -24,25 +24,22 @@ import { useAuthStore } from "@/context/store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
 
-// Define el tipo para el producto
+// Define el tipo para el producto de la API de Django
 type Product = {
-    id: string;
-    productName: string;
-    productDescription: string;
-    productDetails: string | null;
-    imageUrl: string | null;
-    sellingPrice: number;
-    discountPercent: number | null;
-    reviewsIds: string[] | null;
-    categories: string[] | null;
-    costPrice: number;
-    productCode: string;
-    recipeId: string;
-    stock: number;
-    createdAt: string;
-    updatedAt: string | null;
-    modifiedBy: string | null;
-    createdBy: string;
+    id: number;
+    name: string;
+    category: string;
+    description: string;
+    price: string;
+    stock: string;
+    image: string | null; // Puede ser null
+    is_sellable: boolean;
+    components: Array<{
+        component: number;
+        component_name: string;
+        quantity: string;
+        merma_percentage: string;
+    }>;
 };
 
 export default function ProductDetail({
@@ -50,17 +47,16 @@ export default function ProductDetail({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // ✅ HOOKS → siempre arriba
   const [productId, setProductId] = useState<string | null>(null);
-  const { user } = useAuthStore();
+  const { user } = useAuthStore(); // Si `user?.token` se usa para autenticación, mantenlo.
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [rating, setRating] = useState(4);
-  const [selectedSize, setSelectedSize] = useState("medium");
+  const [rating, setRating] = useState(4); // Valor por defecto para las estrellas
+  const [selectedSize, setSelectedSize] = useState("medium"); // Asumiendo que aún se usan tamaños
   const [selectedQuantity, setSelectedQuantity] = useState("1");
 
-  const { addItem } = useCartStore(); // ✅ debe estar arriba
+  const { addItem } = useCartStore();
 
   // Obtener el id desde params
   useEffect(() => {
@@ -77,9 +73,10 @@ export default function ProductDetail({
       setLoading(true);
       try {
         const response = await fetch(
-          `https://barker.sistemataup.online/api/productos/obtener/${productId}`,
+          `http://82.25.69.192:8080/api/store/products/${productId}`, // Endpoint de Django para un producto individual
           {
             method: "GET",
+            // Si tu API de Django requiere autenticación por token para este endpoint:
             // headers: {
             //   "Content-Type": "application/json",
             //   Authorization: `Bearer ${user?.token}`,
@@ -91,44 +88,48 @@ export default function ProductDetail({
           throw new Error("Error al obtener detalles del producto");
         }
 
-        const data = await response.json();
+        const data: Product = await response.json(); // Esperamos un objeto Product individual
         setProduct(data);
-        console.log("Detalle del producto:", data);
+        console.log("Detalle del producto de Django:", data);
 
       } catch (error) {
         console.error("Error al cargar el producto:", error);
-
+        setProduct(null); // Asegura que product sea null si hay un error
       } finally {
         setLoading(false);
       }
     };
 
     fetchProductDetail();
-    }, [productId, user?.token]);
+    // La dependencia user?.token solo si se usa en los headers del fetch
+  }, [productId, user?.token]);
 
     const handleAddToCart = () => {
-        if (!product) return;
+        if (!product) {
+            toast.error("No se pudo añadir el producto al carrito.");
+            return;
+        }
 
-    addItem(
-      {
-        id: product.id,
-        productName: product.productName,
-        imageUrl: product.imageUrl,
-        sellingPrice: product.sellingPrice,
-        discountPercent: product.discountPercent,
-        productCode: product.productCode,
-        stock: product.stock,
-      },
-      Number(selectedQuantity)
-    );
+        // Mapea el producto de Django al formato que espera tu useCartStore
+        addItem(
+            {
+                id: product.id.toString(), // Convertir a string
+                productName: product.name,
+                imageUrl: product.image,
+                sellingPrice: parseFloat(product.price), // Convertir a number
+                discountPercent: 0, // No está en el JSON de Django, por defecto 0
+                // productCode: "", // Si es necesario, añade un valor por defecto o un campo en Product
+                stock: parseFloat(product.stock), // Convertir a number
+            },
+            Number(selectedQuantity)
+        );
 
-    toast.success("Producto añadido al carrito");
+        toast.success("Producto añadido al carrito");
     };
 
 
-    // Hasta que termine el fetch del producto..
+    // Hasta que termine el fetch del producto o si no se encuentra
     if (loading || !product) {
-
         return (
             <div className="container mx-auto px-4 py-20 max-w-5xl flex justify-center items-center min-h-[60vh]">
                 <div className="text-center">
@@ -141,7 +142,7 @@ export default function ProductDetail({
                     <>
                         <h2 className="text-2xl font-bold mb-4">Producto no encontrado</h2>
                         <p>
-                        Lo sentimos, no pudimos encontrar el producto que buscas.
+                            Lo sentimos, no pudimos encontrar el producto que buscas.
                         </p>
                         <Button
                         className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
@@ -156,7 +157,7 @@ export default function ProductDetail({
         );
     }
 
-    // Si hay producto, renderizamos: 
+    // Si hay producto, renderizamos:
     return (
     <div className="container mx-auto px-4 py-20 max-w-5xl">
 
@@ -166,47 +167,48 @@ export default function ProductDetail({
             {/* Sección Imagen */}
             <div className="relative">
                 <Image
-                src={product.imageUrl || "/placeholder.svg"}
-                alt={product.productName}
+                src={product.image || "/placeholder.svg"} // Usa product.image
+                alt={product.name} // Usa product.name
                 width={500}
                 height={500}
-                className="rounded-lg w-full h-auto"
+                className="rounded-lg w-full h-auto object-cover" // Ajustado a object-cover para mejor visualización
                 />
             </div>
 
             {/* Sección Producto */}
             <div className="flex flex-col gap-4">
-                
+
                 {/* Título del Producto */}
                 <h1 className="text-3xl font-semibold mb-2 underline-offset-4">
-                    {product.productName}
+                    {product.name} {/* Usa product.name */}
                 </h1>
 
                 {/* Tag de Categoría */}
                 <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-1/3">
-                {product.categories && product.categories.length > 0
-                    ? product.categories[0]
-                    : "Deshidratados"}
+                    {product.category || "General"} {/* Usa product.category */}
                 </div>
 
-                {/* Precio + Descuento */}
+                {/* Precio (ya no hay discountPercent en el JSON de ejemplo) */}
                 <div className="mb-4">
                     <span className="text-3xl font-bold">
-                        ${product.sellingPrice.toFixed(2)}
+                        ${parseFloat(product.price).toFixed(2)} {/* Parsear price a float */}
                     </span>
+                    {/* Si tu backend de Django añade 'discountPercent' en el futuro, puedes reintroducir esta lógica. */}
+                    {/*
                     {product.discountPercent && (
                         <span className="ml-2 text-sm line-through text-gray-500">
                         ${(
-                            product.sellingPrice *
+                            parseFloat(product.price) *
                             (1 + product.discountPercent / 100)
                         ).toFixed(2)}
                         </span>
                     )}
+                    */}
                 </div>
 
                 {/* Descripcion Producto */}
                 <p className="text-gray-600 mb-6">
-                    {product.productDescription}
+                    {product.description} {/* Usa product.description */}
                 </p>
 
                 {/* Inputs de Tipo y Cantidad de Producto */}
@@ -256,11 +258,12 @@ export default function ProductDetail({
                 {/* Añadir al Carrito */}
                 <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white text-lg cursor-pointer"
                 onClick={handleAddToCart}
+                disabled={parseFloat(product.stock) <= 0} // Deshabilita si no hay stock
                 >
-                    Añadir al carrito
+                    {parseFloat(product.stock) > 0 ? "Añadir al carrito" : "Sin Stock"}
                 </Button>
 
-                {/* Descripción Producto */}
+                {/* Descripción Producto (contenidos fijos, no provienen del API) */}
                 <div className="mt-6">
                 <Accordion type="single" collapsible>
                     <AccordionItem value="description">
@@ -297,7 +300,7 @@ export default function ProductDetail({
         </div>
 
 
-        {/* Sección de reseñas */}
+        {/* Sección de reseñas (contenidos fijos, no provienen del API) */}
         <div className="mb-12">
             <h2 className="text-2xl font-bold text-center mb-8">
                 Reseñas

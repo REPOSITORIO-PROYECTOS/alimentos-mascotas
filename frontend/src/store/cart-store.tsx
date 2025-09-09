@@ -8,7 +8,7 @@ export type CartItem = {
     sellingPrice: number;
     discountPercent: number | null;
     quantity: number;
-    productCode: string;
+    productCode?: string;
     stock: number;
 };
 
@@ -18,7 +18,7 @@ interface AddProductParams {
     imageUrl: string | null;
     sellingPrice: number;
     discountPercent: number | null;
-    productCode: string;
+    productCode?: string;
     stock: number;
     quantity?: number; // Campo opcional para permitir establecer la cantidad al agregar
 }
