@@ -6,19 +6,19 @@ export interface AuthResponse {
     id: string;
     access?: string; // JWT access token
     refresh?: string; // JWT refresh token
-    token?: string; // legacy
+    token?: string; // legacy (si tu backend aún envía un campo 'token' separado)
     username: string;
     name: string;
     roles: string[];
 }
 
-// Tipo de usuario simplificado para mantener compatibilidad
+// Tipo de usuario simplificado
 export type User = {
     id: string;
-    token: string;
+    token: string; // Almacenará el access_token
     username: string;
     name: string;
-    roles: string[];    // Sacado: "ROLE_ADMIN" | "ROLE_CLIENT" y se convirtio en array de roles
+    roles: string[];
 } | null;
 
 // Definición del estado de autenticación
@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthState>()(
                         ? [userData.roles]
                         : [];
 
-                    // Prefer access token, fall back to token
+                    // Prefer access token, fall back to token (legacy)
                     const accessToken = userData.access || userData.token || undefined;
                     const refreshToken = userData.refresh || undefined;
 
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
                     set({
                         user: {
                             id: userData.id,
-                            token: accessToken || "",
+                            token: accessToken || "", // Guardamos el access_token aquí
                             username: userData.username,
                             name: userData.name,
                             roles,
@@ -100,19 +100,32 @@ export const useAuthStore = create<AuthState>()(
                         if (accessToken) localStorage.setItem("access_token", accessToken);
                         if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
                     } catch (e) {
-                        // ignore storage errors
+                        // Ignorar errores de almacenamiento si localStorage no está disponible
+                        console.warn("localStorage no disponible o error al guardar tokens:", e);
                     }
 
-                    // Set cookies for server-side (if needed)
-                    if (userRole) {
-                        document.cookie = `role=${userRole}; path=/; max-age=28800; samesite=strict`;
-                    }
+                    // Set cookies for server-side (middleware)
+                    // Usamos SameSite=Lax para un equilibrio entre seguridad y funcionalidad en redirecciones.
+                    // Max-age para 8 horas (28800 segundos).
                     if (accessToken) {
-                        document.cookie = `token=${accessToken}; path=/; max-age=28800; samesite=strict`;
+                        document.cookie = `token=${accessToken}; path=/; max-age=28800; samesite=Lax`;
+                    }
+                    if (userRole) {
+                        document.cookie = `role=${userRole}; path=/; max-age=28800; samesite=Lax`;
                     }
 
-                    // Redirect quick to checkout (same behavior as before)
-                    window.location.href = "/checkout";
+                    // 👉 Redirección dinámica basada en el rol del usuario
+                    const redirectParam = new URLSearchParams(window.location.search).get("redirect");
+                    if (redirectParam) {
+                        window.location.href = redirectParam;
+                    } else if (userRole === "ROLE_ADMIN") {
+                        window.location.href = "/admin";
+                    } else if (userRole === "ROLE_CLIENT") {
+                        window.location.href = "/checkout"; // O tu ruta por defecto para clientes
+                    } else {
+                        window.location.href = "/"; // Por defecto, si el rol no coincide
+                    }
+                    
                     return userRole;
 
                 } catch (error) {
@@ -123,6 +136,7 @@ export const useAuthStore = create<AuthState>()(
                     return false;
                 }
             },
+
             // Función de logout
             logout: () => {
                 set({
@@ -132,18 +146,22 @@ export const useAuthStore = create<AuthState>()(
                 });
 
                 // Limpiar cookies y localStorage
-                document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                // Establecer expires en el pasado para eliminar la cookie
+                document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=Lax";
+                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; samesite=Lax";
+                
                 try {
                     localStorage.removeItem("access_token");
                     localStorage.removeItem("refresh_token");
                 } catch (e) {
-                    // ignore
+                    console.warn("localStorage no disponible o error al limpiar tokens:", e);
                 }
 
-                // Limpiar sessionStorage para mantener compatibilidad
+                // Limpiar sessionStorage (si aún se usa por compatibilidad)
                 sessionStorage.removeItem("user");
-                window.location.href = "/"; // Redirigir al inicio
+                
+                // Redirigir al inicio después de cerrar sesión
+                window.location.href = "/";
             },
 
             // Limpiar errores
@@ -155,6 +173,9 @@ export const useAuthStore = create<AuthState>()(
                 user: state.user,
                 isAuthenticated: state.isAuthenticated,
             }),
+            // Desactiva la rehidratación en el servidor para evitar errores de referencia a 'window'
+            // O puedes envolver el código que usa 'window' con 'typeof window !== 'undefined''
+            skipHydration: typeof window === 'undefined',
         }
     )
 );

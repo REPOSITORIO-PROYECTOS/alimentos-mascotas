@@ -148,11 +148,8 @@ export default function ProductsPage() {
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
-            // CAMBIO CLAVE AQUÍ: Esperamos el tipo ApiResponse
-            const data: ApiResponse = await response.json();
-            console.log("Respuesta completa de la API:", data); // Para ver la estructura
-            console.log("Listado de productos (results):", data.results);
 
+            const data: ApiResponse = await response.json();
             // Accede al array 'results' dentro del objeto de respuesta
             setProducts(data.results || []);
             
