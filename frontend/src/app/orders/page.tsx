@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import TokensHelper from "@/lib/auth-tokens";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ export default function OrdersPage() {
         const apiBase =
             (process.env.NEXT_PUBLIC_API_BASE as string) ||
             "https://barker.sistemataup.online/api";
-        const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const token = typeof window !== "undefined" ? TokensHelper.loadTokens().access : null;
         if (!token) {
             router.push(`/login?redirect=/orders`);
             return;

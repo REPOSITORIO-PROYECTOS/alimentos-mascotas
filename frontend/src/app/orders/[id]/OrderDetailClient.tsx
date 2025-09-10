@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import TokensHelper from "@/lib/auth-tokens";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,8 @@ export default function OrderDetailClient({ id }: { id: string }) {
         const apiBase =
             (process.env.NEXT_PUBLIC_API_BASE as string) ||
             "https://barker.sistemataup.online/api";
-        const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+        // Use central token helper
+    const token = typeof window !== "undefined" ? TokensHelper.loadTokens().access : null;
         if (!token) {
             router.push(`/login?redirect=/orders/${id}`);
             return;
