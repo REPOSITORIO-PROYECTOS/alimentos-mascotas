@@ -87,20 +87,20 @@ export default function AdminPage() {
     // Desde panel de admin solo se pueden crear mas admin
     try {
       const res = await fetch(
-        "https://barker.sistemataup.online/api/auth/registrar",
+        "https://barker.sistemataup.online/api/auth/registrar/",
         {
-            method: "POST",
-            headers: { 
-            "Content-Type": "application/json" 
-        },
-            body: JSON.stringify({
-                name: nombre,
-                surname: apellido,
-                dni,
-                phone: celular,
-                email,
-                password,
-                roles: ["ROLE_ADMIN"],
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            // Enviar con los nombres de campo que espera el backend
+            nombre,
+            apellido,
+            dni,
+            celular,
+            email,
+            password,
           }),
         }
       );

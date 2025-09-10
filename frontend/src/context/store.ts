@@ -4,7 +4,9 @@ import { persist } from "zustand/middleware";
 // Definición de tipos para la respuesta del API
 export interface AuthResponse {
     id: string;
-    token: string;
+    access?: string; // JWT access token
+    refresh?: string; // JWT refresh token
+    token?: string; // legacy
     username: string;
     name: string;
     roles: string[];
@@ -28,7 +30,6 @@ interface AuthState {
     login: (
         email: string,
         password: string,
-        // role?: "ROLE_ADMIN" | "ROLE_CLIENT"             // se recomendó sacar con la actualizacion
     ) => Promise<string | false>;
     logout: () => void;
     clearError: () => void;
@@ -48,9 +49,9 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    // Llamada al endpoint de autenticación
+                    // Llamada al endpoint de autenticación (nota: slash final)
                     const response = await fetch(
-                        "https://barker.sistemataup.online/api/auth/login",
+                        "https://barker.sistemataup.online/api/auth/login/",
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -59,48 +60,70 @@ export const useAuthStore = create<AuthState>()(
                     );
 
                     if (!response.ok) {
-                        const errorData = await response.json();
+                        const errorData = await response.json().catch(() => ({}));
                         throw new Error(
-                            errorData.message || "Error en la autenticación"
+                            (errorData && (errorData.message || errorData.detail || errorData.error)) ||
+                                "Error en la autenticación"
                         );
                     }
 
-                    const userData: AuthResponse = await response.json(); // Actualizar el estado con los datos del usuario
+                    const userData: AuthResponse = await response.json();
+
+                    // Normalize roles
+                    const roles = Array.isArray(userData.roles)
+                        ? userData.roles
+                        : userData.roles
+                        ? [userData.roles]
+                        : [];
+
+                    // Prefer access token, fall back to token
+                    const accessToken = userData.access || userData.token || undefined;
+                    const refreshToken = userData.refresh || undefined;
+
+                    // Update state
                     set({
                         user: {
-                            ...userData,
-                            roles: Array.isArray(userData.roles)
-                                ? userData.roles
-                                : [userData.roles],
+                            id: userData.id,
+                            token: accessToken || "",
+                            username: userData.username,
+                            name: userData.name,
+                            roles,
                         },
-                        isAuthenticated: true,
+                        isAuthenticated: !!accessToken,
                         isLoading: false,
                     });
 
-                    // Guardar el rol y token en cookies para el middleware
-                    const userRole = Array.isArray(userData.roles)
-                        ? userData.roles[0]
-                        : userData.roles;
+                    const userRole = roles.length > 0 ? roles[0] : "";
 
-                    // Guardar las cookies
-                    document.cookie = `role=${userRole}; path=/; max-age=28800; secure; samesite=strict`;
-                    document.cookie = `token=${userData.token}; path=/; max-age=28800; secure; samesite=strict`;
+                    // Persist tokens in localStorage for public area quick access
+                    try {
+                        if (accessToken) localStorage.setItem("access_token", accessToken);
+                        if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
+                    } catch (e) {
+                        // ignore storage errors
+                    }
 
-                    // Retornamos el rol, en vez de true
+                    // Set cookies for server-side (if needed)
+                    if (userRole) {
+                        document.cookie = `role=${userRole}; path=/; max-age=28800; samesite=strict`;
+                    }
+                    if (accessToken) {
+                        document.cookie = `token=${accessToken}; path=/; max-age=28800; samesite=strict`;
+                    }
+
+                    // Redirect quick to checkout (same behavior as before)
                     window.location.href = "/checkout";
-                    return userRole;    // en teoria no llega hasta aca, pero es para que ts no se queje
+                    return userRole;
 
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : "Error desconocido",
+                        error: error instanceof Error ? error.message : "Error desconocido",
                     });
                     return false;
                 }
-            }, // Función de logout
+            },
+            // Función de logout
             logout: () => {
                 set({
                     user: null,
@@ -108,11 +131,15 @@ export const useAuthStore = create<AuthState>()(
                     error: null,
                 });
 
-                // Limpiar todas las cookies relacionadas con la autenticación
-                document.cookie =
-                    "role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-                document.cookie =
-                    "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                // Limpiar cookies y localStorage
+                document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                try {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
+                } catch (e) {
+                    // ignore
+                }
 
                 // Limpiar sessionStorage para mantener compatibilidad
                 sessionStorage.removeItem("user");

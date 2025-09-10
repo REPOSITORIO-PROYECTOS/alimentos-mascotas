@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useAuthStore } from "@/context/store";
 
 // Esquema de validación con Zod
 const registerSchema = z.object({
@@ -58,6 +59,7 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+    const { login } = useAuthStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,37 +100,49 @@ export default function RegisterPage() {
             }
 
             const response = await fetch(
-                "https://barker.sistemataup.online/api/auth/registrar",
+                "https://barker.sistemataup.online/api/auth/registrar/",
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        name: nombre,       
-                        surname: apellido,  
+                        // The backend expects Spanish field names
+                        nombre,
+                        apellido,
                         dni,
-                        phone: celular, 
+                        celular,
                         email,
                         password,
-                        roles: ["ROLE_CLIENT"], 
                     }),
                 }
             );
 
             if (response.ok) {
 
-                toast.success("Usuario creado correctamente! Gracias por sumarte al Barker Team!");
-                // Redireccionar al login o a una página de confirmación
-                router.push("/login?registered=true");
+                toast.success("Usuario creado correctamente! Iniciando sesión...");
+                // Intentar login automático
+                try {
+                    const roleOrFalse = await login(email, password);
+                    if (roleOrFalse === false) {
+                        // Login automático falló, redirigir a login con mensaje
+                        router.push("/login?registered=true");
+                    }
+                    // La función login se encarga de redirigir (checkout)
+                    return;
+                } catch (e) {
+                    // Fallback: redirigir al login
+                    router.push("/login?registered=true");
+                    return;
+                }
 
             } else {
-                const data = await response.json();
-                setError(
-                    data.message ||
-                        "Error al registrar usuario. Por favor, intenta de nuevo."
-                );
-                toast.error("Error al registrar usuario. Por favor, intenta de nuevo.");
+                const data = await response.json().catch(() => ({}));
+                const message =
+                    data.message || data.success || data.detail || data.error || (typeof data === 'string' ? data : null) ||
+                    "Error al registrar usuario. Por favor, intenta de nuevo.";
+                setError(message as string);
+                toast.error(message as string);
             }
 
         } catch (err) {
