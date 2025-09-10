@@ -12,6 +12,13 @@ import { useAuthStore } from "@/context/store";
 
 import { toast as sonnerToast } from "sonner";
 
+// Base URLs configurables vía env vars
+const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE ||
+    "https://barker.sistemataup.online/api";
+const MEDIA_BASE =
+    process.env.NEXT_PUBLIC_MEDIA_BASE || API_BASE.replace(/\/(?:api\/?$)/, "");
+
 // Tipo de la respuesta completa de la API de Django
 type ApiResponse = {
     count: number;
@@ -47,6 +54,10 @@ export default function ProductsPage() {
     const { addItem } = useCartStore();
     const [isClient, setIsClient] = useState(false);
 
+    // Runtime overrides: permite cambiar la API base vía ?api=... o guardado en localStorage
+    const [apiBaseState, setApiBaseState] = useState<string>(API_BASE);
+    const [mediaBaseState, setMediaBaseState] = useState<string>(MEDIA_BASE);
+
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [keyword, setKeyword] = useState("");
@@ -58,6 +69,31 @@ export default function ProductsPage() {
     useEffect(() => {
         setIsClient(true);
         setInitialAnimation(true);
+
+        // Aplicar override en runtime si viene en query string o en localStorage
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const apiParam = params.get("api");
+            const mediaParam = params.get("media");
+            const stored = localStorage.getItem("API_BASE_OVERRIDE");
+            const storedMedia = localStorage.getItem("MEDIA_BASE_OVERRIDE");
+
+            if (apiParam) {
+                setApiBaseState(apiParam.replace(/\/$/, ""));
+                localStorage.setItem("API_BASE_OVERRIDE", apiParam.replace(/\/$/, ""));
+            } else if (stored) {
+                setApiBaseState(stored);
+            }
+
+            if (mediaParam) {
+                setMediaBaseState(mediaParam.replace(/\/$/, ""));
+                localStorage.setItem("MEDIA_BASE_OVERRIDE", mediaParam.replace(/\/$/, ""));
+            } else if (storedMedia) {
+                setMediaBaseState(storedMedia);
+            }
+        } catch (e) {
+            // no-op en SSR o si window no está disponible
+        }
 
         const initialTimer = setTimeout(() => {
             setInitialAnimation(false);
@@ -107,7 +143,9 @@ export default function ProductsPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("https://barker.sistemataup.online/api/store/products");
+            // Aseguramos la barra final para compatibilidad con Django REST Framework
+            const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
@@ -129,16 +167,23 @@ export default function ProductsPage() {
     // La función handlePageChange y la lógica de paginación se eliminan
     // ya que el nuevo API de Django no la proporciona directamente.
 
-        const handleAddToCart = (product: Product) => {
+    const handleAddToCart = (product: Product) => {
+        const rawPrice = product.price ?? "0";
+        const rawStock = product.stock ?? "0";
+        const parsedPrice = parseFloat(rawPrice as unknown as string);
+        const parsedStock = parseFloat(rawStock as unknown as string);
+        const sellingPrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+        const stock = isNaN(parsedStock) ? 0 : parsedStock;
+
         addItem({
             id: product.id.toString(), // Convertir a string si es necesario para el carrito
             productName: product.name,
             productDescription: product.description,
-            imageUrl: product.image,
-            sellingPrice: parseFloat(product.price), // Convertir a number
+            imageUrl: product.image ? `${MEDIA_BASE}${product.image}` : null,
+            sellingPrice,
             discountPercent: 0, // El JSON actual no tiene, se deja 0 por defecto
-            stock: parseFloat(product.stock) // Convertir a number
-        } as any); // Usar `any` temporalmente si no quieres crear un tipo intermedio para el carrito
+            stock,
+        } as any);
 
         setAddedToCart((prev) => ({ ...prev, [product.id]: true }));
 
@@ -279,8 +324,8 @@ export default function ProductsPage() {
                                     <Image
                                         src={
                                             product.image
-                                            ? `http://82.25.69.192:8080${product.image}`
-                                            : "/placeholder.svg?height=300&width=300"
+                                                ? `${MEDIA_BASE}${product.image}`
+                                                : "/placeholder.svg?height=300&width=300"
                                         }
                                         alt={product.name}
                                         width={300}
