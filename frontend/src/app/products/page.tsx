@@ -15,7 +15,7 @@ import { toast as sonnerToast } from "sonner";
 // Base URLs configurables vía env vars
 const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE ||
-    "https://barker.sistemataup.online/api";
+    "https://barker.sistemataup.online/api";        // https://barker.sistemataup.online/api/store/products
 const MEDIA_BASE =
     process.env.NEXT_PUBLIC_MEDIA_BASE || API_BASE.replace(/\/(?:api\/?$)/, "");
 
@@ -114,10 +114,8 @@ export default function ProductsPage() {
 
     // Al cargar el componente, obtenemos los productos
     useEffect(() => {
-        // En este caso, el endpoint de Django no parece manejar paginación ni búsqueda por palabra clave directamente en la URL
-        // Si tu API de Django lo hace, necesitarás ajustar la URL del fetchProducts
         fetchProducts();
-    }, []); // Array de dependencias vacío para que se ejecute solo una vez al montar
+    }, []);
 
     // La función handleSearch ya no tiene un impacto directo en el fetchProducts
     // a menos que tu endpoint de Django soporte búsqueda por keyword en el GET de productos.
@@ -145,6 +143,7 @@ export default function ProductsPage() {
         try {
             // Aseguramos la barra final para compatibilidad con Django REST Framework
             const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
+            console.log(url);
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
@@ -156,7 +155,7 @@ export default function ProductsPage() {
 
             // Accede al array 'results' dentro del objeto de respuesta
             setProducts(data.results || []);
-
+            
         } catch (error) {
             console.error("Error al cargar productos:", error);
         } finally {
@@ -168,6 +167,7 @@ export default function ProductsPage() {
     // ya que el nuevo API de Django no la proporciona directamente.
 
     const handleAddToCart = (product: Product) => {
+
         const rawPrice = product.price ?? "0";
         const rawStock = product.stock ?? "0";
         const parsedPrice = parseFloat(rawPrice as unknown as string);
@@ -322,16 +322,13 @@ export default function ProductsPage() {
                             >
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                     <Image
-                                        src={
-                                            product.image
-                                                ? `${MEDIA_BASE}${product.image}`
-                                                : "/placeholder.svg?height=300&width=300"
-                                        }
+                                        src={product.image || "/placeholder.png"}
                                         alt={product.name}
                                         width={300}
                                         height={300}
                                         className="w-full h-auto object-contain"
-                                    />
+                                        unoptimized
+                                    />  
                                 </div>
                                 <div className="flex justify-between items-start">
                                     <h3 className="font-medium group-hover:underline">
