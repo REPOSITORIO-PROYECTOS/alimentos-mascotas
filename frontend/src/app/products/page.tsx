@@ -176,7 +176,7 @@ export default function ProductsPage() {
             id: product.id.toString(), // Convertir a string si es necesario para el carrito
             productName: product.name,
             productDescription: product.description,
-            imageUrl: product.image ? `${MEDIA_BASE}${product.image}` : null,
+            imageUrl: product.image,
             sellingPrice,
             discountPercent: 0, // El JSON actual no tiene, se deja 0 por defecto
             stock,

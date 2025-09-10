@@ -107,7 +107,6 @@ export default function RegisterPage() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        // The backend expects Spanish field names
                         nombre,
                         apellido,
                         dni,

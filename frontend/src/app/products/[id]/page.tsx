@@ -114,7 +114,7 @@ export default function ProductDetail({
             {
                 id: product.id.toString(),
                 productName: product.name,
-                imageUrl: product.image ? `${MEDIA_BASE}${product.image}` : null, // Usar MEDIA_BASE
+                imageUrl: product.image, 
                 sellingPrice: parseFloat(product.price),
                 discountPercent: 0,
                 stock: parseFloat(product.stock),
@@ -157,14 +157,13 @@ export default function ProductDetail({
     <div className="container mx-auto px-4 py-20 max-w-5xl">
         <div className="grid md:grid-cols-2 gap-8 my-6">
             <div className="relative">
-                {/* *** CAMBIO CLAVE AQUÍ: Usar MEDIA_BASE para la imagen *** */}
                 <Image
-                src={product.image || "/placeholder.svg"}
-                alt={product.name}
-                width={500}
-                height={500}
-                className="rounded-lg w-full h-auto object-cover"
-                unoptimized
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    width={500}
+                    height={500}
+                    className="rounded-lg w-full h-auto object-cover"
+                    unoptimized
                 />
             </div>
 
