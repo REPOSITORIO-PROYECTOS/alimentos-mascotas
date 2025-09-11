@@ -1,21 +1,21 @@
+// src/context/store.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import TokensHelper from "@/lib/auth-tokens";
 
-// Definición de tipos para la respuesta del API
+// Definición de tipos para la respuesta del API de Django
 export interface AuthResponse {
-    id: string;
+    id: number; // Cambiado a number según tu JSON
     access?: string; // JWT access token
     refresh?: string; // JWT refresh token
-    token?: string; // legacy (si tu backend aún envía un campo 'token' separado)
     username: string;
     name: string;
-    roles: string[];
+    roles: string[]; // Aseguramos que sea un array de strings
 }
 
 // Tipo de usuario simplificado
 export type User = {
-    id: string;
+    id: number; // Cambiado a number
     token: string; // Almacenará el access_token
     username: string;
     name: string;
@@ -31,15 +31,16 @@ interface AuthState {
     login: (
         email: string,
         password: string,
-    ) => Promise<string | false>;
+    ) => Promise<string | false>; // Ahora devuelve el rol o false
     logout: () => void;
     clearError: () => void;
+    setTokensFromRefresh: (accessToken: string, refreshToken: string, roles: string[]) => void; // Nueva función
 }
 
 // Creación del store con persistencia
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({ // Obtener 'get' para acceder al estado actual
             user: null,
             isAuthenticated: false,
             isLoading: false,
@@ -50,7 +51,6 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    // Llamada al endpoint de autenticación (nota: slash final)
                     const response = await fetch(
                         "https://barker.sistemataup.online/api/auth/login/",
                         {
@@ -64,66 +64,64 @@ export const useAuthStore = create<AuthState>()(
                         const errorData = await response.json().catch(() => ({}));
                         throw new Error(
                             (errorData && (errorData.message || errorData.detail || errorData.error)) ||
-                                "Error en la autenticación"
+                                "Credenciales incorrectas o error en el servidor."
                         );
                     }
 
                     const userData: AuthResponse = await response.json();
 
-                    // Normalize roles
-                    const roles = Array.isArray(userData.roles)
-                        ? userData.roles
-                        : userData.roles
-                        ? [userData.roles]
-                        : [];
+                    const roles = Array.isArray(userData.roles) ? userData.roles : [];
 
-                    // Prefer access token, fall back to token (legacy)
-                    const accessToken = userData.access || userData.token || undefined;
+                    const accessToken = userData.access || undefined;
                     const refreshToken = userData.refresh || undefined;
 
-                    // Persist tokens using helper
-                    TokensHelper.saveTokens({ access: accessToken, refresh: refreshToken });
+                    if (!accessToken) {
+                        throw new Error("No se recibió un token de acceso.");
+                    }
 
-                    // Schedule automatic refresh
-                    TokensHelper.scheduleRefresh();
+                    // 👉 Pasamos los roles a saveTokens para que los guarde en la cookie
+                    TokensHelper.saveTokens({ access: accessToken, refresh: refreshToken }, roles);
 
-                    // Update state
                     set({
                         user: {
                             id: userData.id,
-                            token: accessToken || "", // Guardamos el access_token aquí
+                            token: accessToken, // Guardamos el access_token aquí
                             username: userData.username,
                             name: userData.name,
                             roles,
                         },
-                        isAuthenticated: !!accessToken,
+                        isAuthenticated: true, // Siempre true si hay token de acceso
                         isLoading: false,
                     });
 
-                    const userRole = roles.length > 0 ? roles[0] : "";
-
-                    // (tokens and cookies handled by TokensHelper)
-
-                    // 👉 Redirección dinámica basada en el rol del usuario
-                    const redirectParam = new URLSearchParams(window.location.search).get("redirect");
-                    if (redirectParam) {
-                        window.location.href = redirectParam;
-                    } else if (userRole === "ROLE_ADMIN") {
-                        window.location.href = "/admin";
-                    } else if (userRole === "ROLE_CLIENT") {
-                        window.location.href = "/checkout"; // O tu ruta por defecto para clientes
-                    } else {
-                        window.location.href = "/"; // Por defecto, si el rol no coincide
-                    }
-                    
-                    return userRole;
+                    // Devolvemos el primer rol o una cadena vacía si no hay roles
+                    return roles.length > 0 ? roles[0] : "";
 
                 } catch (error) {
+                    TokensHelper.clearTokens(); // Limpiar tokens si el login falla
                     set({
                         isLoading: false,
                         error: error instanceof Error ? error.message : "Error desconocido",
+                        user: null,
+                        isAuthenticated: false,
                     });
                     return false;
+                }
+            },
+
+            // Función para actualizar el estado del store después de un refresh exitoso
+            setTokensFromRefresh: (accessToken: string, refreshToken: string, roles: string[]) => {
+                const currentUser = get().user;
+                if (currentUser) {
+                    set({
+                        user: {
+                            ...currentUser,
+                            token: accessToken,
+                            roles: roles, // Asegurarse de que los roles estén actualizados
+                        },
+                        isAuthenticated: true,
+                    });
+                    TokensHelper.saveTokens({ access: accessToken, refresh: refreshToken }, roles);
                 }
             },
 
@@ -134,14 +132,8 @@ export const useAuthStore = create<AuthState>()(
                     isAuthenticated: false,
                     error: null,
                 });
-                // Clear tokens via helper
                 TokensHelper.clearTokens();
-
-                // Limpiar sessionStorage (si aún se usa por compatibilidad)
-                try { sessionStorage.removeItem("user"); } catch(e) {}
-                
-                // Redirigir al inicio después de cerrar sesión
-                window.location.href = "/";
+                // No hay redirección aquí, el componente la manejará.
             },
 
             // Limpiar errores
@@ -153,9 +145,45 @@ export const useAuthStore = create<AuthState>()(
                 user: state.user,
                 isAuthenticated: state.isAuthenticated,
             }),
-            // Desactiva la rehidratación en el servidor para evitar errores de referencia a 'window'
-            // O puedes envolver el código que usa 'window' con 'typeof window !== 'undefined''
             skipHydration: typeof window === 'undefined',
+            // Añadir un onRehydrateStorage para revalidar el token al cargar el store
+            onRehydrateStorage: (state) => {
+                return (state, error) => {
+                    if (error) {
+                        console.error("Error al rehidratar auth-storage:", error);
+                        state?.logout(); // Limpiar el estado si hay un error de rehidratación
+                    }
+                    if (state && state.user && state.user.token) {
+                        const payload = TokensHelper.parseJwt(state.user.token);
+                        const now = Math.floor(Date.now() / 1000);
+                        if (!payload || (payload.exp && payload.exp < now)) {
+                            console.log("Token de acceso expirado al rehidratar, intentando refrescar...");
+                            TokensHelper.refreshAccess().then(success => {
+                                if (!success) {
+                                    state.logout();
+                                    // Considerar redireccionar aquí si es necesario, pero mejor manejarlo en un layout wrapper
+                                } else {
+                                    // Si el refresh fue exitoso, el saveTokens ya actualizó localStorage y cookies.
+                                    // Pero el store de Zustand necesita ser actualizado para reflejar el nuevo token
+                                    const { access, refresh } = TokensHelper.loadTokens();
+                                    if (access && refresh) {
+                                        // Aquí necesitaríamos los roles para el setTokensFromRefresh
+                                        // Para simplificar, el middleware y los componentes que necesiten el rol
+                                        // pueden leerlo de la cookie o decodificar el token.
+                                        // Para el store, podríamos dejarlo como está o hacer una llamada extra
+                                        // para obtener los detalles del usuario si el rol no está en el token
+                                        const newPayload = TokensHelper.parseJwt(access);
+                                        const roles = (newPayload?.roles && Array.isArray(newPayload.roles))
+                                            ? newPayload.roles
+                                            : state.user?.roles || []; // Mantener roles anteriores si no se actualizan
+                                        state.setTokensFromRefresh(access, refresh, roles);
+                                    }
+                                }
+                            }).catch(() => state.logout());
+                        }
+                    }
+                };
+            },
         }
     )
 );

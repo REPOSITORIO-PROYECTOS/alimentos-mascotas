@@ -1,6 +1,7 @@
+// src/app/login/page.tsx (o tu ruta para el login)
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -47,7 +48,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     // Usar el store de autenticación
-    const { login, isLoading, error, clearError, user } = useAuthStore();
+    const { login, isLoading, error, clearError, isAuthenticated, user } = useAuthStore();
 
     // Obtenemos el redirect al inicio, por si lo necesitamos luego
     const redirectParam = useMemo(() => {
@@ -66,166 +67,139 @@ export default function LoginPage() {
         },
     });
 
+    // Efecto para mostrar el error del store si existe
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+            clearError(); // Limpiar el error después de mostrarlo
+        }
+    }, [error, clearError]);
+
+    // Redireccionar si el usuario ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (redirectParam) {
+                router.replace(redirectParam); // Usar replace para no dejar el login en el historial
+            } else if (user.roles.includes("ROLE_ADMIN")) {
+                router.replace("/admin");
+            } else {
+                router.replace("/");
+            }
+        }
+    }, [isAuthenticated, user, redirectParam, router]);
+
+
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
     const onSubmit = async (data: FormValues) => {
-
         try {
-
             clearError();
             const userRole = await login(data.email, data.password);
 
             if (userRole === false) {
-                toast.error("Credenciales incorrectas");
+                // El error ya se gestiona en el store y se muestra en el useEffect
                 return;
             }
 
             toast.success("Inicio de sesión exitoso");
 
-            if (redirectParam) {
-                router.push(redirectParam);
-            } else if (userRole === "ROLE_ADMIN") {
-                router.push("/admin");
-            } else {
-                router.push("/");
-            }
-            
+            // La redirección ahora se maneja en el useEffect basado en `isAuthenticated` y `user` del store
+            // Aquí no necesitamos una redirección explícita ya que el useEffect la hará.
+            // Si el login fue exitoso, `isAuthenticated` cambiará a `true` y el `useEffect` se encargará.
+
         } catch (err) {
             console.error("Error durante el inicio de sesión:", err);
+            // Si hay un error que no fue capturado por el store (raro, pero posible)
             toast.error("Error en el inicio de sesión");
         }
     };
 
     return (
-        <section className="w-full relative">
-
-            <div className="container mx-auto flex h-screen w-full flex-col items-center justify-center">
-
-                <div className="mx-auto p-4 flex w-full flex-col justify-center space-y-4 mt-32 sm:w-[350px] lg:mt-28 xl:mt-20">
-
-                    {/* Titulo Login */}
-                    <div className="flex flex-col space-y-2 text-center">
-                        <h1 className="text-2xl font-semibold tracking-tight">
-                            Iniciar sesión
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Ingresa tus credenciales para acceder
-                        </p>
-                    </div>
-                    
-
-                    {/* Login Form */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Acceso Clientes</CardTitle>
-                            <CardDescription className="h-8">
-                                Ingresa con tu email y contraseña
-                            </CardDescription>
-                        </CardHeader>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)}>
-                                <CardContent className="space-y-4">
-                                    {error && (
-                                        <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
-                                            {error}
-                                        </div>
-                                    )}
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Email</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="text"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="password"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <div className="flex items-center justify-between">
-                                                    <FormLabel>
-                                                        Contraseña
-                                                    </FormLabel>
-                                                    <Link
-                                                        href="#"
-                                                        className="text-xs text-blue-500 hover:underline"
-                                                    >
-                                                        ¿Olvidaste tu
-                                                        contraseña?
-                                                    </Link>
-                                                </div>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <Input
-                                                            type={
-                                                                showPassword
-                                                                    ? "text"
-                                                                    : "password"
-                                                            }
-                                                            {...field}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                                                            onClick={
-                                                                togglePasswordVisibility
-                                                            }
-                                                        >
-                                                            {showPassword ? (
-                                                                <EyeOff className="h-4 w-4" />
-                                                            ) : (
-                                                                <Eye className="h-4 w-4" />
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                                <CardFooter>
-                                    <Button
-                                        type="submit"
-                                        className="w-full mt-6 cursor-pointer"
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading
-                                            ? "Iniciando sesión..."
-                                            : "Iniciar sesión"}
-                                    </Button>
-                                </CardFooter>
-                            </form>
-                        </Form>
-                    </Card>
-
-
-                    {/* Registrar */}
-                    <p className="px-8 text-center text-md text-muted-foreground">
-                        ¿No tienes una cuenta?{" "}
-                        <Link
-                            href="/register"
-                            className="underline underline-offset-4 hover:text-primary"
-                        >
-                            Registrate Gratis!
-                        </Link>
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
+        <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1 text-center">
+                    <CardTitle className="text-2xl font-bold">Bienvenido</CardTitle>
+                    <CardDescription>Inicia sesión en tu cuenta</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="m@example.com"
+                                                type="email"
+                                                autoComplete="email"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Contraseña</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input
+                                                    placeholder="••••••••"
+                                                    type={showPassword ? "text" : "password"}
+                                                    autoComplete="current-password"
+                                                    {...field}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={togglePasswordVisibility}
+                                                    disabled={isLoading}
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="h-4 w-4" aria-hidden="true" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4" aria-hidden="true" />
+                                                    )}
+                                                    <span className="sr-only">
+                                                        {showPassword ? "Hide password" : "Show password"}
+                                                    </span>
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Cargando..." : "Iniciar sesión"}
+                            </Button>
+                        </form>
+                    </Form>
+                </CardContent>
+                <CardFooter className="flex justify-between text-sm">
+                    <Link href="/forgot-password" className="underline">
+                        ¿Olvidaste tu contraseña?
+                    </Link>
+                    <Link href="/register" className="underline">
+                        ¿No tienes una cuenta? Regístrate
+                    </Link>
+                </CardFooter>
+            </Card>
+        </div>
     );
 }

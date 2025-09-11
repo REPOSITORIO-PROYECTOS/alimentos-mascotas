@@ -1,4 +1,6 @@
+// src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
+import * as TokensHelper from "@/lib/auth-tokens"; // Importa todo el helper
 
 // Definir las rutas protegidas para cada rol
 const adminRoutes = ["/admin"];
@@ -6,22 +8,8 @@ const clientRoutes = ["/checkout"];
 const authRoutes = ["/login", "/register"];
 
 // Decodifica el payload de un JWT sin verificar la firma (solo para leer exp/roles)
-function decodeJWT(token: string) {
-    try {
-        const base64Url = token.split(".")[1];
-        if (!base64Url) return null;
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const jsonPayload = decodeURIComponent(
-            atob(base64)
-                .split("")
-                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-                .join("")
-        );
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        return null;
-    }
-}
+// Ya tenemos esta función en auth-tokens.ts, la usamos de allí.
+const decodeJWT = TokensHelper.parseJwt;
 
 function normalizeRole(raw: any) {
     if (!raw) return "";
@@ -30,99 +18,94 @@ function normalizeRole(raw: any) {
     const r = String(raw).toLowerCase();
     if (r.includes("admin") || r === "is_staff" || r === "is_superuser") return "ROLE_ADMIN";
     if (r.includes("client") || r.includes("user") || r.includes("customer")) return "ROLE_CLIENT";
-    return String(raw).toUpperCase();
+    if (r.includes("public")) return "ROLE_PUBLIC"; // Añadido para ROLE_PUBLIC
+    return String(raw).toUpperCase(); // Asegurarse de que si es otro, sea en mayúsculas
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const authStorageValue = request.cookies.get("auth-storage")?.value;
-    const directJwtToken = request.cookies.get("token")?.value;
-    const directUserRoleCookie = request.cookies.get("role")?.value;
+    // Leer directamente las cookies
+    const accessToken = request.cookies.get("token")?.value;
+    const userRoleCookie = request.cookies.get("role")?.value;
 
-    let user: any = null;
     let isAuthenticated = false;
     let userRole = "";
 
-    // Try auth-storage first (rehydrated Zustand)
-    if (authStorageValue) {
-        try {
-            const authData = JSON.parse(decodeURIComponent(authStorageValue));
-            user = authData?.state?.user ?? null;
-            isAuthenticated = !!authData?.state?.isAuthenticated;
-            if (user?.roles && Array.isArray(user.roles) && user.roles.length > 0) {
-                userRole = normalizeRole(user.roles[0]);
-            }
-            if (user?.token) {
-                const decoded = decodeJWT(user.token);
-                const now = Math.floor(Date.now() / 1000);
-                if (!decoded || (decoded.exp && decoded.exp < now)) {
-                    // expired
-                    isAuthenticated = false;
-                    user = null;
-                    userRole = "";
-                } else {
-                    // try extract role from token if not present
-                    if (!userRole) {
-                        const fromPayload = decoded.roles || decoded.role || decoded.role_name || decoded.groups || decoded.group || decoded.is_staff || decoded.is_superuser;
-                        if (fromPayload) userRole = normalizeRole(fromPayload);
-                    }
-                }
-            }
-        } catch (e) {
-            isAuthenticated = false;
-            user = null;
-            userRole = "";
-        }
-    }
-
-    // Fallback: try direct token cookie
-    if (!isAuthenticated && directJwtToken) {
-        const decoded = decodeJWT(directJwtToken);
+    // Si hay un token de acceso, intentar validarlo
+    if (accessToken) {
+        const decoded = decodeJWT(accessToken);
         const now = Math.floor(Date.now() / 1000);
-        if (decoded && (!decoded.exp || decoded.exp >= now)) {
+
+        if (decoded && (!decoded.exp || decoded.exp >= now)) { // Token válido y no expirado
             isAuthenticated = true;
-            if (directUserRoleCookie) {
-                userRole = normalizeRole(directUserRoleCookie);
+            if (userRoleCookie) {
+                userRole = normalizeRole(userRoleCookie);
             } else {
-                const fromPayload = decoded.roles || decoded.role || decoded.role_name || decoded.groups || decoded.group || decoded.is_staff || decoded.is_superuser;
+                // Si la cookie de rol no está, intentar extraerlo del token (fallback)
+                const fromPayload = decoded.roles || decoded.role || decoded.group || decoded.groups || decoded.is_staff || decoded.is_superuser;
                 if (fromPayload) userRole = normalizeRole(fromPayload);
             }
+        } else if (decoded && decoded.exp && decoded.exp < now) {
+            // Token expirado, intentar refrescar. Esto requiere una lógica diferente en el middleware
+            // ya que no podemos hacer llamadas de red bloqueantes o modificar cookies de respuesta
+            // directamente en el middleware de Next.js de esta manera.
+            // Para simplificar, si el access token está expirado, lo tratamos como no autenticado
+            // y la rehidratación del cliente o el fetch de una ruta protegida intentará refrescarlo.
+            isAuthenticated = false;
+            // Podríamos intentar redirigir a una ruta de refresh en el cliente si es crítico,
+            // pero el flujo actual de Next.js espera que esto se maneje en el cliente.
         }
     }
 
-    // --- Authorization and redirects ---
-    // Not authenticated: protect admin and checkout
-    if (!isAuthenticated) {
-        if (adminRoutes.some((r) => pathname.startsWith(r)) || clientRoutes.some((r) => pathname.startsWith(r))) {
-            const loginUrl = new URL("/login", request.url);
-            loginUrl.searchParams.set("redirect", pathname);
-            return NextResponse.redirect(loginUrl);
+    // --- Autorización y redirecciones ---
+
+    // 1. Rutas de autenticación (login, register):
+    // Si el usuario ya está autenticado, no debe acceder a login/register.
+    if (authRoutes.some((r) => pathname.startsWith(r))) {
+        if (isAuthenticated) {
+            const redirectParam = request.nextUrl.searchParams.get("redirect");
+            if (redirectParam) {
+                return NextResponse.redirect(new URL(redirectParam, request.url));
+            }
+            if (userRole === "ROLE_ADMIN") {
+                return NextResponse.redirect(new URL("/admin", request.url));
+            }
+            return NextResponse.redirect(new URL("/", request.url));
         }
+        // Si no está autenticado, permitir acceso a login/register
         return NextResponse.next();
     }
 
-    // Authenticated: prevent access to /login /register
-    if (authRoutes.some((r) => pathname.startsWith(r))) {
-        const redirectParam = request.nextUrl.searchParams.get("redirect");
-        if (redirectParam) return NextResponse.redirect(new URL(redirectParam, request.url));
-        if (userRole === "ROLE_ADMIN") return NextResponse.redirect(new URL("/admin", request.url));
-        return NextResponse.redirect(new URL("/", request.url));
+    // 2. Rutas protegidas (admin, checkout):
+    // Si el usuario NO está autenticado y intenta acceder a una ruta protegida.
+    const isProtected = adminRoutes.some((r) => pathname.startsWith(r)) || clientRoutes.some((r) => pathname.startsWith(r));
+    if (isProtected && !isAuthenticated) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(loginUrl);
     }
 
-    // Admin routes require ROLE_ADMIN
-    if (adminRoutes.some((r) => pathname.startsWith(r)) && userRole !== "ROLE_ADMIN") {
-        return NextResponse.redirect(new URL("/", request.url));
+    // 3. Permisos basados en roles para rutas protegidas.
+    // Rutas de administración (solo para ROLE_ADMIN)
+    if (adminRoutes.some((r) => pathname.startsWith(r))) {
+        if (userRole !== "ROLE_ADMIN") {
+            return NextResponse.redirect(new URL("/", request.url));
+        }
     }
 
-    // Checkout requires ROLE_CLIENT or ROLE_ADMIN
-    if (clientRoutes.some((r) => pathname.startsWith(r)) && userRole !== "ROLE_CLIENT" && userRole !== "ROLE_ADMIN") {
-        return NextResponse.redirect(new URL("/", request.url));
+    // Rutas de cliente (para ROLE_CLIENT o ROLE_ADMIN)
+    if (clientRoutes.some((r) => pathname.startsWith(r))) {
+        if (userRole !== "ROLE_CLIENT" && userRole !== "ROLE_ADMIN") {
+            return NextResponse.redirect(new URL("/", request.url));
+        }
     }
 
+    // Si todo está bien, permitir la solicitud
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/checkout/:path*", "/login", "/register"],
+    // Coincidir con todas las rutas protegidas y de autenticación
+    matcher: ["/admin/:path*", "/checkout/:path*", "/login", "/register", "/((?!api|_next/static|_next/image|favicon.ico).*)"], // Ajustar matcher si hay rutas específicas que no deben ser interceptadas
 };
