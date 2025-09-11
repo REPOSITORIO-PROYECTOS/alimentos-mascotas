@@ -21,6 +21,7 @@ import { useAuthStore } from "@/context/store";
 import Link from "next/link";
 
 export default function UserButton() {
+    
     const { user, logout } = useAuthStore();
 
     const handleLogout = () => {
