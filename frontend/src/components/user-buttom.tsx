@@ -59,7 +59,7 @@ export default function UserButton() {
                 <DropdownMenuGroup>
                     {user?.roles.includes("ROLE_ADMIN") && (
                         <>
-                            <DropdownMenuItem asChild>
+                            <DropdownMenuItem asChild className="cursor-pointer">
                                 <Link href="/admin">
                                     <BoltIcon
                                         size={16}
@@ -69,8 +69,8 @@ export default function UserButton() {
                                     <span>Panel de administración</span>
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="#Manual">
+                            <DropdownMenuItem asChild className="cursor-pointer">
+                                <Link href="/manual">
                                     <BookOpenIcon
                                         size={16}
                                         className="opacity-60"
@@ -79,7 +79,7 @@ export default function UserButton() {
                                     <span>Manual de usuario</span>
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
+                            <DropdownMenuItem asChild className="cursor-pointer">
                                 <Link href="/soporte">
                                     <PhoneCall
                                         size={16}
@@ -92,7 +92,8 @@ export default function UserButton() {
                         </>
                     )}
                     {
-                        <DropdownMenuItem asChild>
+                    <div>
+                        <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href="/products">
                                 <Layers2Icon
                                     size={16}
@@ -102,12 +103,23 @@ export default function UserButton() {
                                 <span>Ver productos</span>
                             </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                            <Link href="/pedidos">
+                                <Layers2Icon
+                                    size={16}
+                                    className="opacity-60"
+                                    aria-hidden="true"
+                                />
+                                <span>Historial de Pedidos</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </div>
                     }
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-red-600 hover:bg-red-100 focus:bg-red-100"
+                    className="text-red-600 hover:bg-red-100 focus:bg-red-100 cursor-pointer"
                 >
                     <LogOutIcon
                         size={16}
