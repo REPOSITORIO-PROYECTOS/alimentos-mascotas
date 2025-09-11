@@ -75,8 +75,8 @@ export default function ProductDetail({
     const fetchProductDetail = async () => {
       setLoading(true);
       try {
+        
         const url = `${API_BASE.replace(/\/$/, "")}/store/products/${productId}/`;
-        console.log("Fetching product detail from:", url);
         const response = await fetch(
           url,
           {
@@ -91,7 +91,6 @@ export default function ProductDetail({
 
         const data: Product = await response.json();
         setProduct(data);
-        console.log("Detalle del producto de Django:", data);
 
       } catch (error) {
         console.error("Error al cargar el producto:", error);

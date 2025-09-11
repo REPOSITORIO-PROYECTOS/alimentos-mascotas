@@ -143,7 +143,7 @@ export default function ProductsPage() {
         try {
             // Aseguramos la barra final para compatibilidad con Django REST Framework
             const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
-            console.log(url);
+
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Error al obtener productos");

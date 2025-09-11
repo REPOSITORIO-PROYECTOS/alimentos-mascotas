@@ -34,7 +34,7 @@ interface AuthState {
     ) => Promise<string | false>; // Ahora devuelve el rol o false
     logout: () => void;
     clearError: () => void;
-    setTokensFromRefresh: (accessToken: string, refreshToken: string, roles: string[]) => void; // Nueva función
+    setTokensFromRefresh: (accessToken: string, refreshToken: string, roles: string[]) => void;
 }
 
 // Creación del store con persistencia
