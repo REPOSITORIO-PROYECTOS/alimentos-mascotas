@@ -4,11 +4,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 
-// ✅ Interfaz nueva según el JSON real
 export interface ProductoAPI {
   id: number;
   name: string;
-  category: number;
+  category: string;
   description: string;
   price: string;     // llega como string
   stock: string;     // llega como string

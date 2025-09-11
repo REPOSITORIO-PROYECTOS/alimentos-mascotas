@@ -72,22 +72,22 @@ export function DataTable<TData, TValue>({
                     {/* Input de Búsqueda por Producto */}
                     <Input
                         placeholder="Filtrar por producto"
-                        value={(table.getColumn("descripcion")?.getFilterValue() as string) ?? ""}
+                        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
-                            table.getColumn("descripcion")?.setFilterValue(event.target.value)
+                            table.getColumn("name")?.setFilterValue(event.target.value)
                         }
                         className="w-full md:w-1/2"
                     />
 
                     {/* Input de Búsqueda por Código de Barras */}
-                    <Input
+                    {/* <Input
                         placeholder="Filtrar por código de barras"
-                        value={(table.getColumn("codigos")?.getFilterValue() as string) ?? ""}
+                        value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
-                            table.getColumn("codigos")?.setFilterValue(event.target.value)
+                            table.getColumn("id")?.setFilterValue(event.target.value)
                         }
                         className="w-full md:w-1/2"
-                    />
+                    /> */}
                 </div>
                 
 

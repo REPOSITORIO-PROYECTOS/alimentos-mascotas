@@ -17,22 +17,22 @@ export default function InventarioPage() {
 
     const fetchProductos = async () => {
       try {
-        const res = await fetch("https://barker.sistemataup.online/api/store/products", {
+        const res = await fetch("https://barker.sistemataup.online/api/store/products", /* {
           method: "GET",
           headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${user.token}`,
           },
-        }
+        } */
         );
         const data = await res.json();
+        console.log(data)
 
         setProductos(data.results || []);
-
-        console.log("📦 Productos:", data.results);
+        console.log(productos)
 
       } catch (err) {
-        console.error("❌ Error al obtener productos:", err);
+        /* console.error("❌ Error al obtener productos:", err); */
 
       } finally {
         setLoading(false);
