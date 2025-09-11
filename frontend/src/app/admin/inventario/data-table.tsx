@@ -68,32 +68,18 @@ export function DataTable<TData, TValue>({
             {/* Headers de la Tabla */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-4">
 
-                <div className="flex flex-col md:flex-row gap-2">
-                    {/* Input de Búsqueda por Producto */}
-                    <Input
-                        placeholder="Filtrar por producto"
-                        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn("name")?.setFilterValue(event.target.value)
-                        }
-                        className="w-full md:w-1/2"
-                    />
-
-                    {/* Input de Búsqueda por Código de Barras */}
-                    {/* <Input
-                        placeholder="Filtrar por código de barras"
-                        value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn("id")?.setFilterValue(event.target.value)
-                        }
-                        className="w-full md:w-1/2"
-                    /> */}
-                </div>
-                
+                {/* Input de Búsqueda por Producto */}
+                <Input
+                    placeholder="Filtrar por producto"
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) =>
+                        table.getColumn("name")?.setFilterValue(event.target.value)
+                    }
+                    className="w-full md:w-1/2"
+                />
 
                 {/* Boton para agregar producto */}
                 <Button variant="outline" className="cursor-pointer"/* onClick={handleSyncArticulos} */>+ Agregar Artículo</Button>
-
             </div>
 
             {/* Tabla */}
