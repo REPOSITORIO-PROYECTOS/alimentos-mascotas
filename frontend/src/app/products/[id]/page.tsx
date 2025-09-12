@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react"; // Asegúrate de importar React
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,14 @@ import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion";
+}
+ from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/context/store";
-
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
+import { useSearchParams } from 'next/navigation';
 
 // Base URL configurable vía env var
 const API_BASE =
@@ -31,32 +32,39 @@ const API_BASE =
 const MEDIA_BASE =
     process.env.NEXT_PUBLIC_MEDIA_BASE || API_BASE.replace(/\/(?:api\/?$)/, "");
 
-// Define el tipo para el producto de la API de Django
+// Define el tipo para el producto del nuevo JSON (¡el mismo que usamos en la página de productos!)
 type Product = {
     id: number;
-    name: string;
-    category: string;
-    description: string;
-    price: string;
+    productName: string;
+    productDescription: string;
+    productDetails: string;
+    imageUrl: string | null;
+    images: string[];
+    sellingPrice: string;
+    costPrice: string | null;
+    discountPercent: string | null;
+    categories: string[];
+    reviewsIds: number[];
+    reviews: any[];
+    recipeId: number | null;
+    productCode: string | null;
+    sku: string | null;
     stock: string;
-    image: string | null; // Puede ser null
-    is_sellable: boolean;
-    components: Array<{
-        component: number;
-        component_name: string;
-        quantity: string;
-        merma_percentage: string;
-    }>;
+    createdAt: string;
+    updatedAt: string;
+    modifiedBy: string | null;
+    createdBy: string | null;
 };
 
 export default function ProductDetail({
   params,
 }: {
-  params: Promise<{ id: string }>; // Vuelve a ser una Promise como estaba originalmente
+  params: Promise<{ id: string }>; 
 }) {
-  // *** CAMBIO CLAVE AQUÍ: Usar React.use() para unwrappear la promesa de params ***
-  const resolvedParams = React.use(params); // <--- NUEVO
-  const productId = resolvedParams.id;      // <--- Usa el objeto resuelto
+  
+  const resolvedParams = React.use(params); 
+  const productId = resolvedParams.id;     
+  const searchParams = useSearchParams();
 
   const { user } = useAuthStore();
   const [product, setProduct] = useState<Product | null>(null);
@@ -65,43 +73,52 @@ export default function ProductDetail({
   const [rating, setRating] = useState(4);
   const [selectedSize, setSelectedSize] = useState("medium");
   const [selectedQuantity, setSelectedQuantity] = useState("1");
-
+  
   const { addItem } = useCartStore();
 
-  // Cargar detalle del producto
-  useEffect(() => {
-    if (!productId) return; // productId ya está disponible inmediatamente gracias a React.use()
+   useEffect(() => {
+    if (!productId) return;
 
     const fetchProductDetail = async () => {
       setLoading(true);
       try {
-        
-        const url = `${API_BASE.replace(/\/$/, "")}/store/products/${productId}/`;
-        const response = await fetch(
-          url,
-          {
-            method: "GET",
-            // headers: { ... }
+        const productDataParam = searchParams.get('productData');
+
+        if (productDataParam) {
+          // Si productData está en searchParams, úsalo
+          const parsedProduct = JSON.parse(decodeURIComponent(productDataParam));
+          setProduct(parsedProduct);
+          setLoading(false);
+        } else {
+          // Si no está en searchParams (ej. acceso directo), haz la petición a la API de listado y filtra
+          // Aquí necesitarías el endpoint de listado que te da TODOS los productos
+          const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
+          const response = await fetch(url);
+
+          if (!response.ok) {
+            throw new Error("Error al obtener productos");
           }
-        );
 
-        if (!response.ok) {
-          throw new Error("Error al obtener detalles del producto");
+          const data: { content: Product[] } = await response.json(); // Asume la estructura con 'content'
+          const foundProduct = data.content.find(p => p.id.toString() === productId);
+
+          if (foundProduct) {
+            setProduct(foundProduct);
+          } else {
+            console.warn(`Producto con ID ${productId} no encontrado en la lista.`);
+            setProduct(null); // O maneja como un 404
+          }
+          setLoading(false);
         }
-
-        const data: Product = await response.json();
-        setProduct(data);
-
       } catch (error) {
         console.error("Error al cargar el producto:", error);
         setProduct(null);
-      } finally {
-        setLoading(false);
+        setLoading(false); // Asegúrate de detener la carga en caso de error
       }
     };
 
     fetchProductDetail();
-  }, [productId, user?.token]);
+  }, [productId, searchParams]); // searchParams como dependencia
 
     const handleAddToCart = () => {
         if (!product) {
@@ -112,10 +129,10 @@ export default function ProductDetail({
         addItem(
             {
                 id: product.id.toString(),
-                productName: product.name,
-                imageUrl: product.image, 
-                sellingPrice: parseFloat(product.price),
-                discountPercent: 0,
+                productName: product.productName,
+                imageUrl: product.imageUrl,
+                sellingPrice: parseFloat(product.sellingPrice),
+                discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
                 stock: parseFloat(product.stock),
             },
             Number(selectedQuantity)
@@ -143,6 +160,8 @@ export default function ProductDetail({
                             className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
                             asChild
                         >
+                            {/* Puedes poner un Link a la página de productos aquí si quieres */}
+                            {/* <Link href="/products">Volver a Productos</Link> */}
                         </Button>
                     </>
                     )}
@@ -156,8 +175,8 @@ export default function ProductDetail({
         <div className="grid md:grid-cols-2 gap-8 my-6">
             <div className="relative">
                 <Image
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
+                    src={product.imageUrl || "/placeholder.svg"}
+                    alt={product.productName}
                     width={500}
                     height={500}
                     className="rounded-lg w-full h-auto object-cover"
@@ -167,18 +186,25 @@ export default function ProductDetail({
 
             <div className="flex flex-col gap-4">
                 <h1 className="text-3xl font-semibold mb-2 underline-offset-4">
-                    {product.name}
+                    {product.productName}
                 </h1>
-                <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-1/3">
-                    {product.category || "General"}
-                </div>
+                {product.categories && product.categories.length > 0 && (
+                    <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-1/3">
+                        {product.categories[0]}
+                    </div>
+                )}
                 <div className="mb-4">
                     <span className="text-3xl font-bold">
-                        ${parseFloat(product.price).toFixed(2)}
+                        ${parseFloat(product.sellingPrice).toFixed(2)}
                     </span>
+                    {product.discountPercent && parseFloat(product.discountPercent) > 0 && (
+                        <span className="ml-2 text-xl line-through text-gray-500">
+                            {` (${parseFloat(product.discountPercent)}% OFF)`}
+                        </span>
+                    )}
                 </div>
                 <p className="text-gray-600 mb-6">
-                    {product.description}
+                    {product.productDescription}
                 </p>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
@@ -238,25 +264,7 @@ export default function ProductDetail({
                     </AccordionTrigger>
                     <AccordionContent>
                         <p className="text-gray-600">
-                        Nuestros snacks naturales para perros
-                        están elaborados con carne de res de
-                        primera calidad, deshidratada lentamente
-                        para preservar todos los nutrientes y
-                        sabor. Perfectos para el entrenamiento o
-                        como premio ocasional. Contienen
-                        proteínas de alta calidad y son bajos en
-                        grasas.
-                        <br />
-                        <br />
-                        Ingredientes: Carne de res, hígado de
-                        pollo, zanahoria, calabaza.
-                        <br />
-                        <br />
-                        Análisis garantizado:
-                        <br />- Proteína cruda: mín. 35%
-                        <br />- Grasa cruda: mín. 8%
-                        <br />- Fibra cruda: máx. 3%
-                        <br />- Humedad: máx. 18%
+                        {product.productDetails}
                         </p>
                     </AccordionContent>
                     </AccordionItem>

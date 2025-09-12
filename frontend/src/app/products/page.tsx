@@ -11,6 +11,7 @@ import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/context/store";
 
 import { toast as sonnerToast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Base URLs configurables vía env vars
 const API_BASE =
@@ -59,6 +60,7 @@ export default function ProductsPage() {
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
     const [isClient, setIsClient] = useState(false);
+    const router = useRouter();
 
     // Runtime overrides: permite cambiar la API base vía ?api=... o guardado en localStorage
     const [apiBaseState, setApiBaseState] = useState<string>(API_BASE);
@@ -320,7 +322,7 @@ export default function ProductsPage() {
                     {Array.isArray(products) && products.map((product) => (
                         <div key={product.id} className="flex flex-col">
                             <Link
-                                href={`/products/${product.id}`}
+                                href={`/products/${product.id}?productData=${encodeURIComponent(JSON.stringify(product))}`}
                                 className="group"
                             >
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
