@@ -112,7 +112,7 @@ export default function WorkOrderForm({
         setIsLoading(true);
         try {
             const response = await fetchApi({
-                endpoint: "/productos/pagina?page=0&size=100",
+                endpoint: "/store/products/?page=0&size=100",
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
