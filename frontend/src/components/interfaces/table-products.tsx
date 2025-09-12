@@ -280,7 +280,7 @@ export default function TableProducts() {
     }, [searchTerm]);
 
     const swrUrl = useMemo(() => {
-        return `/productos/pagina?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
+    return `/store/products/?page=${pagination.pageIndex}&size=${pagination.pageSize}&keyword=${debouncedSearchTerm}`;
     }, [pagination.pageIndex, pagination.pageSize, debouncedSearchTerm]);
 
     const {
@@ -314,7 +314,7 @@ export default function TableProducts() {
                 try {
                     console.log("Deleting row", row.original.id);
                     await fetch({
-                        endpoint: `/productos/eliminar/${row.original.id}`,
+                        endpoint: `/store/products/${row.original.id}`,
                         method: "delete",
                         headers: {
                             "Content-Type": "application/json",
@@ -820,7 +820,7 @@ const RowActions = React.memo(({ row, mutate }: RowActionsProps) => {
         try {
             startLoading();
             await fetch({
-                endpoint: `/productos/eliminar/${row.original.id}`,
+                endpoint: `/store/products/${row.original.id}`,
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
