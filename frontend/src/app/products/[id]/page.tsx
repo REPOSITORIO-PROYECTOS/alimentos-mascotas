@@ -140,10 +140,9 @@ export default function ProductDetail({
                             Lo sentimos, no pudimos encontrar el producto que buscas.
                         </p>
                         <Button
-                        className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
-                        asChild
+                            className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
+                            asChild
                         >
-                        <a href="/products">Volver a productos</a>
                         </Button>
                     </>
                     )}

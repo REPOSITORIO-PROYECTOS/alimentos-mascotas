@@ -1,3 +1,5 @@
+"use client"
+
 import {
     BoltIcon,
     BookOpenIcon,
@@ -19,13 +21,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/context/store";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function UserButton() {
     
     const { user, logout } = useAuthStore();
+    const router = useRouter(); 
 
     const handleLogout = () => {
         logout();
+        router.push("/");
     };
 
     if (!user) {

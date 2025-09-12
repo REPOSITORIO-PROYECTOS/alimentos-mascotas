@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import TokensHelper from "@/lib/auth-tokens";
+import router from "next/router";
 
 // Definición de tipos para la respuesta del API de Django
 export interface AuthResponse {
@@ -133,7 +134,6 @@ export const useAuthStore = create<AuthState>()(
                     error: null,
                 });
                 TokensHelper.clearTokens();
-                // No hay redirección aquí, el componente la manejará.
             },
 
             // Limpiar errores

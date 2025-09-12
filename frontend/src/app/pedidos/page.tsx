@@ -26,11 +26,12 @@ export default function PedidosPage() {
 
     return (
         <div className="p-8 mt-16 flex flex-col items-center">
-            <h1 className="text-3xl text-center font-bold mb-6">Historial de Pedidos del usuario username</h1>
-
+            
+            <h1 className="text-3xl text-center font-bold mb-6">
+                Historial de Pedidos del usuario {user?.username}
+            </h1>
 
             {/* for each compra en el array de historial de compras: */}
-
 
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader>
