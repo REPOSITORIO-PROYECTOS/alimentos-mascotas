@@ -54,15 +54,15 @@ export default function OrderDetailClient({ id }: { id: string }) {
     }, [id, router]);
 
     return (
-        <div className="container mx-auto py-8 px-4">
+        <div className="container mx-auto py-8 px-4 mt-20">
             <h1 className="text-2xl font-bold mb-4">Detalle del Pedido</h1>
             <Card>
                 <CardContent>
                     {loading && <p>Cargando...</p>}
                     {error && <div className="text-red-600">{error}</div>}
                     {order && (
-                        <div>
-                            <div className="mb-4">
+                        <div className="w-full">
+                            <div className="my-4 w-full sm:w-1/2">
                                 <div className="font-medium">Pedido #{order.id}</div>
                                 <div className="text-sm text-muted-foreground">{order.created_at}</div>
                                 <div className="mt-2">Estado: {order.status}</div>
@@ -77,7 +77,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                                 ))}
                             </div>
                             <div className="mt-4">
-                                <Button onClick={() => router.push('/orders')}>Volver a Mis Pedidos</Button>
+                                <Button onClick={() => router.push('/orders')} className="cursor-pointer">Volver a Mis Pedidos</Button>
                             </div>
                         </div>
                     )}

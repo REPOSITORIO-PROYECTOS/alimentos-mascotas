@@ -322,7 +322,8 @@ export default function ProductsPage() {
                     {Array.isArray(products) && products.map((product) => (
                         <div key={product.id} className="flex flex-col">
                             <Link
-                                href={`/products/${product.id}?productData=${encodeURIComponent(JSON.stringify(product))}`}
+                                // CAMBIO AQUÍ: Ahora solo pasamos el ID en la URL
+                                href={`/products/${product.id}`}
                                 className="group"
                             >
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">

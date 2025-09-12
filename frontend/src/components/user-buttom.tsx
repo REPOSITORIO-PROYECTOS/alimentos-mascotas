@@ -110,7 +110,7 @@ export default function UserButton() {
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild className="cursor-pointer">
-                            <Link href="/pedidos">
+                            <Link href="/orders">
                                 <Layers2Icon
                                     size={16}
                                     className="opacity-60"
