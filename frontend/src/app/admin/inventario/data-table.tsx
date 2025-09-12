@@ -31,21 +31,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { toast } from "sonner";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onAddProduct: () => void; // Nueva prop para agregar producto
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onAddProduct, 
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    /* const token = useAuthStore((state) => state.token); */
 
     const table = useReactTable({
         data,
@@ -75,11 +75,13 @@ export function DataTable<TData, TValue>({
                     onChange={(event) =>
                         table.getColumn("productName")?.setFilterValue(event.target.value)
                     }
-                    className="w-full md:w-1/5"
+                    className="w-full md:w-1/2"
                 />
 
                 {/* Boton para agregar producto */}
-                <Button variant="outline" className="cursor-pointer"/* onClick={handleSyncArticulos} */>+ Agregar Artículo</Button>
+                <Button variant="outline" className="cursor-pointer" onClick={onAddProduct}>
+                  + Agregar Artículo
+                </Button>
             </div>
 
             {/* Tabla */}
@@ -160,7 +162,7 @@ export function DataTable<TData, TValue>({
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
                         >
-                        Anterior
+                            Anterior
                         </Button>
                         <Button
                             variant="outline"
@@ -168,7 +170,7 @@ export function DataTable<TData, TValue>({
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                         >
-                        Siguiente
+                            Siguiente
                         </Button>
                     </div>
 

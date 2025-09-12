@@ -1,22 +1,37 @@
+// columns.tsx
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"; // Importar MoreHorizontal
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // Importar DropdownMenu
 
 export interface ProductoAPI {
   id: number;
-  productName: string; 
-  productDescription: string; 
+  productName: string;
+  productDescription: string;
   categories: string[];
-  sellingPrice: string; 
+  sellingPrice: string;
   stock: string;
-  imageUrl: string; 
+  imageUrl: string;
 }
 
-export const columns: ColumnDef<ProductoAPI>[] = [
+// Añadimos las props para las acciones de editar/eliminar
+export interface ProductColumnProps {
+  onEdit: (product: ProductoAPI) => void;
+  onDelete: (productId: number) => void;
+}
+
+export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnDef<ProductoAPI>[] => [
   {
-    accessorKey: "productName", // Adaptado al nuevo nombre
+    accessorKey: "productName",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
         Nombre de Producto
@@ -25,11 +40,11 @@ export const columns: ColumnDef<ProductoAPI>[] = [
     ),
   },
   {
-    accessorKey: "productDescription", // Adaptado al nuevo nombre
+    accessorKey: "productDescription",
     header: "Descripción",
   },
   {
-    accessorKey: "categories", // Adaptado al nuevo nombre
+    accessorKey: "categories",
     header: "Categorías",
     cell: ({ row }) => {
       const categories = row.getValue("categories") as string[];
@@ -44,7 +59,7 @@ export const columns: ColumnDef<ProductoAPI>[] = [
     },
   },
   {
-    accessorKey: "sellingPrice", // Adaptado al nuevo nombre
+    accessorKey: "sellingPrice",
     header: "Precio de Venta",
     cell: ({ row }) => {
       const value = parseFloat(row.getValue("sellingPrice") as string);
@@ -64,7 +79,6 @@ export const columns: ColumnDef<ProductoAPI>[] = [
       return <div className="font-medium">{stock}</div>;
     },
   },
-  // Si deseas una columna para la imagen, podrías agregar algo así:
   {
     accessorKey: "imageUrl",
     header: "Imagen",
@@ -74,7 +88,32 @@ export const columns: ColumnDef<ProductoAPI>[] = [
       return <img src={imageUrl} alt="Producto" className="h-12 w-12 object-cover rounded" />;
     },
   },
-  // La columna 'is_sellable' y 'components' no existen en tu nuevo JSON.
-  // Si necesitas una lógica similar para 'is_sellable', tendrías que inferirla
-  // de otras propiedades o agregarla en tu backend.
+  {
+    id: "actions", // ID único para la columna de acciones
+    header: "Acciones",
+    cell: ({ row }) => {
+      const product = row.original; // Accede al objeto completo del producto
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menú</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onEdit(product)} className="cursor-pointer">
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600 cursor-pointer">
+              Eliminar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
 ];
