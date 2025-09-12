@@ -16,14 +16,12 @@ import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-}
- from "@/components/ui/accordion";
+} from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/context/store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
-import { useSearchParams } from 'next/navigation';
 
 // Base URL configurable vía env var
 const API_BASE =
@@ -59,12 +57,13 @@ type Product = {
 export default function ProductDetail({
   params,
 }: {
-  params: Promise<{ id: string }>; 
+  params: Promise<{ id: string }>; // Explicitly type params as a Promise
 }) {
-  
-  const resolvedParams = React.use(params); 
-  const productId = resolvedParams.id;     
-  const searchParams = useSearchParams();
+  // SOLUCIÓN DEFINITIVA: Usar React.use() para acceder a los parámetros
+  // `React.use()` es la forma de "unwrapear" promesas en componentes.
+  // Es la forma más limpia y recomendada por Next.js para esto en el App Router.
+  const resolvedParams = React.use(params);
+  const productId = resolvedParams.id; // Ahora accedes a 'id' de la promesa resuelta.
 
   const { user } = useAuthStore();
   const [product, setProduct] = useState<Product | null>(null);
@@ -76,49 +75,40 @@ export default function ProductDetail({
   
   const { addItem } = useCartStore();
 
-   useEffect(() => {
-    if (!productId) return;
+  useEffect(() => {
+    // Ya no necesitamos la lógica de `currentProductId` ni el estado adicional
+    // porque `productId` ya está resuelto y disponible aquí.
+
+    if (!productId) {
+      setLoading(false); // No hay ID, no hay producto, detener la carga.
+      return;
+    }
 
     const fetchProductDetail = async () => {
       setLoading(true);
       try {
-        const productDataParam = searchParams.get('productData');
+        // La URL del endpoint ha cambiado según tu último comentario.
+        const url = `${API_BASE.replace(/\/$/, "")}/productos/obtener/${productId}`;
+        console.log("Fetching product from URL:", url); // Para depuración
+        const response = await fetch(url);
 
-        if (productDataParam) {
-          // Si productData está en searchParams, úsalo
-          const parsedProduct = JSON.parse(decodeURIComponent(productDataParam));
-          setProduct(parsedProduct);
-          setLoading(false);
-        } else {
-          // Si no está en searchParams (ej. acceso directo), haz la petición a la API de listado y filtra
-          // Aquí necesitarías el endpoint de listado que te da TODOS los productos
-          const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
-          const response = await fetch(url);
-
-          if (!response.ok) {
-            throw new Error("Error al obtener productos");
-          }
-
-          const data: { content: Product[] } = await response.json(); // Asume la estructura con 'content'
-          const foundProduct = data.content.find(p => p.id.toString() === productId);
-
-          if (foundProduct) {
-            setProduct(foundProduct);
-          } else {
-            console.warn(`Producto con ID ${productId} no encontrado en la lista.`);
-            setProduct(null); // O maneja como un 404
-          }
-          setLoading(false);
+        if (!response.ok) {
+          throw new Error(`Error al obtener el producto con ID ${productId}: ${response.statusText}`);
         }
+
+        const data: Product = await response.json();
+        setProduct(data);
+        
       } catch (error) {
         console.error("Error al cargar el producto:", error);
         setProduct(null);
-        setLoading(false); // Asegúrate de detener la carga en caso de error
+      } finally {
+        setLoading(false); // Siempre detener la carga al final.
       }
     };
 
     fetchProductDetail();
-  }, [productId, searchParams]); // searchParams como dependencia
+  }, [productId]); // Dependencia clave: productId (ya resuelto)
 
     const handleAddToCart = () => {
         if (!product) {
