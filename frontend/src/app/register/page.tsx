@@ -119,22 +119,27 @@ export default function RegisterPage() {
 
             if (response.ok) {
 
-                toast.success("Usuario creado correctamente! Iniciando sesión...");
-                // Intentar login automático
+            toast.success("Usuario creado correctamente! Iniciando sesión...");
+
                 try {
-                    const roleOrFalse = await login(email, password);
+                    const roleOrFalse = await login(email, password); // << Login automático
+
                     if (roleOrFalse === false) {
                         // Login automático falló, redirigir a login con mensaje
-                        router.push("/login?registered=true");
+                        router.push("/login?registered=true"); // ✅ Esta redirección es correcta
+                    } else {
+                        // Login automático exitoso.
+                        // Aquí debes decidir a dónde redirigir después de un registro exitoso y un login automático exitoso.
+                        router.push("/"); // Por ejemplo, al home
                     }
-                    // La función login se encarga de redirigir (checkout)
-                    return;
+                    return; // Importante para detener la ejecución después de la redirección
+
                 } catch (e) {
-                    // Fallback: redirigir al login
-                    router.push("/login?registered=true");
+                    // Fallback: redirigir al login si el login automático arroja un error
+                    router.push("/login?registered=true"); // ✅ Esta redirección es correcta
                     return;
                 }
-
+                
             } else {
                 const data = await response.json().catch(() => ({}));
                 const message =
