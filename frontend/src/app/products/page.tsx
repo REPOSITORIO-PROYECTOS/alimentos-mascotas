@@ -15,38 +15,44 @@ import { toast as sonnerToast } from "sonner";
 // Base URLs configurables vía env vars
 const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE ||
-    "https://barker.sistemataup.online/api";        // https://barker.sistemataup.online/api/store/products
+    "https://barker.sistemataup.online/api";
 const MEDIA_BASE =
     process.env.NEXT_PUBLIC_MEDIA_BASE || API_BASE.replace(/\/(?:api\/?$)/, "");
 
-// Tipo de la respuesta completa de la API de Django
-type ApiResponse = {
-    count: number;
-    next: string | null;
-    previous: string | null;
-    results: Product[];
-};
-
-// ... tu tipo Product existente ...
+// Tipo Product actualizado para coincidir con el JSON de cada producto
 type Product = {
     id: number;
-    name: string;
-    category: string;
-    description: string;
-    price: string;
+    productName: string;
+    productDescription: string;
+    productDetails: string; // Añadido productDetails
+    imageUrl: string | null;
+    images: string[];
+    sellingPrice: string;
+    costPrice: string | null;
+    discountPercent: string | null;
+    categories: string[];
+    reviewsIds: number[];
+    reviews: any[];
+    recipeId: number | null;
+    productCode: string | null;
+    sku: string | null;
     stock: string;
-    image: string | null; // Puede ser null
-    is_sellable: boolean;
-    components: Array<{
-        component: number;
-        component_name: string;
-        quantity: string;
-        merma_percentage: string;
-    }>;
+    createdAt: string;
+    updatedAt: string;
+    modifiedBy: string | null;
+    createdBy: string | null;
+};
+
+// Tipo de la respuesta completa de la API con la nueva estructura
+type ApiResponse = {
+    content: Product[]; // Aquí está el array de productos
+    totalElements: number;
+    page: number;
+    size: number;
 };
 
 export default function ProductsPage() {
-    
+
     const [initialAnimation, setInitialAnimation] = useState(false);
     const { user } = useAuthStore();
     const [count, setCount] = useState(0);
@@ -117,8 +123,6 @@ export default function ProductsPage() {
         fetchProducts();
     }, []);
 
-    // La función handleSearch ya no tiene un impacto directo en el fetchProducts
-    // a menos que tu endpoint de Django soporte búsqueda por keyword en el GET de productos.
     const handleSearch = (value: string) => {
         setKeyword(value);
 
@@ -127,9 +131,9 @@ export default function ProductsPage() {
         }
 
         const timeout = setTimeout(() => {
-            // Si el backend de Django soportara búsqueda por keyword, aquí se llamaría a fetchProducts con el valor.
-            // Por ahora, se mantiene el input de búsqueda, pero no tiene efecto en el fetch.
             console.log("Realizando búsqueda con:", value);
+            // Si el backend soportara búsqueda en el GET de productos, podrías llamar a fetchProducts aquí con el keyword
+            // fetchProducts(value); // Ejemplo
         }, 500);
 
         setSearchTimeout(timeout);
@@ -141,7 +145,6 @@ export default function ProductsPage() {
         setLoading(true);
 
         try {
-            // Aseguramos la barra final para compatibilidad con Django REST Framework
             const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
 
             const response = await fetch(url);
@@ -149,23 +152,25 @@ export default function ProductsPage() {
                 throw new Error("Error al obtener productos");
             }
 
+            // Ahora la respuesta es el objeto ApiResponse
             const data: ApiResponse = await response.json();
-            // Accede al array 'results' dentro del objeto de respuesta
-            setProducts(data.results || []);
-            
+            // Accede al array 'content' dentro del objeto de respuesta
+            setProducts(data.content || []);
+
+            console.log(url)
+            console.log(data)
+
         } catch (error) {
             console.error("Error al cargar productos:", error);
+
         } finally {
             setLoading(false);
         }
     };
 
-    // La función handlePageChange y la lógica de paginación se eliminan
-    // ya que el nuevo API de Django no la proporciona directamente.
-
     const handleAddToCart = (product: Product) => {
 
-        const rawPrice = product.price ?? "0";
+        const rawPrice = product.sellingPrice ?? "0";
         const rawStock = product.stock ?? "0";
         const parsedPrice = parseFloat(rawPrice as unknown as string);
         const parsedStock = parseFloat(rawStock as unknown as string);
@@ -173,12 +178,12 @@ export default function ProductsPage() {
         const stock = isNaN(parsedStock) ? 0 : parsedStock;
 
         addItem({
-            id: product.id.toString(), // Convertir a string si es necesario para el carrito
-            productName: product.name,
-            productDescription: product.description,
-            imageUrl: product.image,
+            id: product.id.toString(),
+            productName: product.productName,
+            productDescription: product.productDescription,
+            imageUrl: product.imageUrl,
             sellingPrice,
-            discountPercent: 0, // El JSON actual no tiene, se deja 0 por defecto
+            discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
             stock,
         } as any);
 
@@ -260,7 +265,7 @@ export default function ProductsPage() {
                     </div>
                 </div>
 
-                {/* Buscador - lo mantengo visible pero su funcionalidad es limitada sin backend */}
+                {/* Buscador */}
                  <div className="mb-6">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -273,7 +278,7 @@ export default function ProductsPage() {
                     </div>
                 </div>
 
-                {/* Categorías de navegación - se mantienen, pero sin funcionalidad de filtro actual */}
+                {/* Categorías de navegación */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     {["Deshidratados", "Refrigerados", "Premios", "Snacks"].map(
                         (category) => (
@@ -311,7 +316,8 @@ export default function ProductsPage() {
 
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product) => (
+                    {/* Mantengo la verificación Array.isArray(products) como buena práctica defensiva */}
+                    {Array.isArray(products) && products.map((product) => (
                         <div key={product.id} className="flex flex-col">
                             <Link
                                 href={`/products/${product.id}`}
@@ -319,35 +325,32 @@ export default function ProductsPage() {
                             >
                                 <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                     <Image
-                                        src={product.image || "/placeholder.png"}
-                                        alt={product.name}
+                                        src={product.imageUrl || "/placeholder.svg"}
+                                        alt={product.productName}
                                         width={300}
                                         height={300}
                                         className="w-full h-auto object-contain"
                                         unoptimized
-                                    />  
+                                    />
                                 </div>
                                 <div className="flex justify-between items-start">
                                     <h3 className="font-medium group-hover:underline">
-                                        {product.name} {/* Usar product.name */}
+                                        {product.productName}
                                     </h3>
                                 </div>
                             </Link>
 
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="font-bold">
-                                    ${parseFloat(product.price).toFixed(2)}{" "}
-                                    {/* Usar product.price y convertir a number */}
+                                    ${parseFloat(product.sellingPrice).toFixed(2)}{" "}
                                 </span>
-                                {/* El JSON actual no tiene discountPercent, si lo añade el backend, puedes reintroducir esta lógica */}
-                                {/* <span className="font-bold">
-                                    -{product.discountPercent || 0}%
-                                </span>
-                                {product.discountPercent && (
-                                    <span className="text-sm line-through text-gray-500">
-                                        ${product.sellingPrice.toFixed(2)}
-                                    </span>
-                                )} */}
+                                {product.discountPercent && parseFloat(product.discountPercent) > 0 && (
+                                    <>
+                                        <span className="font-bold">
+                                            -{parseFloat(product.discountPercent)}%
+                                        </span>
+                                    </>
+                                )}
                             </div>
 
                             <div className="mt-auto">
@@ -374,11 +377,8 @@ export default function ProductsPage() {
                                 </Button>
                             </div>
                         </div>
-                    ))}{" "}
+                    ))}
                 </div>
-
-                {/* La sección de paginación se ha eliminado porque el nuevo endpoint de Django no proporciona los datos necesarios para la paginación. */}
-                {/* Si tu backend de Django va a manejar la paginación, necesitarás ajustar el tipo Product y la lógica de fetchProducts */}
 
             </div>
             {/* Decorative paw prints */}

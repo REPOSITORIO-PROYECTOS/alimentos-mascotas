@@ -6,24 +6,17 @@ import { ArrowUpDown } from "lucide-react";
 
 export interface ProductoAPI {
   id: number;
-  name: string;
-  category: string;
-  description: string;
-  price: string;     // llega como string
-  stock: string;     // llega como string
-  image: string;
-  is_sellable: boolean;
-  components: {
-    component: number;
-    component_name: string;
-    quantity: string;
-    merma_percentage: string;
-  }[];
+  productName: string; 
+  productDescription: string; 
+  categories: string[];
+  sellingPrice: string; 
+  stock: string;
+  imageUrl: string; 
 }
 
 export const columns: ColumnDef<ProductoAPI>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "productName", // Adaptado al nuevo nombre
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
         Nombre de Producto
@@ -32,14 +25,29 @@ export const columns: ColumnDef<ProductoAPI>[] = [
     ),
   },
   {
-    accessorKey: "description",
+    accessorKey: "productDescription", // Adaptado al nuevo nombre
     header: "Descripción",
   },
   {
-    accessorKey: "price",
-    header: "Precio",
+    accessorKey: "categories", // Adaptado al nuevo nombre
+    header: "Categorías",
     cell: ({ row }) => {
-      const value = parseFloat(row.getValue("price") as string);
+      const categories = row.getValue("categories") as string[];
+      if (!categories || categories.length === 0) return "—";
+      return (
+        <ul className="text-sm list-disc list-inside">
+          {categories.map((cat, i) => (
+            <li key={i}>{cat}</li>
+          ))}
+        </ul>
+      );
+    },
+  },
+  {
+    accessorKey: "sellingPrice", // Adaptado al nuevo nombre
+    header: "Precio de Venta",
+    cell: ({ row }) => {
+      const value = parseFloat(row.getValue("sellingPrice") as string);
       if (isNaN(value)) return <div>—</div>;
       const formatted = new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -56,35 +64,17 @@ export const columns: ColumnDef<ProductoAPI>[] = [
       return <div className="font-medium">{stock}</div>;
     },
   },
+  // Si deseas una columna para la imagen, podrías agregar algo así:
   {
-    accessorKey: "is_sellable",
-    header: "Vendible",
+    accessorKey: "imageUrl",
+    header: "Imagen",
     cell: ({ row }) => {
-      const isSellable = row.getValue("is_sellable") as boolean;
-      return (
-        <span
-          className={`px-2 py-1 rounded text-xs ${
-            isSellable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-          }`}
-        >
-          {isSellable ? "Sí" : "No"}
-        </span>
-      );
+      const imageUrl = row.getValue("imageUrl") as string;
+      if (!imageUrl) return "—";
+      return <img src={imageUrl} alt="Producto" className="h-12 w-12 object-cover rounded" />;
     },
   },
-  {
-    accessorKey: "components",
-    header: "Componentes",
-    cell: ({ row }) => {
-      const comps = row.getValue("components") as ProductoAPI["components"];
-      if (!comps?.length) return "—";
-      return (
-        <ul className="text-sm list-disc list-inside">
-          {comps.map((c, i) => (
-            <li key={i}>{c.component_name} (x{c.quantity})</li>
-          ))}
-        </ul>
-      );
-    },
-  },
+  // La columna 'is_sellable' y 'components' no existen en tu nuevo JSON.
+  // Si necesitas una lógica similar para 'is_sellable', tendrías que inferirla
+  // de otras propiedades o agregarla en tu backend.
 ];

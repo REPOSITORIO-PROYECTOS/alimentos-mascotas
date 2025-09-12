@@ -11,28 +11,21 @@ export default function InventarioPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
 
+  // GET Productos Tabla Admin
   useEffect(() => {
 
     if (!user) return;
 
     const fetchProductos = async () => {
-      try {
-        const res = await fetch("https://barker.sistemataup.online/api/store/products", /* {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${user.token}`,
-          },
-        } */
-        );
-        const data = await res.json();
-        console.log(data)
 
-        setProductos(data.results || []);
-        console.log(productos)
+      try {
+        const res = await fetch("https://barker.sistemataup.online/api/store/products/");
+        const data = await res.json();
+
+        setProductos(data.content || []); 
 
       } catch (err) {
-        /* console.error("❌ Error al obtener productos:", err); */
+        console.error("❌ Error al obtener productos:", err);
 
       } finally {
         setLoading(false);
