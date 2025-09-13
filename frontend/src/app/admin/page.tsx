@@ -130,14 +130,14 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="container mx-auto p-4">
 
-      <div className="my-12 flex items-center justify-between">
+      <div className="my-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Usuarios</CardTitle>
             <CardDescription>
@@ -152,7 +152,7 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Ingresos</CardTitle>
             <CardDescription>
@@ -167,7 +167,7 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Actividad</CardTitle>
             <CardDescription>

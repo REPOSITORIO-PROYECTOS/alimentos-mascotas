@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -35,13 +35,13 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  onAddProduct: () => void; // Nueva prop para agregar producto
+  onAddProduct: () => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onAddProduct, 
+  onAddProduct,
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
@@ -68,19 +68,19 @@ export function DataTable<TData, TValue>({
             {/* Headers de la Tabla */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-4">
 
-                {/* Input de Búsqueda por Producto */}
+                {/* Input de Búsqueda por Cliente (o ID de Venta) */}
                 <Input
-                    placeholder="Filtrar por producto"
-                    value={(table.getColumn("productName")?.getFilterValue() as string) ?? ""}
+                    placeholder="Filtrar por cliente..." // Cambiado para reflejar el nuevo contexto
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""} // Filtrar por el nombre del cliente
                     onChange={(event) =>
-                        table.getColumn("productName")?.setFilterValue(event.target.value)
+                        table.getColumn("name")?.setFilterValue(event.target.value)
                     }
                     className="w-full md:w-1/5 bg-white"
                 />
 
-                {/* Boton para agregar producto */}
-                <Button variant="outline" className="bg-amber-500 text-white cursor-pointer" onClick={onAddProduct}>
-                  + Agregar Artículo
+                {/* Boton para agregar venta */}
+                <Button variant="outline" className="cursor-pointer" onClick={onAddProduct}>
+                  + Nueva Venta
                 </Button>
             </div>
 
@@ -176,6 +176,56 @@ export function DataTable<TData, TValue>({
 
                 </div>
             </div>
+
+            {/* Métricas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+                <div className="bg-card rounded-lg border p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Total Ventas
+                    </h3>
+                    <p className="text-2xl font-bold">
+                        203
+                    </p>
+                </div>
+                <div className="bg-card rounded-lg border p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Aprobadas
+                    </h3>
+                    <p className="text-2xl font-bold text-green-600">
+                        198
+                    </p>
+                </div>
+                <div className="bg-card rounded-lg border p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Pendientes
+                    </h3>
+                    <p className="text-2xl font-bold text-yellow-600">
+                        5
+                    </p>
+                </div>
+                <div className="bg-card rounded-lg border p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Rechazadas
+                    </h3>
+                    <p className="text-2xl font-bold text-red-600">
+                        0
+                    </p>
+                </div>
+                <div className="bg-card rounded-lg border p-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Ingresos Totales
+                    </h3>
+                    <p className="text-2xl font-bold text-green-600">
+                        $370.132,11
+                        {/* {new Intl.NumberFormat("es-AR", {
+                            style: "currency",
+                            currency: "ARS",
+                        }).format(salesStats.totalRevenue)} */}
+                    </p>{" "}
+                </div>
+            </div>
+
+
         </div>
     )
 }
