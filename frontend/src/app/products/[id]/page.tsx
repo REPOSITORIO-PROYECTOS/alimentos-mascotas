@@ -54,82 +54,169 @@ type Product = {
     createdBy: string | null;
 };
 
+// Define el tipo para una reseña
+type Review = {
+    id: number;
+    product: number;
+    user: string; // Asumiendo que 'user' es el nombre del usuario, según tu payload
+    rating: number;
+    comment: string;
+    created_at: string;
+};
+
 export default function ProductDetail({
   params,
 }: {
   params: Promise<{ id: string }>; // Explicitly type params as a Promise
 }) {
-  // SOLUCIÓN DEFINITIVA: Usar React.use() para acceder a los parámetros
-  // `React.use()` es la forma de "unwrapear" promesas en componentes.
-  // Es la forma más limpia y recomendada por Next.js para esto en el App Router.
   const resolvedParams = React.use(params);
-  const productId = resolvedParams.id; // Ahora accedes a 'id' de la promesa resuelta.
+  const productId = resolvedParams.id;
 
-  const { user } = useAuthStore();
+  const { user } = useAuthStore(); // Asegúrate de obtener el token del store
+  const token = user?.token;
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [rating, setRating] = useState(4);
+  const [rating, setRating] = useState(4); // Estado para el rating del formulario
+  const [comment, setComment] = useState(""); // Estado para el comentario del formulario
+  const [productReviews, setProductReviews] = useState<Review[]>([]); // Nuevo estado para las reseñas
   const [selectedSize, setSelectedSize] = useState("medium");
   const [selectedQuantity, setSelectedQuantity] = useState("1");
-  
   const { addItem } = useCartStore();
 
-  useEffect(() => {
-    // Ya no necesitamos la lógica de `currentProductId` ni el estado adicional
-    // porque `productId` ya está resuelto y disponible aquí.
+  // GET Reseñas
+  const fetchProductReviews = async (pId: string) => {
+    try {
+      const url = `${API_BASE}/store/products/${pId}/reviews`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Error al obtener las reseñas: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setProductReviews(data.results);
+    } catch (error) {
+      console.error("Error al cargar las reseñas:", error);
+      toast.error("Error al cargar las reseñas.");
+    }
+  };
 
-    if (!productId) {
-      setLoading(false); // No hay ID, no hay producto, detener la carga.
+    // GET Productos y review
+    useEffect(() => {
+
+        if (!productId) {
+            setLoading(false);
+        return;
+        }
+
+        const fetchProductDetailAndReviews = async () => {
+
+        setLoading(true);
+
+        try {
+            // Fetch product detail
+            const productUrl = `${API_BASE.replace(/\/$/, "")}/productos/obtener/${productId}`;
+            const productResponse = await fetch(productUrl);
+
+            if (!productResponse.ok) {
+            throw new Error(`Error al obtener el producto con ID ${productId}: ${productResponse.statusText}`);
+            }
+
+            const productData: Product = await productResponse.json();
+            setProduct(productData);
+            
+            // Fetch reviews
+            await fetchProductReviews(productId);
+
+        } catch (error) {
+            console.error("Error al cargar el producto o las reseñas:", error);
+            setProduct(null);
+            setProductReviews([]);
+            
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchProductDetailAndReviews();
+    }, [productId]);
+
+    const handleAddToCart = () => {
+
+    if (!product) {
+      toast.error("No se pudo añadir el producto al carrito.");
       return;
     }
 
-    const fetchProductDetail = async () => {
-      setLoading(true);
-      try {
-        // La URL del endpoint ha cambiado según tu último comentario.
-        const url = `${API_BASE.replace(/\/$/, "")}/productos/obtener/${productId}`;
-        console.log("Fetching product from URL:", url); // Para depuración
-        const response = await fetch(url);
+    addItem(
+        {
+            id: product.id.toString(),
+            productName: product.productName,
+            imageUrl: product.imageUrl,
+            sellingPrice: parseFloat(product.sellingPrice),
+            discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
+            stock: parseFloat(product.stock),
+        },
+            Number(selectedQuantity)
+    );
+
+    toast.success("Producto añadido al carrito");
+  };
+
+  const handleSubmitReview = async () => {
+
+    if (!user || !token) {
+        toast.error("Debes iniciar sesión para escribir una reseña.");
+        return;
+    }
+    if (!product) {
+        toast.error("No se puede añadir reseña sin producto.");
+        return;
+    }
+    if (comment.trim() === "") {
+        toast.error("El comentario no puede estar vacío.");
+        return;
+    }
+    if (rating < 1 || rating > 5) {
+        toast.error("El rating debe ser entre 1 y 5 estrellas.");
+        return;
+    }
+
+    try {
+        const url = `${API_BASE}/store/products/${productId}/reviews`;
+        console.log(url)
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                product: product.id,
+                rating: rating,
+                comment: comment,
+            }),
+        });
 
         if (!response.ok) {
-          throw new Error(`Error al obtener el producto con ID ${productId}: ${response.statusText}`);
+            // Intentar leer el mensaje de error del backend si está disponible
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `Error al enviar la reseña: ${response.statusText}`);
         }
 
-        const data: Product = await response.json();
-        setProduct(data);
-        
-      } catch (error) {
-        console.error("Error al cargar el producto:", error);
-        setProduct(null);
-      } finally {
-        setLoading(false); // Siempre detener la carga al final.
-      }
+        toast.success("Reseña enviada con éxito!");
+        setComment("");
+        setRating(4); // Resetear rating a un valor por defecto
+        setShowReviewForm(false);
+        // Volver a cargar las reseñas para mostrar la nueva
+        await fetchProductReviews(productId);
+
+    } catch (error: any) {
+        console.error("Error al enviar la reseña:", error);
+        toast.error(error.message || "Error al enviar la reseña. Inténtalo de nuevo.");
+    }
     };
 
-    fetchProductDetail();
-  }, [productId]); // Dependencia clave: productId (ya resuelto)
-
-    const handleAddToCart = () => {
-        if (!product) {
-            toast.error("No se pudo añadir el producto al carrito.");
-            return;
-        }
-
-        addItem(
-            {
-                id: product.id.toString(),
-                productName: product.productName,
-                imageUrl: product.imageUrl,
-                sellingPrice: parseFloat(product.sellingPrice),
-                discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
-                stock: parseFloat(product.stock),
-            },
-            Number(selectedQuantity)
-        );
-
-        toast.success("Producto añadido al carrito");
-    };
 
     if (loading || !product) {
         return (
@@ -150,8 +237,6 @@ export default function ProductDetail({
                             className="mt-6 bg-amber-400 hover:bg-amber-500 text-black"
                             asChild
                         >
-                            {/* Puedes poner un Link a la página de productos aquí si quieres */}
-                            {/* <Link href="/products">Volver a Productos</Link> */}
                         </Button>
                     </>
                     )}
@@ -268,33 +353,37 @@ export default function ProductDetail({
                 Reseñas
             </h2>
 
-            <div className="bg-white p-6 rounded-lg shadow-xs mb-6">
-                <div className="flex items-center mb-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                    key={star}
-                    className={`w-5 h-5 ${
-                        star === 1
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-gray-300"
-                    }`}
-                    />
-                ))}
-            </div>
+            {productReviews.length > 0 ? (
+                productReviews.map((review) => (
+                    <div key={review.id} className="bg-white p-6 rounded-lg shadow-xs mb-6">
+                        <div className="flex items-center mb-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                    key={star}
+                                    className={`w-5 h-5 ${
+                                        star <= review.rating
+                                            ? "fill-amber-400 text-amber-400"
+                                            : "text-gray-300"
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                        <h3 className="font-medium mb-2">{review.user || "Anónimo"}</h3>
+                        <p className="text-gray-600 mb-4">
+                            {review.comment}
+                        </p>
+                        <p className="text-gray-500 text-sm text-right">
+                            {new Date(review.created_at).toLocaleDateString()}
+                        </p>
+                    </div>
+                ))
+            ) : (
+                <p className="text-center text-gray-500">
+                    No hay reseñas para este producto todavía. ¡Sé el primero en escribir una!
+                </p>
+            )}
 
-            <h3 className="font-medium mb-2">Cliente</h3>
-            <p className="text-gray-600 mb-4">
-            Mi perro adora estos snacks. Son perfectos para el
-            entrenamiento ya que son pequeños y puedo darle varios
-            sin preocuparme por exceder su ingesta calórica diaria.
-            Además, me encanta que sean naturales y sin aditivos
-            artificiales. Definitivamente los compraré de nuevo. La
-            calidad es excelente y el envío fue rápido. Recomiendo
-            este producto a todos los dueños de mascotas que buscan
-            opciones saludables para premiar a sus peludos amigos.
-            </p>
-
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-6">
                 <Button
                     onClick={() => setShowReviewForm(true)}
                     className="bg-amber-400 hover:bg-amber-500 text-black"
@@ -302,10 +391,10 @@ export default function ProductDetail({
                     Escribir Reseña
                 </Button>
             </div>
-        </div>
+        
 
         {showReviewForm && (
-            <div className="bg-gray-100 p-6 rounded-lg">
+            <div className="bg-gray-100 p-6 rounded-lg mt-6">
                 <h2 className="text-2xl font-bold text-center mb-8">
                     Formulario reseñas
                 </h2>
@@ -316,7 +405,8 @@ export default function ProductDetail({
                         Nombre
                     </label>
                     <Input
-                        defaultValue="Pablo"
+                        value={user?.username || ""} // Muestra el nombre del usuario logueado
+                        disabled // El nombre de usuario debería ser automático y no editable
                         className="w-full"
                     />
                     </div>
@@ -339,16 +429,6 @@ export default function ProductDetail({
                         ))}
                     </div>
                 </div>
-
-                <div>
-                    <label className="block text-sm font-medium mb-2">
-                        Mail de Contacto
-                    </label>
-                    <Input
-                        defaultValue="pablocortaza@gmail.com"
-                        className="w-full"
-                    />
-                </div>
             </div>
 
             <div className="mb-6">
@@ -358,6 +438,8 @@ export default function ProductDetail({
                 <Textarea
                 className="w-full min-h-[150px]"
                 placeholder="Escribe tu opinión sobre este producto..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
                 />
             </div>
 
@@ -367,15 +449,19 @@ export default function ProductDetail({
                 onClick={() => setShowReviewForm(false)}
                 className="bg-orange-500 hover:bg-orange-600 text-white border-none"
                 >
-                Cancelar
+                    Cancelar
                 </Button>
-                <Button className="bg-amber-400 hover:bg-amber-500 text-black">
-                Publicar
+                <Button 
+                    className="bg-amber-400 hover:bg-amber-500 text-white"
+                    onClick={handleSubmitReview}
+                    disabled={!user || !token || comment.trim() === "" || rating < 1} // Deshabilita el botón si no hay usuario o falta info
+                >
+                    Publicar
                 </Button>
             </div>
             </div>
         )}
         </div>
     </div>
-    );
+  );
 }
