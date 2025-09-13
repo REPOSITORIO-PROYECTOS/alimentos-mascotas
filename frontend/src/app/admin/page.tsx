@@ -160,9 +160,9 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">€8,350</p>
+            <p className="text-2xl font-bold">$203.144,23</p>
             <p className="text-xs text-muted-foreground">
-              +5.2% desde el mes pasado
+              +8.2% desde el mes pasado
             </p>
           </CardContent>
         </Card>
@@ -175,7 +175,7 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">432</p>
+            <p className="text-2xl font-bold">16</p>
             <p className="text-xs text-muted-foreground">
               Acciones en las últimas 24h
             </p>
@@ -189,7 +189,7 @@ export default function AdminPage() {
           {/* Modal para crear usuario admin */}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="cursor-pointer">Crear Usuario</Button>
+              <Button className="cursor-pointer">+ Crear Administrador</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -282,13 +282,13 @@ export default function AdminPage() {
           </Dialog>
 
           <Button className="cursor-pointer">
-            <Link href="/admin/inventario" className="ml-2">
-              Añadir un Producto
+            <Link href="/admin/inventario">
+              + Añadir un Producto
             </Link>
           </Button>
 
           <Button className="cursor-pointer">
-            <Link href="/soporte" className="ml-2">
+            <Link href="/soporte">
               Soporte del Sistema
             </Link>
           </Button>

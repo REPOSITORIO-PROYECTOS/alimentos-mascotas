@@ -27,6 +27,7 @@ export function ProductFormModal({
   product,
   onSave,
 }: ProductFormModalProps) {
+  
   const { user } = useAuthStore();
   const [formData, setFormData] = useState<Partial<ProductoAPI>>({
     productName: "",

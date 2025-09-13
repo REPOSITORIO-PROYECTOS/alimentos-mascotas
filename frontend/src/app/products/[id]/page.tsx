@@ -166,7 +166,7 @@ export default function ProductDetail({
             <div className="relative">
                 <Image
                     src={product.imageUrl || "/placeholder.svg"}
-                    alt={product.productName}
+                    alt="foto-producto"
                     width={500}
                     height={500}
                     className="rounded-lg w-full h-auto object-cover"

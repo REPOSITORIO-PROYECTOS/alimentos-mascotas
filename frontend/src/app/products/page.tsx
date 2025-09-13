@@ -154,9 +154,7 @@ export default function ProductsPage() {
                 throw new Error("Error al obtener productos");
             }
 
-            // Ahora la respuesta es el objeto ApiResponse
             const data: ApiResponse = await response.json();
-            // Accede al array 'content' dentro del objeto de respuesta
             setProducts(data.content || []);
 
             console.log(url)
