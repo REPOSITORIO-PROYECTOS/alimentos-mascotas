@@ -11,54 +11,44 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge"; // Importar Badge para los estados
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"; // Importar Popover para los ítems
-import Image from "next/image"; // Usar next/image para optimización
+} from "@/components/ui/popover";
+import Image from "next/image";
 
-// REEMPLAZAR EL TIPO DE DATO POR EL QUE VIENE EN EL JSON DE MOVIMIENTOS + CADA COLUMNA DE ESTE ARCHIVO:
-export type OnlineSaleItem = {
-    id: string;
-    status: string;
-    status_detail: string;
-    name: string;
-    email: string;
-    phone: {
-        area_code: string;
-        number: string;
-    };
-    address: {
-        zip_code: string;
-        street_name: string;
-    };
-    items: Array<{
-        id: string;
-        name: string;
-        description: string;
-        image: string;
-        price: string;
-        quantity: string;
-    }>;
+export type MovementItem = {
+  id: number; 
+  movement_type: "INGRESS" | "EGRESS"; 
+  amount: string;
+  description: string;
+  user_username: string;
+  timestamp: string; 
+  payment_external_reference: string;
+  payment_status: "PENDING" | "APPROVED" | "REJECTED";
+  payment_method: string;
+  payment_items: {
+    [key: string]: string; 
+  };
 };
 
 // Función para mapear el estado a un color de Badge
 const getStatusVariant = (status: string) => {
-    switch (status) {
-        case "approved":
-            return "default"; // O 'success' si tu Badge tiene variantes custom
-        case "pending":
-            return "secondary"; // O 'warning'
-        case "rejected":
-            return "destructive"; // O 'error'
-        default:
-            return "outline";
-    }
+  switch (status) {
+    case "APPROVED": 
+      return "default";
+    case "PENDING":
+      return "secondary";
+    case "REJECTED": 
+      return "destructive";
+    default:
+      return "outline";
+  }
 };
 
-export const createOnlineSalesColumns = (): ColumnDef<OnlineSaleItem>[] => [
+export const createOnlineSalesColumns = (): ColumnDef<MovementItem>[] => [
   {
     accessorKey: "id",
     header: ({ column }) => (
@@ -66,98 +56,140 @@ export const createOnlineSalesColumns = (): ColumnDef<OnlineSaleItem>[] => [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        ID Venta
+        ID Movimiento
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
   },
   {
-    accessorKey: "name",
+    accessorKey: "user_username", // Nuevo: username del usuario
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Cliente
+        Usuario
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
   },
   {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone",
-    header: "Teléfono",
+    accessorKey: "movement_type", // Nuevo: Tipo de movimiento
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Tipo
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
-      const phone = row.getValue("phone") as OnlineSaleItem["phone"];
+      const type = row.getValue("movement_type") as MovementItem["movement_type"];
       return (
-        <span>
-          ({phone.area_code}) {phone.number}
-        </span>
+        <Badge variant={type === "INGRESS" ? "default" : "outline"}>
+          {type === "INGRESS" ? "Ingreso" : "Egreso"}
+        </Badge>
       );
     },
   },
   {
-    accessorKey: "address",
-    header: "Dirección de Envío",
+    accessorKey: "amount",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Monto
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
-      const address = row.getValue("address") as OnlineSaleItem["address"];
+      const amount = parseFloat(row.getValue("amount"));
       return (
-        <span>
-          {address.street_name}, {address.zip_code}
-        </span>
+        <div className="text-right font-medium">
+          {new Intl.NumberFormat("es-AR", {
+            style: "currency",
+            currency: "ARS",
+          }).format(amount)}
+        </div>
       );
     },
   },
   {
-    accessorKey: "items",
-    header: "Productos",
+    accessorKey: "description",
+    header: "Descripción",
+    cell: ({ row }) => <div className="max-w-[200px] truncate">{row.getValue("description")}</div>,
+  },
+  {
+    accessorKey: "payment_method", // Nuevo: Método de pago
+    header: "Método de Pago",
+  },
+  {
+    accessorKey: "timestamp",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Fecha
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
-      const items = row.getValue("items") as OnlineSaleItem["items"];
-      const totalItems = items.reduce((acc, item) => acc + parseInt(item.quantity), 0);
-      const totalAmount = items.reduce((acc, item) => acc + parseFloat(item.price) * parseInt(item.quantity), 0);
+      const date = new Date(row.getValue("timestamp"));
+      return <span>{date.toLocaleDateString()} {date.toLocaleTimeString()}</span>;
+    },
+  },
+  {
+    accessorKey: "payment_status", // Se renombra de 'status' a 'payment_status'
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Estado Pago
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const status = row.getValue("payment_status") as MovementItem["payment_status"];
+      return <Badge variant={getStatusVariant(status)}>{status}</Badge>;
+    },
+  },
+  {
+    accessorKey: "payment_items", // Nuevo: Detalles de ítems de pago
+    header: "Detalle Ítems",
+    cell: ({ row }) => {
+      // === CAMBIO AQUÍ: Añadir una comprobación para asegurar que 'items' es un objeto ===
+      const items = row.getValue("payment_items") as MovementItem["payment_items"] | null | undefined; // Permitir null/undefined
+
+      if (!items || Object.keys(items).length === 0) {
+        return <span>N/A</span>; // O cualquier otro mensaje/componente para indicar que no hay ítems
+      }
+
+      const itemKeys = Object.keys(items);
 
       return (
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className="h-8">
-              Ver ({totalItems}) ítems
+              Ver ({itemKeys.length}) detalles
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <h4 className="font-medium leading-none">Detalle de Productos</h4>
-                <p className="text-sm text-muted-foreground">
-                  Valor Total:{" "}
-                  {new Intl.NumberFormat("es-AR", {
-                    style: "currency",
-                    currency: "ARS",
-                  }).format(totalAmount)}
-                </p>
+                <h4 className="font-medium leading-none">Detalles del Pago</h4>
               </div>
               <div className="grid gap-2">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-2">
-                    {/* Usamos next/image para optimizar */}
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={40}
-                      height={40}
-                      className="rounded-md object-cover"
-                    />
+                {itemKeys.map((key) => (
+                  <div key={key} className="flex items-center space-x-2">
                     <div>
-                      <p className="text-sm font-medium">{item.name}</p>
+                      <p className="text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}:</p>
                       <p className="text-xs text-muted-foreground">
-                        {item.quantity} x{" "}
-                        {new Intl.NumberFormat("es-AR", {
-                          style: "currency",
-                          currency: "ARS",
-                        }).format(parseFloat(item.price))}
+                        {items[key]}
                       </p>
                     </div>
                   </div>
@@ -170,27 +202,10 @@ export const createOnlineSalesColumns = (): ColumnDef<OnlineSaleItem>[] => [
     },
   },
   {
-    accessorKey: "status",
-    header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Estado
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      const statusDetail = row.original.status_detail;
-      return <Badge variant={getStatusVariant(status)}>{statusDetail}</Badge>;
-    },
-  },
-  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-      const sale = row.original;
+      const movement = row.original;
 
       return (
         <DropdownMenu>
@@ -202,15 +217,13 @@ export const createOnlineSalesColumns = (): ColumnDef<OnlineSaleItem>[] => [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => alert(`Ver detalles de la venta ${sale.id}`)} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => alert(`Ver detalles del movimiento ${movement.id}`)} className="cursor-pointer">
               Ver Detalles
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => alert(`Marcar como enviado: ${sale.id}`)} className="cursor-pointer">
-              Marcar como Enviado
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => alert(`Cancelar venta: ${sale.id}`)} className="text-red-600 cursor-pointer">
-              Cancelar Venta
+            {/* Aquí puedes añadir acciones específicas para movimientos si las necesitas */}
+            <DropdownMenuItem onClick={() => alert(`Exportar a PDF: ${movement.id}`)} className="cursor-pointer">
+              Exportar a PDF
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

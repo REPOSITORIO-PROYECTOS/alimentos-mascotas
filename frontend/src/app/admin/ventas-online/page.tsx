@@ -1,140 +1,79 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createOnlineSalesColumns, OnlineSaleItem } from "./columns";
+import { createOnlineSalesColumns, MovementItem } from "./columns"; 
 import { DataTable } from "./data-table";
-
+import { useAuthStore } from "@/context/store";
 
 export default function VentasOnlinePage() {
-  const [data, setData] = useState<OnlineSaleItem[]>([]);
+  
+  const [data, setData] = useState<MovementItem[]>([]); 
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
+  
   useEffect(() => {
-    // Simular fetch de datos
+
     const fetchOnlineSales = async () => {
-      // Aquí harías tu fetch real a la API
-      // const response = await fetch('/api/online-sales');
-      // const jsonData: OnlineSaleItem[] = await response.json();
 
-      // Datos de ejemplo para demostración
-      const dummyData: OnlineSaleItem[] = [
-        {
-          id: "1",
-          status: "approved",
-          status_detail: "Pago aprobado",
-          name: "Juan Pérez",
-          email: "juan.perez@example.com",
-          phone: {
-            area_code: "11",
-            number: "55551234",
-          },
-          address: {
-            zip_code: "1406",
-            street_name: "Av. Rivadavia 1234",
-          },
-          items: [
-            {
-              id: "item1",
-              name: "Carne x200	",
-              description: "Carne de res, en presentación x200, ideal para alimentación de mascotas.",
-              image: "placeholder.svg",
-              price: "1500.00",
-              quantity: "2",
-            },
-            {
-              id: "item2",
-              name: "Croquetas Premium",
-              description: "Croquetas de alta calidad para perros adultos.",
-              image: "placeholder.svg",
-              price: "4500.00",
-              quantity: "1",
-            },
-          ],
-        },
-        {
-          id: "2",
-          status: "pending",
-          status_detail: "Pendiente de pago",
-          name: "María García",
-          email: "maria.garcia@example.com",
-          phone: {
-            area_code: "341",
-            number: "44445678",
-          },
-          address: {
-            zip_code: "2000",
-            street_name: "Calle Falsa 123",
-          },
-          items: [
-            {
-              id: "item3",
-              name: "Mini tendones x200",
-              description: "Mini tendones de res, en presentación x200, ideales para perros pequeños.",
-              image: "placeholder.svg",
-              price: "8000.00",
-              quantity: "1",
-            },
-          ],
-        },
-        {
-            id: "3",
-            status: "rejected",
-            status_detail: "Pago rechazado",
-            name: "Carlos López",
-            email: "carlos.lopez@example.com",
-            phone: {
-              area_code: "351",
-              number: "33339012",
-            },
-            address: {
-              zip_code: "5000",
-              street_name: "Av. Colón 500",
-            },
-            items: [
-              {
-                id: "item4",
-                name: "Mini traquea",
-                description: "",
-                image: "placeholder.svg",
-                price: "700.00",
-                quantity: "2",
-              },
-              {
-                id: "item5",
-                name: "Mini tendones x200",
-                description: "",
-                image: "placeholder.svg",
-                price: "3000.00",
-                quantity: "1",
-              },
-            ],
-          },
-      ];
+      if (!user) return;
 
-      setData(dummyData);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch("https://barker.sistemataup.online/api/finances/movimientos/", {
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${user.token}`, 
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching data: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+
+        // El endpoint devuelve "results", que es un array de movimientos.
+        // Asegúrate de que el tipo de 'result.results' coincida con 'MovementItem[]'
+        setData(result.results);
+        console.log(result.results);
+
+      } catch (err) {
+        console.error("Failed to fetch movements:", err);
+        setError("No se pudieron cargar los movimientos. Intenta de nuevo más tarde.");
+
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchOnlineSales();
   }, []);
 
   const handleAddSale = () => {
-    alert("Funcionalidad para agregar venta aún no implementada.");
-
+    alert("Funcionalidad para agregar movimiento aún no implementada.");
   };
 
-  const columns = createOnlineSalesColumns(); 
+  const columns = createOnlineSalesColumns();
 
   return (
     <div className="p-8">
       <div className="my-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Gestión de Ventas Online</h1>
+        <h1 className="text-3xl font-bold">Gestión de Movimientos Financieros</h1> {/* Título actualizado */}
       </div>
 
       {loading ? (
-        <p>Cargando ventas...</p>
+        <p>Cargando movimientos...</p>
+      ) : error ? (
+        <div className="text-red-600 p-4 border border-red-300 rounded-md">
+          <p>{error}</p>
+          <p>Por favor, verifica la conexión o contacta a soporte.</p>
+        </div>
       ) : (
-        <DataTable columns={columns} data={data} onAddProduct={handleAddSale} />
+        <DataTable columns={columns} data={data} onAddMovement={handleAddSale} />
       )}
     </div>
   );

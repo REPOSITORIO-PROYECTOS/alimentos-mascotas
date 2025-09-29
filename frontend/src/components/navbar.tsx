@@ -21,14 +21,12 @@ export function Navbar() {
     const [indicatorStyle, setIndicatorStyle] = useState({});
     const navRef = useRef < HTMLDivElement > (null);
 
+    // PESTAÑAS PARA EL NAV DE ADMIN
     const navItems = [
         { href: "/admin", label: "Home" },
-        { href: "/admin/inventario", label: "Inventario - Stock" },
+        { href: "/admin/inventario", label: "Inventario" },
         { href: "/admin/ventas-online", label: "Ventas del Negocio" },
-        // { href: "/admin/ordenes-trabajo", label: "Ordenes de trabajo" },
-        // { href: "/admin/usuarios", label: "Usuarios" },
-        // { href: "/admin/proveedores", label: "Proveedores" },
-        // { href: "/admin/historial", label: "Historial" },
+        { href: "/admin/codigos-postales", label: "Costos de Envío" },
     ];
 
     useEffect(() => {

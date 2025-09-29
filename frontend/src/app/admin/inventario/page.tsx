@@ -135,6 +135,7 @@ export default function InventarioPage() {
 
   // POST/PATCH Producto
   const handleSaveProduct = async (productData: ProductFormData) => { 
+    
     if (!user) {
       toast.error("No autorizado para guardar productos.");
       throw new Error("No autorizado");
