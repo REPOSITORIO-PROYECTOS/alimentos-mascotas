@@ -122,7 +122,7 @@ export default function RegisterPage() {
             toast.success("Usuario creado correctamente! Iniciando sesión...");
 
                 try {
-                    const roleOrFalse = await login(email, password); // << Login automático
+                    const roleOrFalse = await login(email, password);
 
                     if (roleOrFalse === false) {
                         // Login automático falló, redirigir a login con mensaje

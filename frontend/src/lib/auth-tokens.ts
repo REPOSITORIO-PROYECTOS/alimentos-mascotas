@@ -167,20 +167,18 @@ export function scheduleRefresh() {
         return;
     }
 
-    const expiresAt = payload.exp * 1000; // UNIX timestamp a milisegundos
+    const expiresAt = payload.exp * 1000; 
     const now = Date.now();
-    const refreshThreshold = 60000; // Refrescar 60 segundos antes de la expiración
-    const minRefreshInterval = 5000; // Mínimo 5 segundos antes de expirar
+    const refreshThreshold = 60000; 
+    const minRefreshInterval = 5000; 
 
     const msUntilRefresh = Math.max(minRefreshInterval, expiresAt - now - refreshThreshold);
 
     if (msUntilRefresh <= 0) {
-        console.log("Token de acceso expirado o a punto de expirar, intentando refrescar inmediatamente.");
         refreshAccess().catch(err => console.error("Error al refrescar acceso inmediatamente:", err));
         return;
     }
 
-    console.log(`Programando refresco en ${msUntilRefresh / 1000} segundos.`);
     refreshTimer = window.setTimeout(() => {
         refreshAccess().catch(err => console.error("Error en refresco programado:", err));
     }, msUntilRefresh);

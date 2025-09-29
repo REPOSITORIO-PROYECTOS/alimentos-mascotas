@@ -74,8 +74,9 @@ export default function ProductDetail() {
             }
 
             const data = await response.json();
-            console.log("Reviews data:", data); // Log para ver la estructura de las reseñas
-            setProductReviews(data.results || []); // Asumiendo que las reseñas vienen en un campo 'results'
+            /* console.log("Reviews data:", data); */
+            setProductReviews(data.results || []);
+
         } catch (error) {
             console.error("Error al cargar las reseñas:", error);
             toast.error("Error al cargar las reseñas.");
@@ -101,8 +102,8 @@ export default function ProductDetail() {
                 }
 
                 const productData: Product = await productResponse.json();
-                console.log("Product data from API:", productData);
-                console.log(productUrl);
+                /* console.log("Product data from API:", productData);
+                console.log(productUrl); */
                 setProduct(productData);
 
 
@@ -132,7 +133,6 @@ export default function ProductDetail() {
             {
                 id: product.id.toString(),
                 productName: product.name,
-                /*  productDescription: product.description, // Usar 'description' */
                 imageUrl: product.image, 
                 sellingPrice: parseFloat(product.price), 
                 discountPercent: 0,
@@ -146,6 +146,7 @@ export default function ProductDetail() {
 
     // POST Reseña
     const handleSubmitReview = async () => {
+
         if (!user || !token) {
             toast.error("Debes iniciar sesión para escribir una reseña.");
             return;
@@ -189,6 +190,7 @@ export default function ProductDetail() {
             setRating(4);
             setShowReviewForm(false);
             await fetchProductReviews(productId);
+
         } catch (error: any) {
             console.error("Error al enviar la reseña:", error);
             toast.error(error.message || "Error al enviar la reseña. Inténtalo de nuevo.");
