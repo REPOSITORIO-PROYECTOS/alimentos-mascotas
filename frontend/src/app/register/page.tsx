@@ -49,6 +49,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+    
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [dni, setDni] = useState("");

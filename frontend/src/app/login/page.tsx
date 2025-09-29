@@ -99,19 +99,14 @@ export default function LoginPage() {
             const userRole = await login(data.email, data.password);
 
             if (userRole === false) {
-                // El error ya se gestiona en el store y se muestra en el useEffect
+                
                 return;
             }
 
             toast.success("Inicio de sesión exitoso");
 
-            // La redirección ahora se maneja en el useEffect basado en `isAuthenticated` y `user` del store
-            // Aquí no necesitamos una redirección explícita ya que el useEffect la hará.
-            // Si el login fue exitoso, `isAuthenticated` cambiará a `true` y el `useEffect` se encargará.
-
         } catch (err) {
             console.error("Error durante el inicio de sesión:", err);
-            // Si hay un error que no fue capturado por el store (raro, pero posible)
             toast.error("Error en el inicio de sesión");
         }
     };

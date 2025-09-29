@@ -54,14 +54,11 @@ type ApiResponse = {
 
 export default function ProductsPage() {
     const [initialAnimation, setInitialAnimation] = useState(false);
-    const { user } = useAuthStore(); // Lo mantenemos por si se usa en el futuro, o para el token
-    const [count, setCount] = useState(0); // Usado en la animación de las estadísticas
+    const [count, setCount] = useState(0); 
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
     const [isClient, setIsClient] = useState(false);
-    const router = useRouter();
 
-    // Runtime overrides: permite cambiar la API base vía ?api=... o guardado en localStorage
     const [apiBaseState, setApiBaseState] = useState<string>(API_BASE);
     const [mediaBaseState, setMediaBaseState] = useState<string>(MEDIA_BASE);
 
@@ -133,9 +130,6 @@ export default function ProductsPage() {
 
         const timeout = setTimeout(() => {
             console.log("Realizando búsqueda con:", value);
-            // Si el backend soportara búsqueda en el GET de productos, podrías llamar a fetchProducts aquí con el keyword
-            // Por ahora, si el filtrado es en el frontend, aquí deberías aplicar el filtro a los productos ya cargados.
-            // Ejemplo: setProducts(allProducts.filter(p => p.productName.toLowerCase().includes(value.toLowerCase())));
         }, 500);
 
         setSearchTimeout(timeout);

@@ -79,13 +79,12 @@ export const useAuthStore = create<AuthState>()(
                         throw new Error("No se recibió un token de acceso.");
                     }
 
-                    // 👉 Pasamos los roles a saveTokens para que los guarde en la cookie
                     TokensHelper.saveTokens({ access: accessToken, refresh: refreshToken }, roles);
 
                     set({
                         user: {
                             id: userData.id,
-                            token: accessToken, // Guardamos el access_token aquí
+                            token: accessToken, 
                             username: userData.username,
                             name: userData.name,
                             roles,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,9 +22,11 @@ import {
 import { z } from "zod";
 import { toast } from "sonner";
 import { Link } from "next-view-transitions";
+import { useAuthStore } from "@/context/store";
 
 // Validación igual que en /register
 const registerSchema = z.object({
+  username: z.string().min(1, "El nombre de usuario es requerido"),
   nombre: z.string().min(1, "El nombre es requerido"),
   apellido: z.string().min(1, "El apellido es requerido"),
   dni: z
@@ -42,10 +44,12 @@ const registerSchema = z.object({
       "Debe contener al menos una letra y un número"
     ),
 });
+
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AdminPage() {
 
+  const [username, setUsername] = useState(""); 
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [dni, setDni] = useState("");
@@ -57,10 +61,28 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
 
+  const { user } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+
+  // Una vez montado en el cliente, establecemos isClient a true
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const token = user?.token; 
+
   // POST Crear Admin
   const handleCreateAdmin = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setError("");
+
+    // Verificamos si el cliente está hidratado y si hay token
+    if (!isClient || !token) { 
+      setError("No estás autenticado o el token no está disponible.");
+      toast.error("Error: Token de autenticación no disponible.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
@@ -68,6 +90,7 @@ export default function AdminPage() {
     }
 
     const formData: RegisterFormData = {
+      username,
       nombre,
       apellido,
       dni,
@@ -77,6 +100,7 @@ export default function AdminPage() {
     };
 
     const validation = registerSchema.safeParse(formData);
+
     if (!validation.success) {
       setError(validation.error.errors[0]?.message || "Error en el formulario");
       return;
@@ -84,17 +108,17 @@ export default function AdminPage() {
 
     setLoading(true);
 
-    // Desde panel de admin solo se pueden crear mas admin
     try {
       const res = await fetch(
-        "https://barker.sistemataup.online/api/auth/registrar/",
+        "https://barker.sistemataup.online/api/auth/admins/create/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            // Enviar con los nombres de campo que espera el backend
+            username,
             nombre,
             apellido,
             dni,
@@ -107,6 +131,7 @@ export default function AdminPage() {
 
       if (res.ok) {
         toast.success("Administrador creado con éxito");
+        setUsername("");
         setNombre("");
         setApellido("");
         setDni("");
@@ -115,6 +140,7 @@ export default function AdminPage() {
         setPassword("");
         setConfirmPassword("");
         setOpen(false);
+
       } else {
         const data = await res.json();
         setError(data.message || "Error al crear administrador");
@@ -131,7 +157,6 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-4">
-
       <div className="my-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
       </div>
@@ -206,9 +231,17 @@ export default function AdminPage() {
               )}
 
               <form onSubmit={handleCreateAdmin} className="space-y-4">
+                <div>
+                  <Label>Nombre de Usuario</Label>
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Nombre</Label>
+                    <Label>Primer Nombre</Label>
                     <Input
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
@@ -274,7 +307,11 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <Button type="submit" disabled={loading} className="w-full cursor-pointer">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full cursor-pointer"
+                >
                   {loading ? "Creando..." : "Crear Administrador"}
                 </Button>
               </form>
@@ -282,15 +319,11 @@ export default function AdminPage() {
           </Dialog>
 
           <Button className="cursor-pointer">
-            <Link href="/admin/inventario">
-              + Añadir un Producto
-            </Link>
+            <Link href="/admin/inventario">+ Añadir un Producto</Link>
           </Button>
 
           <Button className="cursor-pointer">
-            <Link href="/soporte">
-              Soporte del Sistema
-            </Link>
+            <Link href="/soporte">Soporte del Sistema</Link>
           </Button>
         </div>
       </div>
