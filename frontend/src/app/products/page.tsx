@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Link } from "next-view-transitions";
-import { Check, ShoppingBag, Star, Search, Phone } from "lucide-react";
+import Link from "next/link"; // Usamos Link de next/link
+import { ShoppingBag, Star, Search } from "lucide-react"; // Eliminadas Check, Phone
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import NumberFlow from "@number-flow/react";
 import { useCartStore } from "@/store/cart-store";
-import { useAuthStore } from "@/context/store";
+import { useAuthStore } from "@/context/store"; // Mantenemos si 'user' se usa en el futuro, o para el token
 
 import { toast as sonnerToast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -53,10 +53,9 @@ type ApiResponse = {
 };
 
 export default function ProductsPage() {
-
     const [initialAnimation, setInitialAnimation] = useState(false);
-    const { user } = useAuthStore();
-    const [count, setCount] = useState(0);
+    const { user } = useAuthStore(); // Lo mantenemos por si se usa en el futuro, o para el token
+    const [count, setCount] = useState(0); // Usado en la animación de las estadísticas
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
     const [isClient, setIsClient] = useState(false);
@@ -135,7 +134,8 @@ export default function ProductsPage() {
         const timeout = setTimeout(() => {
             console.log("Realizando búsqueda con:", value);
             // Si el backend soportara búsqueda en el GET de productos, podrías llamar a fetchProducts aquí con el keyword
-            // fetchProducts(value); // Ejemplo
+            // Por ahora, si el filtrado es en el frontend, aquí deberías aplicar el filtro a los productos ya cargados.
+            // Ejemplo: setProducts(allProducts.filter(p => p.productName.toLowerCase().includes(value.toLowerCase())));
         }, 500);
 
         setSearchTimeout(timeout);
@@ -147,29 +147,25 @@ export default function ProductsPage() {
         setLoading(true);
 
         try {
-            const url = `${API_BASE.replace(/\/$/, "")}/store/products/`;
-
+            const url = `${apiBaseState}/store/products/`; 
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
-
             const data: ApiResponse = await response.json();
             setProducts(data.content || []);
 
-            console.log(url)
-            console.log(data)
+            // Lista de productos 
+            // console.log(data);
 
         } catch (error) {
             console.error("Error al cargar productos:", error);
-
         } finally {
             setLoading(false);
         }
     };
 
     const handleAddToCart = (product: Product) => {
-
         const rawPrice = product.sellingPrice ?? "0";
         const rawStock = product.stock ?? "0";
         const parsedPrice = parseFloat(rawPrice as unknown as string);
@@ -266,7 +262,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Buscador */}
-                 <div className="mb-6">
+                <div className="mb-6">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input
@@ -356,7 +352,6 @@ export default function ProductsPage() {
 
                             <div className="mt-auto">
                                 <Button
-                                    asChild
                                     className={`w-full ${
                                         addedToCart[product.id]
                                             ? "bg-green-500 hover:bg-green-600"
@@ -366,7 +361,7 @@ export default function ProductsPage() {
                                 >
                                     {addedToCart[product.id] ? (
                                         <span>
-                                            <Check className="mr-2 h-4 w-4" />
+                                            {/* <Check className="mr-2 h-4 w-4" /> // Check no estaba importado */}
                                             Agregado al carrito
                                         </span>
                                     ) : (
@@ -380,7 +375,6 @@ export default function ProductsPage() {
                         </div>
                     ))}
                 </div>
-
             </div>
             {/* Decorative paw prints */}
             {[...Array(16)].map((_, i) => {
