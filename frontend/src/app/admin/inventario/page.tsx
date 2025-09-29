@@ -2,10 +2,41 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "./data-table";
-import { ProductoAPI, createColumns } from "./columns"; 
+import { createColumns } from "./columns"; 
 import { useAuthStore } from "@/context/store";
 import { toast } from "sonner";
-import { ProductFormModal } from "./ProductFormModal";
+import { ProductFormModal, ProductFormData } from "./ProductFormModal";
+
+// Define tu ProductoAPI original (la que viene del backend en el GET)
+export interface ProductoAPI {
+  id: number;
+  productName: string;
+  productDescription: string;
+  categories: string[];
+  sellingPrice: string; 
+  stock: string; 
+  imageUrl: string;
+}
+
+// Define la interfaz para los componentes del producto, si no la tienes ya.
+interface ProductComponentBackend {
+  component: number;
+  quantity: string;
+  merma_percentage: string;
+}
+
+// Define la interfaz para el payload que tu backend espera en POST/PATCH
+interface ProductPayload {
+  id?: number; 
+  name: string;
+  category: number; 
+  description: string;
+  price: string;
+  stock: string;
+  image: string;
+  is_sellable: boolean;
+  components: ProductComponentBackend[];
+}
 
 export default function InventarioPage() {
 
@@ -16,7 +47,7 @@ export default function InventarioPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductoAPI | null>(null);
 
-  // GET Productos
+  // GET Productos - FUNCIONA PERFECTO
   const fetchProductos = useCallback(async () => {
 
     if (!user) {
@@ -38,7 +69,7 @@ export default function InventarioPage() {
       }
       const data = await res.json();
       setProductos(data.content || []);
-      console.log(data)
+      console.log("Productos obtenidos:", data);
 
     } catch (err) {
       console.error("❌ Error al obtener productos:", err);
@@ -56,16 +87,16 @@ export default function InventarioPage() {
 
   // Funciones para el CRUD
   const handleAddProduct = () => {
-    setEditingProduct(null); // Asegurarse de que el modal esté en modo "crear"
+    setEditingProduct(null); 
     setIsModalOpen(true);
   };
 
   const handleEditProduct = (product: ProductoAPI) => {
-    setEditingProduct(product); // Cargar el producto para editar
+    setEditingProduct(product); 
     setIsModalOpen(true);
   };
 
-  // DELETE Producto
+  // DELETE Producto - FUNCIONA PERFECTO
   const handleDeleteProduct = async (productId: number) => {
 
     if (!user) {
@@ -77,11 +108,9 @@ export default function InventarioPage() {
       return;
     }
     
-    console.log(user.token)
-
     try {
       const res = await fetch(
-        `https://barker.sistemataup.online/api/management/products/${productId}`,
+        `https://barker.sistemataup.online/api/management/products/${productId}/`,
         {
           method: "DELETE",
           headers: {
@@ -104,9 +133,8 @@ export default function InventarioPage() {
     }
   };
 
-  // PATCH Producto
-  const handleSaveProduct = async (productData: Partial<ProductoAPI>) => {
-
+  // POST/PATCH Producto
+  const handleSaveProduct = async (productData: ProductFormData) => { 
     if (!user) {
       toast.error("No autorizado para guardar productos.");
       throw new Error("No autorizado");
@@ -114,35 +142,26 @@ export default function InventarioPage() {
 
     const isEditing = !!productData.id;
     const url = isEditing
-      ? `https://barker.sistemataup.online/api/management/products/${productData.id}`
-      : "https://barker.sistemataup.online/api/management/products";
+      ? `https://barker.sistemataup.online/api/management/products/${productData.id}/`
+      : "https://barker.sistemataup.online/api/management/products/";
     const method = isEditing ? "PATCH" : "POST";
 
-    // --- CONSTRUCCIÓN DEL PAYLOAD AJUSTADA ---
-    const payload: Record<string, any> = { // Usamos Record<string, any> para flexibilidad
-      name: productData.productName,            // Ajustado: productName -> name
-      description: productData.productDescription, // Ajustado: productDescription -> description
-      price: productData.sellingPrice?.toString() || "0", // Ajustado: convertir a string
-      stock: productData.stock?.toString() || "0",       // Ajustado: convertir a string
-      image: productData.imageUrl,              // Ajustado: imageUrl -> image
-      is_sellable: true,                        // Nuevo campo, asumiendo 'true' por defecto
-      // IMPORTANTE: 'category' del backend espera un ID. Si tu frontend solo tiene nombres,
-      // necesitarás una forma de mapear esos nombres a IDs, o un selector de ID.
-      // Por ahora, pondremos un placeholder o un ID de categoría por defecto si no lo manejas aún.
-      // Si tu backend tiene una categoría por defecto con ID 0, esto podría funcionar para el POST inicial.
-      category: 0, // <--- Ajuste crítico. Necesitarás obtener el ID real de la categoría.
-      components: [], // <--- Nuevo campo. Si no lo usas, envía un array vacío o null si el backend lo permite.
-                      // Si lo usas, necesitarás añadir lógica para construir este array.
+    const payload: ProductPayload = {
+      name: productData.name, 
+      category: parseInt(productData.category), 
+      description: productData.description, 
+      price: productData.price,
+      stock: productData.stock,
+      image: productData.image,
+      is_sellable: productData.is_sellable,
+      components: productData.components.map(c => ({
+        component: parseInt(c.component),
+        quantity: c.quantity,
+        merma_percentage: c.merma_percentage,
+      })),
     };
 
-    console.log("✍️ Se esta enviando:", payload);
-
-    // Para PATCH, solo enviar los campos que se han modificado, y el 'id' sigue yendo en la URL.
-    // Para simplificar, estamos enviando todos los campos que el backend espera.
-    // Tu backend debería ser lo suficientemente robusto para manejar campos no modificados en PATCH.
-    // Si el PATCH de tu backend es estricto y solo espera los campos modificados,
-    // esta lógica podría necesitar más refinamiento para solo incluir campos que
-    // realmente cambiaron o que el usuario modificó en el formulario.
+    /* console.log("Se está enviando:", payload); */
 
     try {
       const res = await fetch(url, {
@@ -155,17 +174,11 @@ export default function InventarioPage() {
       });
 
       if (!res.ok) {
-        // Mejor manejo de errores: intenta leer el cuerpo como texto si falla el JSON
         const errorText = await res.text();
         console.error("Detalles del error API (Texto):", errorText);
-        // Si el error es el SyntaxError, aquí verías el HTML de error.
-        // Si el backend envía JSON de error, puedes intentar parsearlo aquí, pero res.json() ya lo haría.
         throw new Error(`Error al guardar producto: ${res.statusText} - ${errorText}`);
       }
 
-      // Si la respuesta es exitosa y no hay cuerpo, res.json() podría fallar.
-      // Es buena práctica verificar si hay contenido antes de intentar parsear JSON.
-      // Para DELETE o PATCH que devuelven 204 No Content, no intentes res.json().
       if (res.status !== 204 && res.headers.get("Content-Type")?.includes("application/json")) {
           const responseData = await res.json();
           console.log("Respuesta exitosa del servidor:", responseData);
@@ -175,12 +188,12 @@ export default function InventarioPage() {
       }
 
       toast.success(isEditing ? "Producto actualizado correctamente." : "Producto agregado correctamente.");
-      fetchProductos(); // Recargar productos para reflejar los cambios
+      fetchProductos(); 
 
     } catch (error) {
       console.error("Error al guardar producto (catch):", error);
-      toast.error("Error al guardar el producto."); // Mostrar error al usuario
-      throw error; // Re-lanzar para que el modal pueda manejar el error
+      toast.error("Error al guardar el producto."); 
+      throw error; 
     }
   };
 
@@ -199,7 +212,7 @@ export default function InventarioPage() {
       <ProductFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        product={editingProduct}
+        product={editingProduct} 
         onSave={handleSaveProduct}
       />
     </div>
