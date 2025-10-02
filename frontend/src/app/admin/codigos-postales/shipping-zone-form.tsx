@@ -76,8 +76,8 @@ export function ShippingZoneForm({ initialData, onSubmit, isLoading }: ShippingZ
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4"> {/* Usamos space-y para el espaciado vertical general */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-4"> {/* Este div manejará las columnas para los FormField */}
                     <FormField
                         control={form.control}
                         name="name"
@@ -172,12 +172,13 @@ export function ShippingZoneForm({ initialData, onSubmit, isLoading }: ShippingZ
                             </FormItem>
                         )}
                     />
+                    {/* El switch y el botón necesitan ocupar el 100% en ambas configuraciones */}
                     <FormField
                         control={form.control}
                         name="is_active"
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5 md:col-span-2">
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 col-span-1 md:col-span-2"> {/* Agregamos col-span-1 y md:col-span-2 para que ocupe el 100% */}
+                            <div className="space-y-0.5"> {/* Eliminamos md:col-span-2 aquí */}
                                 <FormLabel className="text-base">Zona Activa</FormLabel>
                                 <FormDescription>
                                     Activa o desactiva esta zona de envío.
@@ -192,10 +193,11 @@ export function ShippingZoneForm({ initialData, onSubmit, isLoading }: ShippingZ
                             </FormItem>
                         )}
                     />
-                    <Button type="submit" className="w-full md:col-span-2" disabled={isLoading}>
-                        {isLoading ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Zona de Envío")}
-                    </Button>
                 </div>
+                {/* El botón lo sacamos del grid de inputs para que siempre ocupe el 100% del ancho del formulario */}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Zona de Envío")}
+                </Button>
             </form>
         </Form>
     );
