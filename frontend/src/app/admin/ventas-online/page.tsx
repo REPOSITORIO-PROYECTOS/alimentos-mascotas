@@ -37,7 +37,7 @@ export default function VentasOnlinePage() {
         const result = await response.json();
 
         setData(result.results);
-        console.log(result.results);
+        /* console.log(result.results); */
 
       } catch (err) {
         console.error("Failed to fetch movements:", err);

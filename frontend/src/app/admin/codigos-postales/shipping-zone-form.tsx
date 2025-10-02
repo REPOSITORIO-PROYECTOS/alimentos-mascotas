@@ -77,123 +77,125 @@ export function ShippingZoneForm({ initialData, onSubmit, isLoading }: ShippingZ
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nombre de la Zona</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. CABA Centro" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="province"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Provincia</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. Buenos Aires" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Ciudad</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. La Plata" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="postal_codes"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Códigos Postales</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej. 1000-1900, 2000" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                            Separar múltiples códigos con comas.
-                        </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="base_cost"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Costo Base ($ARS)</FormLabel>
-                        <FormControl>
-                            <Input type="number" step="0.01" placeholder="Ej. 150.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="cost_per_kg"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Costo por KG</FormLabel>
-                        <FormControl>
-                            <Input type="number" step="0.01" placeholder="Ej. 10.50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="estimated_days"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Días Estimados</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="Ej. 3" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="is_active"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <FormLabel className="text-base">Zona Activa</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Nombre de la Zona</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej. CABA Centro" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="province"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Provincia</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej. Buenos Aires" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Ciudad</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej. La Plata" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="postal_codes"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Códigos Postales</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej. 1000-1900, 2000" {...field} />
+                            </FormControl>
                             <FormDescription>
-                                Activa o desactiva esta zona de envío.
+                                Separar múltiples códigos con comas.
                             </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Zona de Envío")}
-                </Button>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="base_cost"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Costo Base ($ARS)</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.01" placeholder="Ej. 150.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="cost_per_kg"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Costo por KG</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.01" placeholder="Ej. 10.50" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="estimated_days"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Días Estimados</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ej. 3" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="is_active"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5 md:col-span-2">
+                                <FormLabel className="text-base">Zona Activa</FormLabel>
+                                <FormDescription>
+                                    Activa o desactiva esta zona de envío.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit" className="w-full md:col-span-2" disabled={isLoading}>
+                        {isLoading ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Zona de Envío")}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

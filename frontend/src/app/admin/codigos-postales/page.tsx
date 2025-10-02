@@ -141,8 +141,8 @@ export default function ShippingCostsPage() {
     const handleSubmitForm = async (values: ShippingZoneFormValues) => {
 
         if (!user) {
-        toast.error("Debes iniciar sesión para realizar esta acción.");
-        return;
+            toast.error("Debes iniciar sesión para realizar esta acción.");
+            return;
         }
 
         const method = selectedZoneToEdit ? 'PATCH' : 'POST';
@@ -155,9 +155,8 @@ export default function ShippingCostsPage() {
         cost_per_kg: parseFloat(values.cost_per_kg).toFixed(2),
         };
 
-
         try {
-        setLoading(true); // Usamos el mismo loading para el formulario
+        setLoading(true); 
         const response = await fetch(url, {
             method: method,
             headers: {
