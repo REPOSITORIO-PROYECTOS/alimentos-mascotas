@@ -12,6 +12,7 @@ export default function VentasOnlinePage() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
   
+  // GET Movimientos y ventas
   useEffect(() => {
 
     const fetchOnlineSales = async () => {
@@ -34,10 +35,7 @@ export default function VentasOnlinePage() {
         }
 
         const result = await response.json();
-        
 
-        // El endpoint devuelve "results", que es un array de movimientos.
-        // Asegúrate de que el tipo de 'result.results' coincida con 'MovementItem[]'
         setData(result.results);
         console.log(result.results);
 

@@ -49,7 +49,7 @@ const getStatusVariant = (status: string) => {
 };
 
 export const createOnlineSalesColumns = (): ColumnDef<MovementItem>[] => [
-  {
+  /* {
     accessorKey: "id",
     header: ({ column }) => (
       <Button
@@ -61,7 +61,7 @@ export const createOnlineSalesColumns = (): ColumnDef<MovementItem>[] => [
       </Button>
     ),
     cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
-  },
+  }, */
   {
     accessorKey: "user_username", // Nuevo: username del usuario
     header: ({ column }) => (
@@ -216,15 +216,19 @@ export const createOnlineSalesColumns = (): ColumnDef<MovementItem>[] => [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={() => alert(`Ver detalles del movimiento ${movement.id}`)} className="cursor-pointer">
               Ver Detalles
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {/* Aquí puedes añadir acciones específicas para movimientos si las necesitas */}
+            
             <DropdownMenuItem onClick={() => alert(`Exportar a PDF: ${movement.id}`)} className="cursor-pointer">
               Exportar a PDF
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       );

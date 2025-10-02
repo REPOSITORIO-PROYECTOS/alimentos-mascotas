@@ -102,14 +102,19 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={() => onEdit(product)} className="cursor-pointer">
               Editar
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600 cursor-pointer">
               Eliminar
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -69,7 +69,7 @@ export default function InventarioPage() {
       }
       const data = await res.json();
       setProductos(data.content || []);
-      console.log("Productos obtenidos:", data);
+      /* console.log("Productos obtenidos:", data); */
 
     } catch (err) {
       console.error("❌ Error al obtener productos:", err);

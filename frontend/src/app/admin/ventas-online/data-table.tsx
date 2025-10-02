@@ -1,4 +1,3 @@
-// /ventas-online/data-table.tsx
 "use client";
 
 import { useMemo, useState } from "react";

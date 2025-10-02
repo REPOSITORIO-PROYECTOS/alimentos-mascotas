@@ -66,7 +66,7 @@ export function DataTable<TData, TValue>({
 
         <div>
             {/* Headers de la Tabla */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pb-4">
 
                 {/* Input de Búsqueda por Producto */}
                 <Input
@@ -75,11 +75,11 @@ export function DataTable<TData, TValue>({
                     onChange={(event) =>
                         table.getColumn("productName")?.setFilterValue(event.target.value)
                     }
-                    className="w-full md:w-1/5 bg-white"
+                    className="w-full sm:w-1/5 bg-white"
                 />
 
                 {/* Boton para agregar producto */}
-                <Button variant="outline" className="bg-amber-500 text-white cursor-pointer" onClick={onAddProduct}>
+                <Button variant="outline" className="w-full sm:w-1/5 bg-amber-500 text-white cursor-pointer" onClick={onAddProduct}>
                   + Agregar Artículo
                 </Button>
             </div>

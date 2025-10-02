@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
                 onChange={(event) =>
                     table.getColumn("name")?.setFilterValue(event.target.value)
                 }
-                className="w-full md:w-1/3 bg-white"
+                className="w-full md:w-1/4 bg-white"
             />
         </div>
 

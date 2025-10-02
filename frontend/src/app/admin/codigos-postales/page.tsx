@@ -1,10 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createShippingCostColumns, ShippingZoneItem } from "./columns";
 import { DataTable } from "./data-table";
-import { useAuthStore } from "@/context/store"; 
+import { useAuthStore } from "@/context/store";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ShippingZoneForm, ShippingZoneFormValues } from "./shipping-zone-form";
+import { toast } from "sonner";
 
 export default function ShippingCostsPage() {
 
@@ -14,58 +33,158 @@ export default function ShippingCostsPage() {
     const [nextPage, setNextPage] = useState<string | null>(null);
     const [previousPage, setPreviousPage] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedZoneToEdit, setSelectedZoneToEdit] = useState<ShippingZoneItem | undefined>(undefined);
+    const [selectedZoneToDeleteId, setSelectedZoneToDeleteId] = useState<number | null>(null);
     const { user } = useAuthStore();
 
-    // GET Costos de Envio
-    const fetchShippingCosts = async (url: string) => {
+    const API_BASE_URL = "https://barker.sistemataup.online/api/shipping-zones/";
+
+    const fetchShippingCosts = useCallback(async (url: string) => {
 
         if (!user) {
-        setError("No hay usuario autenticado.");
-        setLoading(false);
-        return;
+            setError("No hay usuario autenticado.");
+            setLoading(false);
+            return;
         }
 
         try {
-        setLoading(true);
-        setError(null);
+            setLoading(true);
+            setError(null);
 
-        const response = await fetch(url, {
-            headers: {
-            'Content-Type': 'application/json',
-            "Authorization": `Bearer ${user.token}`,
+            const response = await fetch(url, {
+                headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${user.token}`,
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error fetching data: ${response.statusText}`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`Error fetching data: ${response.statusText}`);
+            const result = await response.json();
+
+            setData(result.results);
+            setNextPage(result.next);
+            setPreviousPage(result.previous);
+
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const pageParam = urlParams.get('page');
+            setCurrentPage(pageParam ? parseInt(pageParam) : 1);
+
+            } catch (err: any) {
+
+                console.error("Failed to fetch shipping costs:", err);
+                setError(`No se pudieron cargar los costos de envío. ${err.message || ''}`);
+                toast.error(`Hubo un problema al cargar los datos: ${err.message || 'Error desconocido'}.`)
+
+            } finally {
+                setLoading(false);
         }
+    }, [user, toast]); 
 
-        const result = await response.json();
+    useEffect(() => {
+        fetchShippingCosts(API_BASE_URL);
+    }, [fetchShippingCosts]);
 
-        setData(result.results);
-        setNextPage(result.next);
-        setPreviousPage(result.previous);
+    const handleOpenCreateModal = () => {
+        setSelectedZoneToEdit(undefined); 
+        setIsFormModalOpen(true);
+    };
 
-        // Extraer el número de página de la URL si existe para el control de paginación
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        const pageParam = urlParams.get('page');
-        setCurrentPage(pageParam ? parseInt(pageParam) : 1);
+    const handleEditZone = (zone: ShippingZoneItem) => {
+        setSelectedZoneToEdit(zone);
+        setIsFormModalOpen(true);
+    };
 
-        } catch (err) {
-            console.error("Failed to fetch shipping costs:", err);
-            setError("No se pudieron cargar los costos de envío. Intenta de nuevo más tarde.");
+    const handleDeleteZone = (zoneId: number) => {
+        setSelectedZoneToDeleteId(zoneId);
+    };
 
+    // DELETE Zona de envio
+    const handleConfirmDelete = async () => {
+
+        if (!selectedZoneToDeleteId || !user) return;
+
+        setIsDeleting(true);
+        
+        try {
+
+            const response = await fetch(`${API_BASE_URL}${selectedZoneToDeleteId}/`, {
+                method: 'DELETE',
+                headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${user.token}`,
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error al eliminar: ${response.statusText}`);
+            }
+
+            toast.success("La zona de envío ha sido eliminada exitosamente.",)
+            fetchShippingCosts(`${API_BASE_URL}?page=${currentPage}`); 
+        
+        } catch (err: any) {
+            console.error("Failed to delete shipping zone:", err);
+            toast.error(`Hubo un problema al eliminar la zona: ${err.message || 'Error desconocido'}.`)
+        
         } finally {
-            setLoading(false);
+            setIsDeleting(false);
+            setSelectedZoneToDeleteId(null); 
         }
     };
 
-    useEffect(() => {
-        fetchShippingCosts("https://barker.sistemataup.online/api/shipping-zones/");
-    }, [user]);
+    // POST - PATCH Zona de envio
+    const handleSubmitForm = async (values: ShippingZoneFormValues) => {
 
-    const handleAddShippingCost = () => {
-        alert("Funcionalidad para agregar costo de envío aún no implementada.");
+        if (!user) {
+        toast.error("Debes iniciar sesión para realizar esta acción.");
+        return;
+        }
+
+        const method = selectedZoneToEdit ? 'PATCH' : 'POST';
+        const url = selectedZoneToEdit ? `${API_BASE_URL}${selectedZoneToEdit.id}/` : API_BASE_URL;
+
+        // Asegúrate de que los valores de costo sean strings con 2 decimales si el backend lo espera
+        const payload = {
+        ...values,
+        base_cost: parseFloat(values.base_cost).toFixed(2),
+        cost_per_kg: parseFloat(values.cost_per_kg).toFixed(2),
+        };
+
+
+        try {
+        setLoading(true); // Usamos el mismo loading para el formulario
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${user.token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.detail || JSON.stringify(errorData);
+            throw new Error(`Error al ${method === 'POST' ? 'crear' : 'actualizar'}: ${errorMessage}`);
+        }
+
+        toast.success(`La zona de envío ha sido ${method === 'POST' ? 'creada' : 'actualizada'} exitosamente.`);
+
+        setIsFormModalOpen(false); 
+        fetchShippingCosts(`${API_BASE_URL}?page=${currentPage}`);
+
+        } catch (err: any) {
+        console.error("Failed to save shipping zone:", err);
+        toast.error(`Hubo un problema: ${err.message || 'Error desconocido'}.`,);
+
+        } finally {
+        setLoading(false);
+        }
     };
 
     const handleNextPage = () => {
@@ -80,48 +199,87 @@ export default function ShippingCostsPage() {
         }
     };
 
-    const columns = createShippingCostColumns();
+    // Memoiza las columnas para evitar re-renderizados innecesarios
+    const columns = useMemo(() => createShippingCostColumns({ onEdit: handleEditZone, onDelete: handleDeleteZone }), [handleEditZone, handleDeleteZone]);
 
-    return (
-        <div className="p-8">
-        <div className="my-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Gestión de Costos de Envío</h1>
-            {/* Aquí podrías añadir un botón para agregar un nuevo costo de envío si lo deseas */}
-            {/* <Button onClick={handleAddShippingCost}>Agregar Costo de Envío</Button> */}
-        </div>
-
-        {loading ? (
+  return (
+    <div className="p-8">
+      
+        {loading && !data.length ? (
             <p>Cargando costos de envío...</p>
         ) : error ? (
             <div className="text-red-600 p-4 border border-red-300 rounded-md">
-                <p>{error}</p>
-                <p>Por favor, verifica la conexión o contacta a soporte.</p>
+            <p>{error}</p>
+            <p>Por favor, verifica la conexión o contacta a soporte.</p>
             </div>
         ) : (
             <>
-                <DataTable columns={columns} data={data} />
-                <div className="flex justify-between items-center mt-4">
-
-                    <Button
-                        onClick={handlePreviousPage}
-                        disabled={!previousPage}
-                        className="px-4 py-2 bg-amber-500 text-white rounded-lg disabled:opacity-50 cursor-pointer"
-                    >
-                        Anterior
+                {/* Tabla y Agregar */}
+                <div className="my-8 flex items-center justify-between">
+                    <h1 className="text-3xl font-bold">Gestión de Costos de Envío</h1>
+                    <Button onClick={handleOpenCreateModal} className="cursor-pointer">
+                        + Nueva Zona de Envío
                     </Button>
+                </div>
+                <DataTable columns={columns} data={data} />
 
-                    <span className="text-xl font-semibold">Página {currentPage}</span>
-
+                {/* Controles de Paginacion */}
+                <div className="flex justify-between items-center mt-4">
                     <Button
-                        onClick={handleNextPage}
-                        disabled={!nextPage}
-                        className="px-4 py-2 bg-amber-500 text-white rounded-lg disabled:opacity-50 cursor-pointer"
+                    onClick={handlePreviousPage}
+                    disabled={!previousPage || loading} 
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
+                    variant="outline"
                     >
-                        Siguiente
+                    Anterior
+                    </Button>
+                    <span className="text-sm text-gray-700">Página {currentPage}</span>
+                    <Button
+                    onClick={handleNextPage}
+                    disabled={!nextPage || loading} 
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
+                    variant="outline"
+                    >
+                    Siguiente
                     </Button>
                 </div>
             </>
         )}
-        </div>
-    );
+
+        {/* Modal para Crear/Editar Zona de Envío */}
+        <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>{selectedZoneToEdit ? "Editar Zona de Envío" : "Crear Nueva Zona de Envío"}</DialogTitle>
+                <DialogDescription>
+                {selectedZoneToEdit ? "Realiza cambios en la zona de envío existente." : "Agrega una nueva zona de envío a tu sistema."}
+                </DialogDescription>
+            </DialogHeader>
+            <ShippingZoneForm
+                initialData={selectedZoneToEdit}
+                onSubmit={handleSubmitForm}
+                isLoading={loading} // Pasamos el estado de loading
+            />
+            </DialogContent>
+        </Dialog>
+
+        {/* Diálogo de Confirmación para Eliminar */}
+        <AlertDialog open={selectedZoneToDeleteId !== null} onOpenChange={() => setSelectedZoneToDeleteId(null)}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                Esta acción no se puede deshacer. Esto eliminará permanentemente la zona de envío seleccionada.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+                {isDeleting ? "Eliminando..." : "Eliminar"}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </div>
+  );
 }
