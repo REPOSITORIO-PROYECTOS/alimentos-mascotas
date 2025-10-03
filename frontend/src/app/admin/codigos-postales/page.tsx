@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { createShippingCostColumns, ShippingZoneItem } from "./columns";
-import { DataTable } from "./data-table";
+import { DataTable } from "./data-table"; // Asegúrate de que DataTable esté importado
 import { useAuthStore } from "@/context/store";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,14 +83,14 @@ export default function ShippingCostsPage() {
             } finally {
                 setLoading(false);
         }
-    }, [user, toast]); 
+    }, [user, toast]);
 
     useEffect(() => {
         fetchShippingCosts(API_BASE_URL);
     }, [fetchShippingCosts]);
 
     const handleOpenCreateModal = () => {
-        setSelectedZoneToEdit(undefined); 
+        setSelectedZoneToEdit(undefined);
         setIsFormModalOpen(true);
     };
 
@@ -109,7 +109,7 @@ export default function ShippingCostsPage() {
         if (!selectedZoneToDeleteId || !user) return;
 
         setIsDeleting(true);
-        
+
         try {
 
             const response = await fetch(`${API_BASE_URL}${selectedZoneToDeleteId}/`, {
@@ -125,15 +125,15 @@ export default function ShippingCostsPage() {
             }
 
             toast.success("La zona de envío ha sido eliminada exitosamente.",)
-            fetchShippingCosts(`${API_BASE_URL}?page=${currentPage}`); 
-        
+            fetchShippingCosts(`${API_BASE_URL}?page=${currentPage}`);
+
         } catch (err: any) {
             console.error("Failed to delete shipping zone:", err);
             toast.error(`Hubo un problema al eliminar la zona: ${err.message || 'Error desconocido'}.`)
-        
+
         } finally {
             setIsDeleting(false);
-            setSelectedZoneToDeleteId(null); 
+            setSelectedZoneToDeleteId(null);
         }
     };
 
@@ -156,7 +156,7 @@ export default function ShippingCostsPage() {
         };
 
         try {
-        setLoading(true); 
+        setLoading(true);
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -174,7 +174,7 @@ export default function ShippingCostsPage() {
 
         toast.success(`La zona de envío ha sido ${method === 'POST' ? 'creada' : 'actualizada'} exitosamente.`);
 
-        setIsFormModalOpen(false); 
+        setIsFormModalOpen(false);
         fetchShippingCosts(`${API_BASE_URL}?page=${currentPage}`);
 
         } catch (err: any) {
@@ -203,7 +203,7 @@ export default function ShippingCostsPage() {
 
   return (
     <div className="p-8">
-      
+
         {loading && !data.length ? (
             <p>Cargando costos de envío...</p>
         ) : error ? (
@@ -214,19 +214,19 @@ export default function ShippingCostsPage() {
         ) : (
             <>
                 {/* Tabla y Agregar */}
-                <div className="my-8 flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">Gestión de Costos de Envío</h1>
-                    <Button onClick={handleOpenCreateModal} className="cursor-pointer">
-                        + Nueva Zona de Envío
-                    </Button>
-                </div>
-                <DataTable columns={columns} data={data} />
+                {/* El div con el h1 y el Button se ha movido a data-table.tsx */}
+                <DataTable
+                    columns={columns}
+                    data={data}
+                    title="Gestión de Costos de Envío" // Pasamos el título como prop
+                    onCreateNew={handleOpenCreateModal} // Pasamos la función del botón como prop
+                />
 
                 {/* Controles de Paginacion */}
                 <div className="flex justify-between items-center mt-4">
                     <Button
                     onClick={handlePreviousPage}
-                    disabled={!previousPage || loading} 
+                    disabled={!previousPage || loading}
                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
                     variant="outline"
                     >
@@ -235,7 +235,7 @@ export default function ShippingCostsPage() {
                     <span className="text-sm text-gray-700">Página {currentPage}</span>
                     <Button
                     onClick={handleNextPage}
-                    disabled={!nextPage || loading} 
+                    disabled={!nextPage || loading}
                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
                     variant="outline"
                     >
