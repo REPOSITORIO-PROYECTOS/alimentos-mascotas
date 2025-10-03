@@ -10,7 +10,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -31,19 +30,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MovementItem } from "./columns"; // Importamos MovementItem para tipado de métricas
+import { MovementItem } from "./columns";
 
-// Renombramos la prop para mayor claridad si solo se usa para añadir un movimiento
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  onAddMovement: () => void; // Renombrado de onAddProduct a onAddMovement
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  totalCount: number; 
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onAddMovement, // Renombrado aquí también
+  currentPage,
+  pageSize,
+  totalPages,
+  totalCount,
+  onPageChange,
+  onPageSizeChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -52,7 +60,6 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -60,21 +67,19 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnFilters,
+      // No necesitamos state.pagination aquí
     },
   });
 
   // === CÁLCULO DE MÉTRICAS DINÁMICAS ===
-  // Esto es crucial para que las métricas reflejen los datos reales.
-  // Podrías mover esto a page.tsx o a un custom hook si la lógica crece mucho.
   const metrics = useMemo(() => {
-    let totalMovements = data.length;
     let approvedCount = 0;
     let pendingCount = 0;
     let rejectedCount = 0;
     let totalIngressAmount = 0;
 
     data.forEach((item) => {
-      const movement = item as unknown as MovementItem; // Castear a MovementItem
+      const movement = item as unknown as MovementItem;
       if (movement.payment_status === "APPROVED") {
         approvedCount++;
       } else if (movement.payment_status === "PENDING") {
@@ -84,42 +89,40 @@ export function DataTable<TData, TValue>({
       }
 
       if (movement.movement_type === "INGRESS") {
-        totalIngressAmount += parseFloat(movement.amount || "0"); // Sumar ingresos
+        totalIngressAmount += parseFloat(movement.amount || "0");
       }
     });
 
     return {
-      totalMovements,
+      totalMovements: totalCount, // Usamos totalCount del API
       approvedCount,
       pendingCount,
       rejectedCount,
       totalIngressAmount,
     };
-  }, [data]);
-  // === FIN CÁLCULO DE MÉTRICAS DINÁMICAS ===
-
+  }, [data, totalCount]); // Agregamos totalCount a las dependencias
 
   return (
     <div>
-      {/* Headers de la Tabla */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-4">
-        {/* Input de Búsqueda por Usuario o Descripción */}
+        {/* Input de Búsqueda combinado para usuario y descripción */}
         <Input
-          placeholder="Filtrar por usuario o descripción..." // Placeholder más general
-          value={(table.getColumn("user_username")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("user_username")?.setFilterValue(event.target.value)
-          }
-          className="w-full md:w-1/3 bg-white" // Ajustar el ancho si se desea
+          placeholder="Filtrar por usuario o descripción..."
+          value={(table.getColumn("user_username")?.getFilterValue() as string) ?? ""} // Usamos user_username para el filtro principal
+          onChange={(event) => {
+            // Se podría implementar una lógica de filtro más avanzada aquí
+            // para buscar en múltiples columnas, pero por simplicidad
+            // ahora mismo solo se aplica a user_username.
+            table.getColumn("user_username")?.setFilterValue(event.target.value);
+            // Si quieres filtrar por descripción también, tendrías que:
+            // 1. Modificar el getFilteredRowModel para usar un filtro global.
+            // 2. O aplicar el filtro a otra columna también (ej. description).
+            // Por ejemplo: table.getColumn("description")?.setFilterValue(event.target.value);
+          }}
+          className="w-full md:w-1/5 bg-white"
         />
-
-        {/* Boton para agregar movimiento */}
-        <Button variant="outline" className="cursor-pointer" onClick={onAddMovement}>
-          + Nuevo Movimiento
-        </Button>
       </div>
 
-      {/* Tabla */}
       <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
@@ -148,7 +151,6 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
-                  {/* Filas Tabla */}
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-6">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -169,13 +171,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
 
-        {/* Footer Tabla */}
         <div className="flex flex-col sm:flex-row justify-between items-center m-2">
-          {/* Control de Filas por Página */}
           <Select
             onValueChange={(value) => {
-              table.setPageSize(+value);
+              onPageSizeChange(Number(value)); // Llama a la prop para actualizar en page.tsx
             }}
+            defaultValue={pageSize.toString()} // Asegura que el valor inicial se muestre
           >
             <SelectTrigger className="w-[100px] m-2 cursor-pointer">
               <SelectValue placeholder="10 filas" />
@@ -193,21 +194,23 @@ export function DataTable<TData, TValue>({
             </SelectContent>
           </Select>
 
-          {/* Controles de Paginación */}
           <div className="flex items-center justify-end space-x-2 py-4 mx-2">
+            <span className="flex-shrink-0 text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages} ({totalCount} movimientos)
+            </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
             >
               Anterior
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0} // Deshabilitar si es la última página o no hay páginas
             >
               Siguiente
             </Button>
@@ -225,7 +228,7 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="bg-card rounded-lg border p-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Aprobados
+            Aprobados (Pág. Actual)
           </h3>
           <p className="text-2xl font-bold text-green-600">
             {metrics.approvedCount}
@@ -233,7 +236,7 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="bg-card rounded-lg border p-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Pendientes
+            Pendientes (Pág. Actual)
           </h3>
           <p className="text-2xl font-bold text-yellow-600">
             {metrics.pendingCount}
@@ -241,7 +244,7 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="bg-card rounded-lg border p-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Rechazados
+            Rechazados (Pág. Actual)
           </h3>
           <p className="text-2xl font-bold text-red-600">
             {metrics.rejectedCount}
@@ -249,7 +252,7 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="bg-card rounded-lg border p-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Total Ingresos
+            Total Ingresos (Pág. Actual)
           </h3>
           <p className="text-2xl font-bold text-green-600">
             {new Intl.NumberFormat("es-AR", {
