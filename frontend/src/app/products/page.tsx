@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react"; // Importamos useMemo
 import Image from "next/image";
-import Link from "next/link"; 
-import { ShoppingBag, Search } from "lucide-react"; 
+import Link from "next/link";
+import { ShoppingBag, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import NumberFlow from "@number-flow/react";
@@ -22,7 +22,7 @@ type Product = {
     id: number;
     productName: string;
     productDescription: string;
-    productDetails: string; 
+    productDetails: string;
     imageUrl: string | null;
     images: string[];
     sellingPrice: string;
@@ -42,16 +42,15 @@ type Product = {
 };
 
 type ApiResponse = {
-    content: Product[]; 
+    content: Product[];
     totalElements: number;
     page: number;
     size: number;
 };
 
 export default function ProductsPage() {
-
     const [initialAnimation, setInitialAnimation] = useState(false);
-    const [count, setCount] = useState(0); 
+    const [count, setCount] = useState(0);
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
     const { addItem } = useCartStore();
     const [isClient, setIsClient] = useState(false);
@@ -59,7 +58,8 @@ export default function ProductsPage() {
     const [apiBaseState, setApiBaseState] = useState<string>(API_BASE);
     const [mediaBaseState, setMediaBaseState] = useState<string>(MEDIA_BASE);
 
-    const [products, setProducts] = useState<Product[]>([]);
+    // Almacenamos todos los productos sin filtrar
+    const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [keyword, setKeyword] = useState("");
 
@@ -68,7 +68,6 @@ export default function ProductsPage() {
     );
 
     useEffect(() => {
-
         setIsClient(true);
         setInitialAnimation(true);
 
@@ -113,48 +112,53 @@ export default function ProductsPage() {
         }
     }, [initialAnimation, isClient]);
 
-    // Al cargar el componente, obtenemos los productos
+    // Al cargar el componente, obtenemos todos los productos una sola vez
     useEffect(() => {
         fetchProducts();
     }, []);
 
     const handleSearch = (value: string) => {
-        setKeyword(value);
+        setKeyword(value); // Actualizamos el estado de la palabra clave inmediatamente
 
         if (searchTimeout) {
             clearTimeout(searchTimeout);
         }
 
-        const timeout = setTimeout(() => {
-            console.log("Realizando búsqueda con:", value);
-        }, 500);
-
-        setSearchTimeout(timeout);
+        // No es necesario un debounce si el filtrado es puramente en frontend y rápido.
+        // Si el dataset fuera muy grande y causara lentitud al escribir, se podría reintroducir un debounce aquí.
+        // Para la mayoría de los casos, la actualización instantánea es mejor en frontend.
     };
 
-    // GET Productos
+    // GET Productos - Esta función ahora solo obtiene todos los productos
     const fetchProducts = async () => {
-
         setLoading(true);
-
         try {
-            const url = `${apiBaseState}/store/products/`; 
+            const url = `${apiBaseState}/store/products/`;
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
             const data: ApiResponse = await response.json();
-            setProducts(data.content || []);
-
-            // Lista de productos 
-            // console.log(data);
-
+            setAllProducts(data.content || []); // Guardamos todos los productos
+            console.log(data); // Lista de productos
         } catch (error) {
             console.error("Error al cargar productos:", error);
         } finally {
             setLoading(false);
         }
     };
+
+    // Filtramos los productos basándonos en la palabra clave
+    // Usamos useMemo para optimizar y que el filtrado solo se ejecute cuando allProducts o keyword cambien
+    const filteredProducts = useMemo(() => {
+        if (!keyword) {
+            return allProducts; // Si no hay palabra clave, mostramos todos los productos
+        }
+        const lowercasedKeyword = keyword.toLowerCase();
+        return allProducts.filter((product) =>
+            product.productName.toLowerCase().includes(lowercasedKeyword)
+        );
+    }, [allProducts, keyword]);
 
     const handleAddToCart = (product: Product) => {
         const rawPrice = product.sellingPrice ?? "0";
@@ -170,7 +174,9 @@ export default function ProductsPage() {
             productDescription: product.productDescription,
             imageUrl: product.imageUrl,
             sellingPrice,
-            discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
+            discountPercent: product.discountPercent
+                ? parseFloat(product.discountPercent)
+                : 0,
             stock,
         } as any);
 
@@ -289,7 +295,7 @@ export default function ProductsPage() {
                 )}
 
                 {/* Mensaje si no hay productos */}
-                {!loading && products.length === 0 && (
+                {!loading && filteredProducts.length === 0 && (
                     <div className="text-center py-8">
                         <p className="text-lg">No se encontraron productos.</p>
                         {keyword && (
@@ -303,65 +309,80 @@ export default function ProductsPage() {
 
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.isArray(products) && products.map((product) => (
-                        <div key={product.id} className="flex flex-col">
-                            <Link
-                                href={`/products/${product.id}`}
-                                className="group"
-                            >
-                                <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
-                                    <Image
-                                        src={product.imageUrl || "/placeholder.svg"}
-                                        alt={product.productName}
-                                        width={300}
-                                        height={300}
-                                        className="w-full h-auto object-contain"
-                                        unoptimized
-                                    />
-                                </div>
-                                <div className="flex justify-between items-start">
-                                    <h3 className="font-medium group-hover:underline">
-                                        {product.productName}
-                                    </h3>
-                                </div>
-                            </Link>
-
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="font-bold">
-                                    ${parseFloat(product.sellingPrice).toFixed(2)}{" "}
-                                </span>
-                                {product.discountPercent && parseFloat(product.discountPercent) > 0 && (
-                                    <>
-                                        <span className="font-bold">
-                                            -{parseFloat(product.discountPercent)}%
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="mt-auto">
-                                <Button
-                                    className={`w-full ${
-                                        addedToCart[product.id]
-                                            ? "bg-green-500 hover:bg-green-600"
-                                            : "bg-amber-400 hover:bg-amber-500"
-                                    } text-black`}
-                                    onClick={() => handleAddToCart(product)}
+                    {Array.isArray(filteredProducts) &&
+                        filteredProducts.map((product) => (
+                            <div key={product.id} className="flex flex-col">
+                                <Link
+                                    href={`/products/${product.id}`}
+                                    className="group"
                                 >
-                                    {addedToCart[product.id] ? (
-                                        <span className="text-white">
-                                            Agregado al carrito
-                                        </span>
-                                    ) : (
-                                        <span className="text-black cursor-pointer flex flex-row items-center">
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
-                                            Comprar
-                                        </span>
-                                    )}
-                                </Button>
+                                    <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
+                                        <Image
+                                            src={
+                                                product.imageUrl ||
+                                                "/placeholder.svg"
+                                            }
+                                            alt={product.productName}
+                                            width={300}
+                                            height={300}
+                                            className="w-full h-auto object-contain"
+                                            unoptimized
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-medium group-hover:underline">
+                                            {product.productName}
+                                        </h3>
+                                    </div>
+                                </Link>
+
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-bold">
+                                        $
+                                        {parseFloat(product.sellingPrice).toFixed(
+                                            2
+                                        )}{" "}
+                                    </span>
+                                    {product.discountPercent &&
+                                        parseFloat(product.discountPercent) >
+                                            0 && (
+                                            <>
+                                                <span className="font-bold">
+                                                    -
+                                                    {parseFloat(
+                                                        product.discountPercent
+                                                    )}
+                                                    %
+                                                </span>
+                                            </>
+                                        )}
+                                </div>
+
+                                <div className="mt-auto">
+                                    <Button
+                                        className={`w-full ${
+                                            addedToCart[product.id]
+                                                ? "bg-green-500 hover:bg-green-600"
+                                                : "bg-amber-400 hover:bg-amber-500"
+                                        } text-black`}
+                                        onClick={() =>
+                                            handleAddToCart(product)
+                                        }
+                                    >
+                                        {addedToCart[product.id] ? (
+                                            <span className="text-white">
+                                                Agregado al carrito
+                                            </span>
+                                        ) : (
+                                            <span className="text-black cursor-pointer flex flex-row items-center">
+                                                <ShoppingBag className="mr-2 h-4 w-4" />
+                                                Comprar
+                                            </span>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
             {/* Decorative paw prints */}
