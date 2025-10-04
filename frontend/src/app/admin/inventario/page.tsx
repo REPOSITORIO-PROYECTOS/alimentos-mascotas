@@ -162,8 +162,6 @@ export default function InventarioPage() {
       })),
     };
 
-    /* console.log("Se está enviando:", payload); */
-
     try {
       const res = await fetch(url, {
         method,

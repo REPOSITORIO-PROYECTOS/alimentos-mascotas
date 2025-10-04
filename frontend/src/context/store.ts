@@ -5,18 +5,18 @@ import TokensHelper from "@/lib/auth-tokens";
 
 // Definición de tipos para la respuesta del API de Django
 export interface AuthResponse {
-    id: number; // Cambiado a number según tu JSON
-    access?: string; // JWT access token
-    refresh?: string; // JWT refresh token
+    id: number;
+    access?: string;
+    refresh?: string; 
     username: string;
     name: string;
-    roles: string[]; // Aseguramos que sea un array de strings
+    roles: string[];
 }
 
 // Tipo de usuario simplificado
 export type User = {
-    id: number; // Cambiado a number
-    token: string; // Almacenará el access_token
+    id: number; 
+    token: string;
     username: string;
     name: string;
     roles: string[];
@@ -31,7 +31,7 @@ interface AuthState {
     login: (
         email: string,
         password: string,
-    ) => Promise<string | false>; // Ahora devuelve el rol o false
+    ) => Promise<string | false>; 
     logout: () => void;
     clearError: () => void;
     setTokensFromRefresh: (accessToken: string, refreshToken: string, roles: string[]) => void;

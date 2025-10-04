@@ -2,16 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link"; // Usamos Link de next/link
-import { ShoppingBag, Star, Search } from "lucide-react"; // Eliminadas Check, Phone
+import Link from "next/link"; 
+import { ShoppingBag, Search } from "lucide-react"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import NumberFlow from "@number-flow/react";
 import { useCartStore } from "@/store/cart-store";
-import { useAuthStore } from "@/context/store"; // Mantenemos si 'user' se usa en el futuro, o para el token
-
 import { toast as sonnerToast } from "sonner";
-import { useRouter } from "next/navigation";
 
 // Base URLs configurables vía env vars
 const API_BASE =
@@ -25,7 +22,7 @@ type Product = {
     id: number;
     productName: string;
     productDescription: string;
-    productDetails: string; // Añadido productDetails
+    productDetails: string; 
     imageUrl: string | null;
     images: string[];
     sellingPrice: string;
@@ -44,15 +41,15 @@ type Product = {
     createdBy: string | null;
 };
 
-// Tipo de la respuesta completa de la API con la nueva estructura
 type ApiResponse = {
-    content: Product[]; // Aquí está el array de productos
+    content: Product[]; 
     totalElements: number;
     page: number;
     size: number;
 };
 
 export default function ProductsPage() {
+
     const [initialAnimation, setInitialAnimation] = useState(false);
     const [count, setCount] = useState(0); 
     const [addedToCart, setAddedToCart] = useState<Record<string, boolean>>({});
@@ -71,10 +68,10 @@ export default function ProductsPage() {
     );
 
     useEffect(() => {
+
         setIsClient(true);
         setInitialAnimation(true);
 
-        // Aplicar override en runtime si viene en query string o en localStorage
         try {
             const params = new URLSearchParams(window.location.search);
             const apiParam = params.get("api");
@@ -188,17 +185,17 @@ export default function ProductsPage() {
 
     const stats = [
         {
-            base: 450,
+            base: 453,
             emoji2: "🐕",
             text: "Perritos felices por comer suplementos Baker Pet",
         },
         {
-            base: 150,
+            base: 173,
             emoji2: "🐈",
             text: "Gatos menos estresados por comer alimentos saludables",
         },
         {
-            base: 600,
+            base: 821,
             emoji1: "😺",
             emoji2: "🐶",
             text: "Animales felices por no comer alimentos con aditivos tóxicos",
@@ -306,11 +303,9 @@ export default function ProductsPage() {
 
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Mantengo la verificación Array.isArray(products) como buena práctica defensiva */}
                     {Array.isArray(products) && products.map((product) => (
                         <div key={product.id} className="flex flex-col">
                             <Link
-                                // CAMBIO AQUÍ: Ahora solo pasamos el ID en la URL
                                 href={`/products/${product.id}`}
                                 className="group"
                             >
@@ -354,12 +349,11 @@ export default function ProductsPage() {
                                     onClick={() => handleAddToCart(product)}
                                 >
                                     {addedToCart[product.id] ? (
-                                        <span>
-                                            {/* <Check className="mr-2 h-4 w-4" /> // Check no estaba importado */}
+                                        <span className="text-white">
                                             Agregado al carrito
                                         </span>
                                     ) : (
-                                        <span className="cursor-pointer">
+                                        <span className="text-black cursor-pointer flex flex-row items-center">
                                             <ShoppingBag className="mr-2 h-4 w-4" />
                                             Comprar
                                         </span>

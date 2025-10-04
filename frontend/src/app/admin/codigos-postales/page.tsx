@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { createShippingCostColumns, ShippingZoneItem } from "./columns";
-import { DataTable } from "./data-table"; // Asegúrate de que DataTable esté importado
+import { DataTable } from "./data-table"; 
 import { useAuthStore } from "@/context/store";
 import { Button } from "@/components/ui/button";
 import {
