@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +22,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuthStore } from "@/context/store";
-import { calcularCostoEnvio } from "@/lib/shipping-costs";
 import {
     Select,
     SelectContent,
@@ -30,6 +29,25 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { error } from "console";
+import { toast } from "sonner";
+
+// Definición del esquema para las zonas de envío
+interface ShippingZone {
+    id: number;
+    name: string;
+    province: string;
+    city: string;
+    postal_codes: string; // Puede ser una lista separada por comas o un rango
+    base_cost: string;
+    cost_per_kg: string;
+    estimated_days: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    postal_code: string; // Este campo parece duplicar la info pero lo mantendremos para consistencia
+    shipping_price: number;
+}
 
 // Form schema using Zod
 const formSchema = z
@@ -92,7 +110,6 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CheckoutPage() {
-    
     const { items, totalPrice, clearCart } = useCartStore();
     const { user, isLoading } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,8 +118,9 @@ export default function CheckoutPage() {
     const [paymentMessage, setPaymentMessage] = useState<string>("");
     const [shippingCost, setShippingCost] = useState(0);
     const [shippingMethod, setShippingMethod] = useState<string>("pickup");
+    const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]); // Nuevo estado para zonas de envío
+    const [fetchingShippingZones, setFetchingShippingZones] = useState(true); // Estado de carga
     const router = useRouter();
-    
 
     // Redirigir a login si el usuario no está autenticado y esperar a que se hidrate el front
     useEffect(() => {
@@ -113,6 +131,37 @@ export default function CheckoutPage() {
         }
     }, [user, router, isLoading]);
 
+    // Función para obtener las zonas de envío
+    const fetchShippingZones = useCallback(async () => {
+        setFetchingShippingZones(true);
+        const url = "https://barker.sistemataup.online/api/shipping-zones/";
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${user?.token}`, // Asegúrate de que user.token exista
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setShippingZones(data.results);
+        } catch (error) {
+            console.error("Error fetching shipping zones:", error);
+            // Podrías manejar el error mostrando un mensaje al usuario
+        } finally {
+            setFetchingShippingZones(false);
+        }
+    }, [user?.token]);
+
+    // Cargar zonas de envío al montar el componente (y cuando el usuario esté disponible)
+    useEffect(() => {
+        if (user?.token) {
+            fetchShippingZones();
+        }
+    }, [user?.token, fetchShippingZones]);
+
 
     // Inicializar el formulario
     const form = useForm<FormValues>({
@@ -121,7 +170,7 @@ export default function CheckoutPage() {
             firstName: user?.name || "",
             lastName: "",
             email: user?.username || "",
-            areaCode: "+54",
+            areaCode: "+54", // Asumiendo que el código de área del formulario es para el teléfono
             phoneNumber: "",
             identificationType: "DNI",
             identificationNumber: "",
@@ -134,66 +183,102 @@ export default function CheckoutPage() {
         },
     });
 
-    console.log("Datos del usuario en el store:", user);
-    
+    // Actualizar valores del formulario si el usuario cambia después de la carga inicial
+    useEffect(() => {
+        if (user && !form.formState.isDirty) { // Solo actualizar si el formulario no ha sido tocado por el usuario
+            form.reset({
+                ...form.getValues(),
+                firstName: user.name || "",
+                email: user.username || "",
+            });
+        }
+    }, [user, form]);
+
+
+    // Función para calcular el costo de envío basado en el código postal y las zonas de envío
+    const calculateShippingCost = useCallback((zipCode: string) => {
+        const cp = parseInt(zipCode, 10);
+        
+        if (isNaN(cp)) {
+            toast.error(`CP inválido: ${zipCode}`);
+            return 0;
+        }
+
+        for (const zone of shippingZones) {
+            const postalCodes = zone.postal_codes;
+
+            if (postalCodes.includes("RANGO:")) {
+                const rangeMatch = postalCodes.match(/RANGO:(\d+)-(\d+)/);
+                if (rangeMatch) {
+                    const min = parseInt(rangeMatch[1], 10);
+                    const max = parseInt(rangeMatch[2], 10);
+                    if (cp >= min && cp <= max) {
+                        console.log(`Match en rango para ${zipCode}: ${zone.shipping_price}`);
+                        return zone.shipping_price;
+                    }
+                }
+            } else {
+                const individualCodes = postalCodes.split(',').map(code => code.trim());
+                if (individualCodes.includes(zipCode)) {
+                    console.log(`Match individual para ${zipCode}: ${zone.shipping_price}`); 
+                    return zone.shipping_price;
+                }
+            }
+        }
+        toast.error(`No se encontró zona de envío para CP: ${zipCode}`); 
+        return 0; 
+
+    }, [shippingZones]);
+
     // Verificar parámetros de la URL al cargar la página
     useEffect(() => {
 
-        // Obtener la URL actual
         const url = new URL(window.location.href);
         const searchParams = url.searchParams;
-
-        // Verificar si hay parámetros de Mercado Pago
         const collectionStatus = searchParams.get("collection_status");
         const status = searchParams.get("status");
         const paymentId = searchParams.get("payment_id");
 
         if (collectionStatus || status) {
-            // Determinar el estado del pago
             const paymentResult = collectionStatus || status;
             setPaymentStatus(paymentResult);
 
-            // Configurar mensajes según el estado
             if (paymentResult === "approved") {
                 setOrderSuccess(true);
                 setPaymentMessage(
                     `¡Pago aprobado! Tu número de transacción es: ${paymentId}`
                 );
-                // Limpiar el carrito si el pago fue exitoso
                 clearCart();
-                
             } else if (paymentResult === "pending") {
-
                 setOrderSuccess(true);
                 setPaymentMessage("Tu pago está pendiente de aprobación");
-
             } else if (paymentResult === "rejected") {
-
                 setPaymentMessage(
                     "El pago fue rechazado. Por favor intenta con otro método de pago."
                 );
-
             } else if (paymentResult === "in_process") {
-
                 setOrderSuccess(true);
                 setPaymentMessage("El pago está siendo procesado");
-
             } else {
-                
                 setPaymentMessage(`Estado del pago: ${paymentResult}`);
             }
 
-            // Limpiar la URL para evitar recargar el estado en futuras navegaciones
-            // Solo en producción para evitar problemas con el desarrollo
             if (process.env.NODE_ENV === "production") {
                 window.history.replaceState({}, document.title, "/checkout");
             }
         }
-    }, [clearCart]); // Función para actualizar el costo de envío cuando cambia el código postal
+    }, [clearCart]);
+
+    // Función para actualizar el costo de envío cuando cambia el código postal
     const handleZipCodeChange = (zipCode: string) => {
-        if (shippingMethod === "delivery") {
-            const cost = calcularCostoEnvio(zipCode);
+        // Actualiza el valor en el formulario
+        form.setValue("zipCode", zipCode); // Asegúrate de que el valor se guarde en el formulario
+        
+        if (shippingMethod === "delivery" && zipCode.length >= 4) { // Verifica la longitud del zipCode
+            const cost = calculateShippingCost(zipCode);
             setShippingCost(cost);
+        } else if (shippingMethod === "delivery" && zipCode.length < 4) {
+            setShippingCost(0); // Resetea el costo si el zipCode es demasiado corto
         }
     };
 
@@ -205,8 +290,12 @@ export default function CheckoutPage() {
         } else if (method === "delivery") {
             const zipCode = form.getValues("zipCode");
             if (zipCode) {
-                const cost = calcularCostoEnvio(zipCode);
+                const cost = calculateShippingCost(zipCode);
                 setShippingCost(cost);
+                console.log("Costo de envío calculado:", cost);
+            } else {
+                setShippingCost(0); // Resetear si no hay zipCode cuando se selecciona delivery
+                console.log("Costo de envío reseteado a 0.");
             }
         }
     };
@@ -216,8 +305,11 @@ export default function CheckoutPage() {
         console.log("Submitting order with data:", data);
 
         try {
-            // Simulate API call to process order
+            // Aquí iría tu lógica real para procesar el pedido y llamar a la API de Mercado Pago
+            // Esto es un placeholder con un delay
             await new Promise((resolve) => setTimeout(resolve, 1500));
+
+            // Ejemplo de cómo construir el body para la API (comentado de tu código original)
             // const response = await fetch(`/api/checkout`, {
             //     body: JSON.stringify({
             //         items: items.map((item) => ({
@@ -268,23 +360,16 @@ export default function CheckoutPage() {
             //     // },
             // });
 
-            // // Manejo seguro de la respuesta
             // const responseData = await response.text();
-
-            // // Check if the response is a direct URL
             // if (responseData.trim().startsWith("http")) {
             //     console.log("Redirecting to payment URL:", responseData);
             //     window.location.href = responseData.trim();
             //     return;
             // }
-
-            // // If not a URL, try to parse as JSON
             // let jsonData;
             // try {
             //     jsonData = JSON.parse(responseData);
             //     console.log("Response from Mercado Pago API:", jsonData);
-
-            //     // Si tenemos una URL de inicioPago, redirigir al usuario
             //     if (jsonData && jsonData.inicioPago) {
             //         router.push(jsonData.inicioPago);
             //         return;
@@ -299,8 +384,19 @@ export default function CheckoutPage() {
             //     shippingCost: shippingCost,
             //     shippingMethod: data.shippingMethod,
             // });
+
+            // Si llegamos aquí sin redirección, marcamos éxito (o error simulado)
+            setOrderSuccess(true);
+            setPaymentStatus("approved"); // Simula un pago aprobado
+            setPaymentMessage("¡Tu pedido ha sido procesado con éxito! (Simulado)");
+            clearCart();
+
+
         } catch (error) {
             console.error("Error processing order:", error);
+            setPaymentStatus("rejected");
+            setPaymentMessage("Hubo un error al procesar tu pedido. Inténtalo de nuevo más tarde.");
+            setOrderSuccess(true); // Mostrar el mensaje de error en la pantalla de éxito
         } finally {
             setIsSubmitting(false);
         }
@@ -389,6 +485,17 @@ export default function CheckoutPage() {
                         Volver a la tienda
                     </Button>
                 </div>
+            </div>
+        );
+    }
+    
+    // Muestra un estado de carga mientras se obtienen las zonas de envío
+    if (fetchingShippingZones) {
+        return (
+            <div className="container max-w-4xl mx-auto py-20 px-4 text-center">
+                <p>Cargando información de envío...</p>
+                {/* Puedes añadir un spinner o un indicador de carga aquí */}
+                <Image src="https://barker.sistemataup.online/static/images/Loading.gif" alt="Cargando" width={100} height={100} className="mx-auto mt-4"/>
             </div>
         );
     }
@@ -711,8 +818,8 @@ export default function CheckoutPage() {
                                                                 ) => {
                                                                     field.onChange(
                                                                         e
-                                                                    );
-                                                                    handleZipCodeChange(
+                                                                    ); 
+                                                                    handleZipCodeChange( 
                                                                         e.target
                                                                             .value
                                                                     );
@@ -763,7 +870,7 @@ export default function CheckoutPage() {
                                 <div className="pt-4 md:hidden">
                                     <Button
                                         type="submit"
-                                        className="w-full bg-amber-400 hover:bg-amber-500 text-black"
+                                        className="w-full bg-amber-400 hover:bg-amber-500 text-white cursor-pointer"
                                         disabled={isSubmitting}
                                     >
                                         {isSubmitting
@@ -852,7 +959,7 @@ export default function CheckoutPage() {
                                         </span>
                                     ) : shippingMethod === "delivery" ? (
                                         shippingCost > 0 ? (
-                                            <span>
+                                            <span className="text-green-500">
                                                 ${shippingCost.toFixed(2)}
                                             </span>
                                         ) : (
@@ -879,7 +986,7 @@ export default function CheckoutPage() {
                             <div className="mt-6 hidden md:block">
                                 <Button
                                     onClick={form.handleSubmit(onSubmit)}
-                                    className="w-full bg-amber-400 hover:bg-amber-500 text-black"
+                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting

@@ -65,6 +65,7 @@ export default function ShippingCostsPage() {
             }
 
             const result = await response.json();
+            console.log(result)
 
             setData(result.results);
             setNextPage(result.next);
@@ -201,84 +202,84 @@ export default function ShippingCostsPage() {
     // Memoiza las columnas para evitar re-renderizados innecesarios
     const columns = useMemo(() => createShippingCostColumns({ onEdit: handleEditZone, onDelete: handleDeleteZone }), [handleEditZone, handleDeleteZone]);
 
-  return (
-    <div className="p-8">
+    return (
+        <div className="p-8">
 
-        {loading && !data.length ? (
-            <p>Cargando costos de envío...</p>
-        ) : error ? (
-            <div className="text-red-600 p-4 border border-red-300 rounded-md">
-            <p>{error}</p>
-            <p>Por favor, verifica la conexión o contacta a soporte.</p>
-            </div>
-        ) : (
-            <>
-                {/* Tabla y Agregar */}
-                {/* El div con el h1 y el Button se ha movido a data-table.tsx */}
-                <DataTable
-                    columns={columns}
-                    data={data}
-                    title="Gestión de Costos de Envío" // Pasamos el título como prop
-                    onCreateNew={handleOpenCreateModal} // Pasamos la función del botón como prop
-                />
-
-                {/* Controles de Paginacion */}
-                <div className="flex justify-between items-center mt-4">
-                    <Button
-                    onClick={handlePreviousPage}
-                    disabled={!previousPage || loading}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
-                    variant="outline"
-                    >
-                    Anterior
-                    </Button>
-                    <span className="text-sm text-gray-700">Página {currentPage}</span>
-                    <Button
-                    onClick={handleNextPage}
-                    disabled={!nextPage || loading}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
-                    variant="outline"
-                    >
-                    Siguiente
-                    </Button>
+            {loading && !data.length ? (
+                <p>Cargando costos de envío...</p>
+            ) : error ? (
+                <div className="text-red-600 p-4 border border-red-300 rounded-md">
+                <p>{error}</p>
+                <p>Por favor, verifica la conexión o contacta a soporte.</p>
                 </div>
-            </>
-        )}
+            ) : (
+                <>
+                    {/* Tabla y Agregar */}
+                    {/* El div con el h1 y el Button se ha movido a data-table.tsx */}
+                    <DataTable
+                        columns={columns}
+                        data={data}
+                        title="Gestión de Costos de Envío" // Pasamos el título como prop
+                        onCreateNew={handleOpenCreateModal} // Pasamos la función del botón como prop
+                    />
 
-        {/* Modal para Crear/Editar Zona de Envío */}
-        <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
-            <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>{selectedZoneToEdit ? "Editar Zona de Envío" : "Crear Nueva Zona de Envío"}</DialogTitle>
-                <DialogDescription>
-                {selectedZoneToEdit ? "Realiza cambios en la zona de envío existente." : "Agrega una nueva zona de envío a tu sistema."}
-                </DialogDescription>
-            </DialogHeader>
-            <ShippingZoneForm
-                initialData={selectedZoneToEdit}
-                onSubmit={handleSubmitForm}
-                isLoading={loading} // Pasamos el estado de loading
-            />
-            </DialogContent>
-        </Dialog>
+                    {/* Controles de Paginacion */}
+                    <div className="flex justify-between items-center mt-4">
+                        <Button
+                        onClick={handlePreviousPage}
+                        disabled={!previousPage || loading}
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
+                        variant="outline"
+                        >
+                        Anterior
+                        </Button>
+                        <span className="text-sm text-gray-700">Página {currentPage}</span>
+                        <Button
+                        onClick={handleNextPage}
+                        disabled={!nextPage || loading}
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
+                        variant="outline"
+                        >
+                        Siguiente
+                        </Button>
+                    </div>
+                </>
+            )}
 
-        {/* Diálogo de Confirmación para Eliminar */}
-        <AlertDialog open={selectedZoneToDeleteId !== null} onOpenChange={() => setSelectedZoneToDeleteId(null)}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                <AlertDialogDescription>
-                Esta acción no se puede deshacer. Esto eliminará permanentemente la zona de envío seleccionada.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
-                {isDeleting ? "Eliminando..." : "Eliminar"}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-    </div>
-  );
+            {/* Modal para Crear/Editar Zona de Envío */}
+            <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{selectedZoneToEdit ? "Editar Zona de Envío" : "Crear Nueva Zona de Envío"}</DialogTitle>
+                    <DialogDescription>
+                    {selectedZoneToEdit ? "Realiza cambios en la zona de envío existente." : "Agrega una nueva zona de envío a tu sistema."}
+                    </DialogDescription>
+                </DialogHeader>
+                <ShippingZoneForm
+                    initialData={selectedZoneToEdit}
+                    onSubmit={handleSubmitForm}
+                    isLoading={loading} // Pasamos el estado de loading
+                />
+                </DialogContent>
+            </Dialog>
+
+            {/* Diálogo de Confirmación para Eliminar */}
+            <AlertDialog open={selectedZoneToDeleteId !== null} onOpenChange={() => setSelectedZoneToDeleteId(null)}>
+                <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                    Esta acción no se puede deshacer. Esto eliminará permanentemente la zona de envío seleccionada.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+    );
 }

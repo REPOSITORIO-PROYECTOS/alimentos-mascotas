@@ -135,12 +135,14 @@ export default function ProductsPage() {
         try {
             const url = `${apiBaseState}/store/products/`;
             const response = await fetch(url);
+
             if (!response.ok) {
                 throw new Error("Error al obtener productos");
             }
+
             const data: ApiResponse = await response.json();
-            setAllProducts(data.content || []); // Guardamos todos los productos
-            console.log(data); // Lista de productos
+            setAllProducts(data.content || []);
+
         } catch (error) {
             console.error("Error al cargar productos:", error);
         } finally {
@@ -259,7 +261,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Buscador */}
-                <div className="mb-6">
+                <div className="mb-6 bg-white">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input
@@ -271,7 +273,7 @@ export default function ProductsPage() {
                     </div>
                 </div>
 
-                {/* Categorías de navegación */}
+                {/* 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     {["Deshidratados", "Refrigerados", "Premios", "Snacks"].map(
                         (category) => (
@@ -284,7 +286,7 @@ export default function ProductsPage() {
                             </Button>
                         )
                     )}
-                </div>
+                </div> */}
 
                 {/* Estado de carga */}
                 {loading && (
