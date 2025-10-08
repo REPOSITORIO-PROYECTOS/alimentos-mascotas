@@ -203,6 +203,7 @@ export function DataTable<TData, TValue>({
               size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              className="cursor-pointer"
             >
               Anterior
             </Button>
@@ -210,7 +211,8 @@ export function DataTable<TData, TValue>({
               variant="outline"
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0} // Deshabilitar si es la última página o no hay páginas
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="cursor-pointer"
             >
               Siguiente
             </Button>

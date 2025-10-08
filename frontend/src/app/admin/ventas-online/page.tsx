@@ -144,7 +144,7 @@ export default function VentasOnlinePage() {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
-          totalCount={totalCount} // Pasamos el totalCount a DataTable para las métricas
+          totalCount={totalCount} 
         />
       )}
     </div>

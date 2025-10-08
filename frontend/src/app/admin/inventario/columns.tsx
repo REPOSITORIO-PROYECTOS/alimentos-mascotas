@@ -49,7 +49,7 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
       const categories = row.getValue("categories") as string[];
       if (!categories || categories.length === 0) return "—";
       return (
-        <ul className="text-sm list-disc list-inside">
+        <ul className="text-sm list-inside">
           {categories.map((cat, i) => (
             <li key={i}>{cat}</li>
           ))}
@@ -88,15 +88,15 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
     },
   },
   {
-    id: "actions", // ID único para la columna de acciones
+    id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-      const product = row.original; // Accede al objeto completo del producto
+      const product = row.original; 
 
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
               <span className="sr-only">Abrir menú</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>

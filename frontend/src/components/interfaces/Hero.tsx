@@ -5,20 +5,19 @@ import Link from "next/link";
 
 export default function Hero() {
     return (
-        // <section className="h-auto w-full mt-16">
-        //     <SwiperHome />
-        // </section>
         <section className="py-20 md:py-28">
             <div className="container mx-auto px-2">
                 <div className="flex flex-col items-center gap-20 lg:flex-row lg:items-start">
+
+                    {/* Introducción con fotos */}
                     <div className="max-w-[38.125rem]">
                         <img src="/logo.svg" alt="Logo" className="h-48" />
                         <h1 className="text-3xl pb-6 font-sans font-medium uppercase text-primary lg:text-4xl">
-                            Bienvenido a Barker
+                            Bienvenido a Barker!
                         </h1>
                         <p className="mt-6 text-lg font-bold text-zinc-950">
                             Somos una familia de amantes de los animales.
-                            Fabricamos{" "}
+                            Producimos{" "}
                             <span className="text-primary">
                                 alimentos reales
                             </span>
@@ -28,7 +27,7 @@ export default function Hero() {
                             le damos a nuestras propias mascotas.
                         </p>
                         <p className="text-primary font-sans uppercase text-md pt-6">
-                            Gracias por ser parte de nuestra familia
+                            Gracias por ser parte de nuestra familia!
                         </p>
                         <div className="mt-11 flex gap-5">
                             <Link
@@ -57,6 +56,7 @@ export default function Hero() {
                                 </span>
                             </Link>
                         </div>
+
                         <div className="border-muted2 mt-12 flex gap-14 border-t">
                             <div className="mt-8">
                                 <div className="relative flex -space-x-5">
@@ -120,6 +120,7 @@ export default function Hero() {
                             </div>
                         </div>
                     </div>
+
                     <div className="mx-auto">
                         <div className="grid grid-cols-[4.8rem_5.625rem_10.75rem] grid-rows-[9.3rem_8.68rem_1.125rem_3.875rem] gap-[0.625rem] sm:grid-cols-[5.3rem_6.25rem_12rem] sm:grid-rows-[10.3rem_9.625rem_1.25rem_4.3rem] sm:gap-[0.8rem] xl:grid-cols-[_8.5rem_10rem_19.3rem] xl:grid-rows-[16.625rem_15.5rem_1.375rem_6.9rem] xl:gap-[1.25rem]">
                             <div className="col-[2_/_-1] overflow-hidden rounded-3xl bg-blue-200">
@@ -195,7 +196,10 @@ export default function Hero() {
                                     ></path>
                                 </svg>
                             </div>
+
                             <div className="col-[-2_/_-1] row-[-1_/_-2]">
+
+                                {/* Testimonios Perros */}
                                 <div className="flex w-full items-center gap-3 mb-3.5">
                                     <div className="h-12 w-12 flex-shrink-0 rounded-full border-primary border-2 overflow-hidden">
                                         <img
@@ -214,6 +218,8 @@ export default function Hero() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Testimonios Perros */}
                                 <div className="flex w-full items-center gap-3">
                                     <div className="h-12 w-12 flex-shrink-0 rounded-full border-primary border-2 overflow-hidden">
                                         <img

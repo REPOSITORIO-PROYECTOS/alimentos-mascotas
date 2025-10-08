@@ -4,23 +4,29 @@ import Link from "next/link";
 
 export default function Carrusel() {
     return (
-        <section className="bg-background">
-            <div className="container mx-auto py-12">
-                <header className="relative z-10 flex flex-col items-center justify-center gap-6 bg-background text-center">
-                    <h2 className="text-2xl font-bold font-sans tracking-widest text-primary uppercase lg:text-3xl">
-                        Recomendados con amor
+        <section className="bg-background flex flex-col gap-8">
+
+            {/* Intro al Carrousel */}
+            <div className="container mx-auto py-8">
+                <header className="relative z-10 flex flex-col items-center justify-center gap-8 bg-background text-center">
+                    <h2 className="text-2xl font-bold font-sans tracking-widest text-primary uppercase lg:text-3xl px-4">
+                        Recomendados con mucho amor
                         <span className="text-primary">.</span>
                     </h2>
-                    <p className="mt-2 mb-4 max-w-xl text-lg text-muted-foreground md:text-xl">
+                    <p className="mt-2 px-6 max-w-xl text-lg text-muted-foreground md:text-xl">
                         Estos snacks naturales son los más elegidos por nuestros
                         peludos. Ideales para premiar, entretener o simplemente
                         cuidarlos como se merecen.
                     </p>
                 </header>
             </div>
-            <div className="container mx-auto max-w-5xl h-96 px-4 py-8">
+
+            {/* Galería de Fotos */}
+            <div className="container mx-auto max-w-5xl h-auto px-4 ">
                 <AutoSlideGallery />
             </div>
+
+            {/* Llamado a la acción */}
             <div className="container mx-auto flex items-center justify-center py-8">
                 <Link
                     href="/products"
