@@ -35,7 +35,7 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  onAddProduct: () => void; // Nueva prop para agregar producto
+  onAddProduct: () => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -60,6 +60,10 @@ export function DataTable<TData, TValue>({
         sorting,
         columnFilters,
         },
+        // Cuando los datos cambian, la tabla debería reajustar su paginación si la cantidad de filas ha disminuido.
+        // `table.setPageIndex(0)` se puede llamar aquí si siempre quieres volver a la primera página cuando cambian los datos.
+        // Sin embargo, si la eliminación solo reduce el número de filas y no quieres forzar la primera página,
+        // el getPaginationRowModel ya se encargará de ajustar la página si la actual está fuera de rango.
     })
 
     return (

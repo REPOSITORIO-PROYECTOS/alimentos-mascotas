@@ -155,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
                         const payload = TokensHelper.parseJwt(state.user.token);
                         const now = Math.floor(Date.now() / 1000);
                         if (!payload || (payload.exp && payload.exp < now)) {
-                            console.log("Token de acceso expirado al rehidratar, intentando refrescar...");
+                            // console.log("Token de acceso expirado al rehidratar, intentando refrescar...");
                             TokensHelper.refreshAccess().then(success => {
                                 if (!success) {
                                     state.logout();

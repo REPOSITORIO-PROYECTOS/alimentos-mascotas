@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"; // Importar MoreHorizontal
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,17 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // Importar DropdownMenu
-
-export interface ProductoAPI {
-  id: number;
-  productName: string;
-  productDescription: string;
-  categories: string[];
-  sellingPrice: string;
-  stock: string;
-  imageUrl: string;
-}
+} from "@/components/ui/dropdown-menu";
+import { ProductoAPI } from "./page"; // Asegúrate de importar ProductoAPI
 
 // Añadimos las props para las acciones de editar/eliminar
 export interface ProductColumnProps {
@@ -59,7 +50,7 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
   },
   {
     accessorKey: "sellingPrice",
-    header: "Precio de Venta",
+    header: "Precio Principal", // Cambiado para aclarar que es el precio base
     cell: ({ row }) => {
       const value = parseFloat(row.getValue("sellingPrice") as string);
       if (isNaN(value)) return <div>—</div>;
@@ -72,7 +63,7 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
   },
   {
     accessorKey: "stock",
-    header: "Stock",
+    header: "Stock Principal", // Cambiado para aclarar que es el stock base
     cell: ({ row }) => {
       const stock = row.getValue("stock") as string;
       return <div className="font-medium">{stock}</div>;
@@ -82,16 +73,32 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
     accessorKey: "imageUrl",
     header: "Imagen",
     cell: ({ row }) => {
-      const imageUrl = row.getValue("imageUrl") as string;
+      const imageUrl = row.getValue("imageUrl") as string | null;
       if (!imageUrl) return "—";
       return <img src={imageUrl} alt="Producto" className="h-12 w-12 object-cover rounded" />;
+    },
+  },
+  {
+    accessorKey: "has_variants",
+    header: "Tiene Variantes",
+    cell: ({ row }) => {
+      const hasVariants = row.getValue("has_variants") as boolean;
+      return <div>{hasVariants ? "Sí" : "No"}</div>;
+    },
+  },
+  {
+    id: "variantCount", // Usamos un ID custom ya que no es un accessorKey directo
+    header: "Nº Variantes",
+    cell: ({ row }) => {
+      const product = row.original;
+      return <div>{product.variants ? product.variants.length : 0}</div>;
     },
   },
   {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-      const product = row.original; 
+      const product = row.original;
 
       return (
         <DropdownMenu>
@@ -102,7 +109,6 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
 
             <DropdownMenuSeparator />
@@ -114,7 +120,6 @@ export const createColumns = ({ onEdit, onDelete }: ProductColumnProps): ColumnD
             <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600 cursor-pointer">
               Eliminar
             </DropdownMenuItem>
-
           </DropdownMenuContent>
         </DropdownMenu>
       );

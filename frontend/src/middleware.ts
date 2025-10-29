@@ -1,6 +1,5 @@
-// src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import * as TokensHelper from "@/lib/auth-tokens"; // Importa todo el helper
+import * as TokensHelper from "@/lib/auth-tokens";
 
 // Definir las rutas protegidas para cada rol
 const adminRoutes = ["/admin"];
