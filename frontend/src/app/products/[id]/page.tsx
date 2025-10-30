@@ -23,17 +23,40 @@ const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE ||
     "https://barker.sistemataup.online/api";
 
+// Nuevo tipo para las variantes
+type Variant = {
+    id: number;
+    gramaje: string | null;
+    unidades: string | null;
+    stock: string;
+    precio: string;
+};
+
+// Tipo Product actualizado para reflejar la estructura completa del JSON
 type Product = {
     id: number;
-    name: string; 
-    category: string; 
-    description: string;
-    image: string | null; 
-    price: string; 
+    productName: string;
+    productDescription: string;
+    productDetails: string;
+    imageUrl: string | null;
+    images: string[];
+    sellingPrice: string;
+    costPrice: string | null;
+    discountPercent: string | null;
+    categories: string[];
+    reviewsIds: number[];
+    reviews: any[];
+    recipeId: number | null;
+    productCode: string | null;
+    sku: string | null;
     stock: string;
-    is_sellable: boolean; 
-    components: any[]; 
-    reviews: any[]; 
+    createdAt: string;
+    updatedAt: string;
+    modifiedBy: string | null;
+    createdBy: string | null;
+    has_variants: boolean;
+    variants: Variant[];
+    // 'category' ya no es necesario si siempre usas 'categories'
 };
 
 type Review = {
@@ -59,7 +82,9 @@ export default function ProductDetail() {
     const [rating, setRating] = useState(4);
     const [comment, setComment] = useState("");
     const [productReviews, setProductReviews] = useState<Review[]>([]);
-    const [selectedSize, setSelectedSize] = useState("medium");
+    
+    // Estado para la variante seleccionada, inicializa a null si no hay ninguna
+    const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
     const [selectedQuantity, setSelectedQuantity] = useState("1");
     const { addItem } = useCartStore();
 
@@ -70,16 +95,23 @@ export default function ProductDetail() {
             const response = await fetch(url);
 
             if (!response.ok) {
+                // Manejar 404 para reseñas como un array vacío en lugar de un error
+                if (response.status === 404) {
+                    setProductReviews([]);
+                    return;
+                }
                 throw new Error(`Error al obtener las reseñas: ${response.statusText}`);
             }
 
             const data = await response.json();
-            /* console.log("Reviews data:", data); */
             setProductReviews(data.results || []);
 
         } catch (error) {
             console.error("Error al cargar las reseñas:", error);
-            toast.error("Error al cargar las reseñas.");
+            // No mostrar toast de error si es un 404 para las reseñas
+            if (!(error instanceof Error && error.message.includes("404"))) {
+                toast.error("Error al cargar las reseñas.");
+            }
         }
     };
 
@@ -91,7 +123,6 @@ export default function ProductDetail() {
         }
 
         const fetchProductDetailAndReviews = async () => {
-            
             setLoading(true);
             try {
                 const productUrl = `${API_BASE}/store/products/${productId}/`;
@@ -102,18 +133,23 @@ export default function ProductDetail() {
                 }
 
                 const productData: Product = await productResponse.json();
-                /* console.log("Product data from API:", productData);
-                console.log(productUrl); */
                 setProduct(productData);
 
+                // Si el producto tiene variantes, selecciona la primera por defecto
+                if (productData.has_variants && productData.variants && productData.variants.length > 0) {
+                    setSelectedVariantId(productData.variants[0].id.toString());
+                } else {
+                    setSelectedVariantId(null); // No hay variantes seleccionadas
+                }
 
+                // Cargar reseñas independientemente de si el producto se encontró
                 await fetchProductReviews(productId);
 
             } catch (error) {
                 console.error("Error al cargar el producto o las reseñas:", error);
-                setProduct(null);
-                setProductReviews([]);
-
+                setProduct(null); // Si el producto no se carga, establecerlo en null
+                setProductReviews([]); // Asegurarse de que las reseñas también estén vacías
+                toast.error("Error al cargar el producto.");
             } finally {
                 setLoading(false);
             }
@@ -123,30 +159,65 @@ export default function ProductDetail() {
     }, [productId]);
 
     const handleAddToCart = () => {
-
         if (!product) {
             toast.error("No se pudo añadir el producto al carrito.");
             return;
         }
 
-        addItem(
-            {
-                id: product.id.toString(),
-                productName: product.name,
-                imageUrl: product.image, 
-                sellingPrice: parseFloat(product.price), 
-                discountPercent: 0,
-                stock: parseFloat(product.stock),
-            },
-            Number(selectedQuantity)
-        );
+        let itemToAdd: any;
+        let currentStockValue: number;
+        let currentPriceValue: number;
+        let currentProductName: string;
+        let cartItemId: string; // Para el ID único en el carrito
+        let variantIdForCart: number | undefined = undefined;
+        let mainProductId: number = product.id; // Guarda el ID del producto principal
 
+        // Si el producto tiene variantes y se ha seleccionado una
+        if (product.has_variants && selectedVariantId) {
+            const selectedVariant = product.variants.find(v => v.id.toString() === selectedVariantId);
+            if (!selectedVariant) {
+                toast.error("Por favor, selecciona una variante válida.");
+                return;
+            }
+            currentStockValue = parseFloat(selectedVariant.stock);
+            currentPriceValue = parseFloat(selectedVariant.precio);
+            currentProductName = `${product.productName} (${selectedVariant.unidades ? `${selectedVariant.unidades} unidades` : ''} ${selectedVariant.gramaje ? `${selectedVariant.gramaje}g` : ''})`.trim();
+            cartItemId = `${product.id}-${selectedVariant.id}`; // ID compuesto para la variante
+            variantIdForCart = selectedVariant.id;
+        } else { // Producto sin variantes
+            currentStockValue = parseFloat(product.stock);
+            currentPriceValue = parseFloat(product.sellingPrice);
+            currentProductName = product.productName;
+            cartItemId = product.id.toString(); // ID del producto principal
+        }
+
+        if (currentStockValue <= 0) {
+            toast.error("No hay stock disponible para este producto/variante.");
+            return;
+        }
+        if (Number(selectedQuantity) > currentStockValue) {
+            toast.error(`Solo hay ${currentStockValue} unidades disponibles.`);
+            return;
+        }
+
+        itemToAdd = {
+            id: cartItemId, // Usa el ID compuesto o principal
+            productName: currentProductName,
+            imageUrl: product.imageUrl,
+            sellingPrice: currentPriceValue,
+            discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
+            stock: currentStockValue,
+            productId: mainProductId, // ID del producto principal
+            variantId: variantIdForCart, // ID de la variante si existe
+            quantity: Number(selectedQuantity), // Agrega la cantidad seleccionada
+        };
+        
+        addItem(itemToAdd, Number(selectedQuantity));
         toast.success("Producto añadido al carrito");
     };
 
     // POST Reseña
     const handleSubmitReview = async () => {
-
         if (!user || !token) {
             toast.error("Debes iniciar sesión para escribir una reseña.");
             return;
@@ -166,7 +237,6 @@ export default function ProductDetail() {
 
         try {
             const url = `${API_BASE}/store/products/${productId}/reviews/`;
-            console.log("Submitting review to:", url);
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -189,13 +259,40 @@ export default function ProductDetail() {
             setComment("");
             setRating(4);
             setShowReviewForm(false);
-            await fetchProductReviews(productId);
+            await fetchProductReviews(productId); // Refrescar las reseñas
 
         } catch (error: any) {
             console.error("Error al enviar la reseña:", error);
             toast.error(error.message || "Error al enviar la reseña. Inténtalo de nuevo.");
         }
     };
+
+    // Función para obtener el stock actual, precio y si es vendible
+    const getCurrentProductInfo = () => {
+        if (!product) {
+            return { stock: 0, price: "0.00", isSellable: false };
+        }
+
+        // Si tiene variantes y se ha seleccionado una
+        if (product.has_variants && selectedVariantId) {
+            const selectedVariant = product.variants.find(v => v.id.toString() === selectedVariantId);
+            if (selectedVariant) {
+                return {
+                    stock: parseFloat(selectedVariant.stock),
+                    price: selectedVariant.precio,
+                    isSellable: parseFloat(selectedVariant.stock) > 0,
+                };
+            }
+        }
+        // Si no tiene variantes, o no hay variantes seleccionadas (por ejemplo, si has_variants es true pero variants array está vacío)
+        return {
+            stock: parseFloat(product.stock),
+            price: product.sellingPrice,
+            isSellable: parseFloat(product.stock) > 0,
+        };
+    };
+
+    const { stock: currentStock, price: currentPrice, isSellable: currentIsSellable } = getCurrentProductInfo();
 
     if (loading) {
         return (
@@ -231,9 +328,10 @@ export default function ProductDetail() {
         <div className="container mx-auto px-4 py-20 max-w-5xl">
             <div className="grid md:grid-cols-2 gap-8 my-6">
                 <div className="relative">
+                    {/* Renderiza la primera imagen del array 'images' si existe, de lo contrario 'imageUrl' */}
                     <Image
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name} 
+                        src={product.images && product.images.length > 0 ? product.images[0] : product.imageUrl || "/placeholder.svg"}
+                        alt={product.productName ? `Foto de ${product.productName}` : "Imagen del producto"}
                         width={500}
                         height={500}
                         className="rounded-lg w-full h-auto object-cover"
@@ -243,47 +341,94 @@ export default function ProductDetail() {
 
                 <div className="flex flex-col gap-4">
                     <h1 className="text-3xl font-semibold mb-2 underline-offset-4">
-                        {product.name} 
+                        {product.productName}
                     </h1>
-                    {product.category && (
-                        <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-1/3">
-                            {product.category}
+
+                    {product.categories && product.categories.length > 0 && (
+                        <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-fit">
+                            {product.categories[0]} {/* Mostrar la primera categoría como badge */}
                         </div>
                     )}
+                    
                     <div className="mb-4">
                         <span className="text-3xl font-bold">
-                            ${parseFloat(product.price).toFixed(2)} 
+                            ${parseFloat(currentPrice).toFixed(2)} {/* Muestra el precio actual */}
                         </span>
+                        {/* Muestra el stock */}
+                        <p className="text-gray-500 text-sm mt-1">
+                            Stock: {currentStock > 0 ? currentStock : "Sin Stock"}
+                        </p>
                     </div>
+
                     <p className="text-gray-600 mb-6">
-                        {product.description}
+                        {product.productDescription}
                     </p>
+
+                    {/* Selector de variantes si el producto tiene has_variants y variantes */}
+                    {product.has_variants && product.variants && product.variants.length > 0 && (
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium mb-2">
+                                Variantes
+                            </label>
+                            <Select
+                                value={selectedVariantId || ''}
+                                onValueChange={(value) => setSelectedVariantId(value)}
+                                // Deshabilitar si no hay variantes disponibles para seleccionar
+                                disabled={!product.variants || product.variants.length === 0}
+                            >
+                                <SelectTrigger className="cursor-pointer">
+                                    <SelectValue placeholder="Seleccionar variante" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {product.variants.map((variant) => (
+                                        <SelectItem key={variant.id} value={variant.id.toString()}>
+                                            {`${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''} - $${parseFloat(variant.precio).toFixed(2)} (Stock: ${variant.stock})`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <label className="block text-sm font-medium mb-2">
                                 Cantidad
                             </label>
-                            <Select value={selectedQuantity} onValueChange={setSelectedQuantity}>
+                            <Select
+                                value={selectedQuantity}
+                                onValueChange={setSelectedQuantity}
+                                disabled={!currentIsSellable || currentStock <= 0} // Deshabilitar si no es vendible
+                            >
                                 <SelectTrigger className="cursor-pointer">
-                                    <SelectValue placeholder="Seleccionar" />
+                                    <SelectValue placeholder="1" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="1">1</SelectItem>
-                                    <SelectItem value="2">2</SelectItem>
-                                    <SelectItem value="3">3</SelectItem>
-                                    <SelectItem value="4">4</SelectItem>
-                                    <SelectItem value="5">5</SelectItem>
-                                    <SelectItem value="10">10</SelectItem>
+                                    {/* Generar opciones de cantidad hasta el stock actual, máximo 100 para evitar una lista enorme */}
+                                    {Array.from({ length: Math.min(currentStock, 100) }, (_, i) => i + 1).map((qty) => (
+                                        <SelectItem key={qty} value={qty.toString()}>
+                                            {qty}
+                                        </SelectItem>
+                                    ))}
+                                    {currentStock > 100 && ( // Si el stock es muy alto, ofrecer una opción para "más de 100" o similar
+                                        <SelectItem value="100+">Más de 100</SelectItem>
+                                    )}
+                                    {/* Si el stock es 0, al menos mostrar "0" para indicar que no hay opciones */}
+                                    {currentStock === 0 && (
+                                        <SelectItem value="0" disabled>0</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white text-lg cursor-pointer"
+                    <Button
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-white text-lg cursor-pointer"
                         onClick={handleAddToCart}
-                        disabled={parseFloat(product.stock) <= 0 || !product.is_sellable}
+                        // Deshabilita el botón si no es vendible, no hay stock, o si tiene variantes y no se ha seleccionado ninguna
+                        disabled={!currentIsSellable || currentStock <= 0 || (product.has_variants && (!selectedVariantId || product.variants.length === 0))}
                     >
-                        {parseFloat(product.stock) > 0 && product.is_sellable ? "Añadir al carrito" : "Sin Stock / No Vendible"} {/* Mensaje más descriptivo */}
+                        {product.has_variants && (!selectedVariantId || product.variants.length === 0) ? "Selecciona una variante" : currentStock > 0 ? "Añadir al carrito" : "Sin Stock"}
                     </Button>
                 </div>
             </div>
@@ -333,10 +478,8 @@ export default function ProductDetail() {
                     </Button>
                 </div>
 
-
                 {showReviewForm && (
                     <div className="bg-gray-100 p-8 rounded-xl mt-6">
-
                         <h2 className="text-2xl font-semibold text-center mb-8">
                             Formulario reseñas
                         </h2>

@@ -23,8 +23,8 @@ export function CartButton() {
         items,
         totalItems,
         totalPrice,
-        removeItem,
-        updateQuantity,
+        removeItem,       
+        updateQuantity,   
         clearCart,
     } = useCartStore();
     const [isOpen, setIsOpen] = useState(false);
@@ -73,7 +73,7 @@ export function CartButton() {
                         <div className="flex-1 overflow-auto py-4">
                             {items.map((item) => (
                                 <div
-                                    key={item.id}
+                                    key={item.id} // item.id es el ID compuesto o principal
                                     className="flex py-4 border-b"
                                 >
                                     <div className="h-20 w-20 bg-amber-100 rounded-md overflow-hidden flex-shrink-0">
@@ -81,7 +81,7 @@ export function CartButton() {
                                             <Image
                                                 src={
                                                     item.imageUrl ||
-                                                    "/placeholder.svg"
+                                                    "/placeholder.svg" // Fallback si imageUrl es null
                                                 }
                                                 alt={item.productName}
                                                 width={80}
@@ -99,13 +99,16 @@ export function CartButton() {
 
                                     <div className="ml-4 flex-1">
                                         <h4 className="font-medium">
-                                            {item.productName}
+                                            {item.productName} {/* Ya incluye el detalle de la variante */}
                                         </h4>
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                            <span>
-                                                Código: {item.productCode}
-                                            </span>
-                                        </div>
+                                        {/* Comprobamos si productCode existe antes de mostrarlo */}
+                                        {item.productCode && (
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                                <span>
+                                                    Código: {item.productCode}
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between mt-2">
                                             <div className="flex items-center border rounded-md">
                                                 <Button
@@ -114,7 +117,7 @@ export function CartButton() {
                                                     className="h-8 w-8 rounded-none"
                                                     onClick={() =>
                                                         updateQuantity(
-                                                            item.id,
+                                                            item.id, // Pasamos el ID del ítem (compuesto/principal)
                                                             item.quantity - 1
                                                         )
                                                     }
@@ -133,7 +136,7 @@ export function CartButton() {
                                                     className="h-8 w-8 rounded-none"
                                                     onClick={() =>
                                                         updateQuantity(
-                                                            item.id,
+                                                            item.id, // Pasamos el ID del ítem (compuesto/principal)
                                                             item.quantity + 1
                                                         )
                                                     }
@@ -147,18 +150,15 @@ export function CartButton() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium">
-                                                    $
-                                                    {(
-                                                        item.sellingPrice *
-                                                        item.quantity
-                                                    ).toFixed(2)}
+                                                    ${(item.sellingPrice * item.quantity).toFixed(2)}
                                                 </span>
+
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8 text-red-500 hover:text-red-700"
                                                     onClick={() =>
-                                                        removeItem(item.id)
+                                                        removeItem(item.id) // Pasamos el ID del ítem (compuesto/principal)
                                                     }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
