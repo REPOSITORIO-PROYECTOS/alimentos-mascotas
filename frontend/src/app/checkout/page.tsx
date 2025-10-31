@@ -306,84 +306,82 @@ export default function CheckoutPage() {
 
         try {
             // Aquí iría tu lógica real para procesar el pedido y llamar a la API de Mercado Pago
-            // Esto es un placeholder con un delay
-            await new Promise((resolve) => setTimeout(resolve, 1500));
 
             // Ejemplo de cómo construir el body para la API (comentado de tu código original)
-            // const response = await fetch(`/api/checkout`, {
-            //     body: JSON.stringify({
-            //         items: items.map((item) => ({
-            //             id: item.id,
-            //             title: item.productName,
-            //             description: item.productCode,
-            //             pictureUrl: item.imageUrl || "",
-            //             categoryId: item.productCode,
-            //             quantity: item.quantity,
-            //             currencyId: "ARS",
-            //             unitPrice:
-            //                 item.sellingPrice -
-            //                 (item.discountPercent
-            //                     ? (item.sellingPrice * item.discountPercent) /
-            //                       100
-            //                     : 0),
-            //         })),
-            //         shippingCost: shippingCost,
-            //         shippingMethod: data.shippingMethod,
-            //         userInfo: {
-            //             firstName: data.firstName,
-            //             lastName: data.lastName,
-            //             email: data.email,
-            //             phone: {
-            //                 areaCode: data.areaCode,
-            //                 number: data.phoneNumber,
-            //             },
-            //             identification: {
-            //                 type: data.identificationType,
-            //                 number: data.identificationNumber,
-            //             },
-            //             address:
-            //                 data.shippingMethod === "delivery"
-            //                     ? {
-            //                           streetName: data.streetName,
-            //                           streetNumber: data.streetNumber,
-            //                           zipCode: data.zipCode,
-            //                           city: data.city,
-            //                           state: data.state,
-            //                       }
-            //                     : null,
-            //         },
-            //     }),
-            //     method: "POST",
-            //     // headers: {
-            //     //     "Content-Type": "application/json",
-            //     //     Authorization: `Bearer ${user?.token}`,
-            //     // },
-            // });
+            const response = await fetch(`/api/checkout`, {
+                    body: JSON.stringify({
+                        items: items.map((item) => ({
+                            id: item.id,
+                            title: item.productName,
+                            description: item.productCode,
+                            pictureUrl: item.imageUrl || "",
+                            categoryId: item.productCode,
+                            quantity: item.quantity,
+                            currencyId: "ARS",
+                            unitPrice:
+                                item.sellingPrice -
+                                (item.discountPercent
+                                    ? (item.sellingPrice * item.discountPercent) /
+                                    100
+                                    : 0),
+                        })),
+                        shippingCost: shippingCost,
+                        shippingMethod: data.shippingMethod,
+                        userInfo: {
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            email: data.email,
+                            phone: {
+                                areaCode: data.areaCode,
+                                number: data.phoneNumber,
+                            },
+                            identification: {
+                                type: data.identificationType,
+                                number: data.identificationNumber,
+                            },
+                            address:
+                                data.shippingMethod === "delivery"
+                                    ? {
+                                        streetName: data.streetName,
+                                        streetNumber: data.streetNumber,
+                                        zipCode: data.zipCode,
+                                        city: data.city,
+                                        state: data.state,
+                                    }
+                                    : null,
+                    },
+                }),
+                method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user?.token}`,
+                    },
+                });
 
-            // const responseData = await response.text();
-            // if (responseData.trim().startsWith("http")) {
-            //     console.log("Redirecting to payment URL:", responseData);
-            //     window.location.href = responseData.trim();
-            //     return;
-            // }
-            // let jsonData;
-            // try {
-            //     jsonData = JSON.parse(responseData);
-            //     console.log("Response from Mercado Pago API:", jsonData);
-            //     if (jsonData && jsonData.inicioPago) {
-            //         router.push(jsonData.inicioPago);
-            //         return;
-            //     }
-            // } catch (error) {
-            //     console.error("Error parsing JSON response:", responseData);
-            // }
-            // console.log("Order submitted:", {
-            //     customerInfo: data,
-            //     items: items,
-            //     totalAmount: totalPrice + shippingCost,
-            //     shippingCost: shippingCost,
-            //     shippingMethod: data.shippingMethod,
-            // });
+                const responseData = await response.text();
+                if (responseData.trim().startsWith("http")) {
+                    console.log("Redirecting to payment URL:", responseData);
+                    window.location.href = responseData.trim();
+                    return;
+                }
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(responseData);
+                    console.log("Response from Mercado Pago API:", jsonData);
+                    if (jsonData && jsonData.inicioPago) {
+                        router.push(jsonData.inicioPago);
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error parsing JSON response:", responseData);
+                }
+                console.log("Order submitted:", {
+                    customerInfo: data,
+                    items: items,
+                    totalAmount: totalPrice + shippingCost,
+                    shippingCost: shippingCost,
+                    shippingMethod: data.shippingMethod,
+                });
 
             // Si llegamos aquí sin redirección, marcamos éxito (o error simulado)
             setOrderSuccess(true);
