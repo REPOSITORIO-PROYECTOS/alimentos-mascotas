@@ -95,8 +95,12 @@ export async function middleware(request: NextRequest) {
 
     // Rutas de cliente (para ROLE_CLIENT o ROLE_ADMIN)
     if (clientRoutes.some((r) => pathname.startsWith(r))) {
-        if (userRole !== "ROLE_CLIENT" && userRole !== "ROLE_ADMIN") {
-            return NextResponse.redirect(new URL("/", request.url));
+        // Permitir acceso a cualquier usuario autenticado (ROLE_PUBLIC, ROLE_CLIENT, ROLE_ADMIN)
+        if (!isAuthenticated) {
+            const loginUrl = new URL("/login", request.url);
+            loginUrl.searchParams.set("redirect", pathname);
+            loginUrl.searchParams.set("message", "Debes registrarte o iniciar sesión para continuar con la compra.");
+            return NextResponse.redirect(loginUrl);
         }
     }
 

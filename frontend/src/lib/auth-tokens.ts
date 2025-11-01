@@ -12,7 +12,7 @@ type Tokens = { access?: string; refresh?: string };
 function getRoleForCookie(roles: string[], accessToken?: string | null): string {
     if (roles && roles.length > 0) return roles[0];
     if (isAdminFromToken(accessToken)) return "ROLE_ADMIN";
-    return "ROLE_CLIENT"; // Rol por defecto si no se puede determinar
+    return "ROLE_PUBLIC"; // Rol por defecto si no se puede determinar
 }
 
 export function saveTokens(tokens: Tokens, userRoles: string[] = []) {

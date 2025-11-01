@@ -100,6 +100,13 @@ export default function RegisterPage() {
                 return;
             }
 
+
+            // Asegurar formato internacional para celular (si no empieza con '+', agregarlo)
+            let celularFormatted = celular;
+            if (celular && !celular.startsWith("+")) {
+                celularFormatted = "+54" + celular.replace(/^0+/, "");
+            }
+
             const response = await fetch(
                 "https://barker.sistemataup.online/api/auth/registrar/",
                 {
@@ -108,46 +115,66 @@ export default function RegisterPage() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        nombre,
-                        apellido,
-                        dni,
-                        celular,
+                        username: email, // puedes cambiar esto si quieres pedir username aparte
                         email,
                         password,
+                        first_name: nombre,
+                        last_name: apellido,
+                        dni,
+                        celular: celularFormatted,
                     }),
                 }
             );
 
             if (response.ok) {
-
-            toast.success("Usuario creado correctamente! Iniciando sesión...");
-
+                toast.success("Usuario creado correctamente! Iniciando sesión...");
                 try {
                     const roleOrFalse = await login(email, password);
-
                     if (roleOrFalse === false) {
-                        // Login automático falló, redirigir a login con mensaje
-                        router.push("/login?registered=true"); // ✅ Esta redirección es correcta
+                        router.push("/login?registered=true");
                     } else {
-                        // Login automático exitoso.
-                        // Aquí debes decidir a dónde redirigir después de un registro exitoso y un login automático exitoso.
-                        router.push("/"); // Por ejemplo, al home
+                        router.push("/");
                     }
-                    return; // Importante para detener la ejecución después de la redirección
-
+                    return;
                 } catch (e) {
-                    // Fallback: redirigir al login si el login automático arroja un error
-                    router.push("/login?registered=true"); // ✅ Esta redirección es correcta
+                    router.push("/login?registered=true");
                     return;
                 }
-                
             } else {
-                const data = await response.json().catch(() => ({}));
-                const message =
-                    data.message || data.success || data.detail || data.error || (typeof data === 'string' ? data : null) ||
-                    "Error al registrar usuario. Por favor, intenta de nuevo.";
-                setError(message as string);
-                toast.error(message as string);
+                let errorMsg = "Error al registrar usuario. Por favor, intenta de nuevo.";
+                let errorDetail = "";
+                let data: any = {};
+                try {
+                    data = await response.json();
+                } catch {}
+
+                // Si el backend manda un objeto con campos
+                if (data) {
+                    // DRF suele mandar { campo: ["error"] }
+                    if (typeof data === "object" && !Array.isArray(data)) {
+                        const fieldErrors = Object.entries(data)
+                            .map(([field, value]) => {
+                                if (Array.isArray(value)) {
+                                    return `${field}: ${value.join(", ")}`;
+                                } else if (typeof value === "string") {
+                                    return `${field}: ${value}`;
+                                }
+                                return null;
+                            })
+                            .filter(Boolean)
+                            .join("\n");
+                        if (fieldErrors) {
+                            errorDetail = fieldErrors;
+                        }
+                    }
+                    // Si hay un mensaje general
+                    if (data.message || data.detail || data.error) {
+                        errorMsg = data.message || data.detail || data.error;
+                    }
+                }
+
+                setError(errorDetail ? `${errorMsg}\n${errorDetail}` : errorMsg);
+                toast.error(errorDetail ? `${errorMsg}\n${errorDetail}` : errorMsg);
             }
 
         } catch (err) {
