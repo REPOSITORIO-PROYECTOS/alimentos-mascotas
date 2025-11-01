@@ -11,7 +11,7 @@ type OrderDetail = {
     created_at?: string;
     total_price?: string;
     status?: string;
-    items?: Array<{ product_name: string; quantity: number; price: string }>;
+    order_items?: Array<{ product_name: string; quantity: number; price: string }>;
 };
 
 export default function OrderDetailClient({ id }: { id: string }) {
@@ -34,7 +34,8 @@ export default function OrderDetailClient({ id }: { id: string }) {
         const fetchOrder = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${apiBase.replace(/\/$/, "")}/orders/${id}/`, {
+                // Endpoint real: /orders/orders/{id}/
+                const res = await fetch(`${apiBase.replace(/\/$/, "")}/orders/orders/${id}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) {
@@ -69,7 +70,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                                 <div className="mt-2 font-semibold">Total: ${order.total_price}</div>
                             </div>
                             <div className="space-y-2">
-                                {(order.items || []).map((it, idx) => (
+                                {(order.order_items || []).map((it, idx) => (
                                     <div key={idx} className="flex justify-between border-b py-2">
                                         <div>{it.product_name}</div>
                                         <div>{it.quantity} x ${it.price}</div>
