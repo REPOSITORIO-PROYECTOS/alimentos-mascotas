@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
                 failure: `${URL}/checkout`,
                 pending: `${URL}/checkout`,
             },
-            notification_url: `${URL}/api/notify`,
+            notification_url: "https://barker.sistemataup.online/api/mercadopago/notificaciones/",
             external_reference: new Date().getTime().toString(),
             payer: {
                 name: requestData.userInfo.firstName,
