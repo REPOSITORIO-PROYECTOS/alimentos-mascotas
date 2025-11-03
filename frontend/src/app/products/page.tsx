@@ -333,7 +333,7 @@ export default function ProductsPage() {
                                             <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
                                                 <Image
                                                     src={
-                                                        product.imageUrl ||
+                                                        product.images[0] ||
                                                         "/placeholder.svg"
                                                     }
                                                     alt={`${product.productName} - ${variant.unidades || ''} ${variant.gramaje ? `${variant.gramaje}g` : ''}`}

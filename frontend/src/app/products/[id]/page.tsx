@@ -355,7 +355,7 @@ export default function ProductDetail() {
                             ${parseFloat(currentPrice).toFixed(2)} {/* Muestra el precio actual */}
                         </span>
                         {/* Muestra el stock */}
-                        <p className="text-gray-500 text-sm mt-1">
+                        <p className="text-gray-600 text-md mt-1">
                             Stock: {currentStock > 0 ? currentStock : "Sin Stock"}
                         </p>
                     </div>
@@ -381,8 +381,8 @@ export default function ProductDetail() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {product.variants.map((variant) => (
-                                        <SelectItem key={variant.id} value={variant.id.toString()}>
-                                            {`${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''} - $${parseFloat(variant.precio).toFixed(2)} (Stock: ${variant.stock})`}
+                                        <SelectItem key={variant.id} value={variant.id.toString()} className="bg-white">
+                                            {`${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''} - $${parseFloat(variant.precio).toFixed(2)}`}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -390,6 +390,7 @@ export default function ProductDetail() {
                         </div>
                     )}
 
+                    {/* Cantidad */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <label className="block text-sm font-medium mb-2">
