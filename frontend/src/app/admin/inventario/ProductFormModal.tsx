@@ -89,9 +89,7 @@ export function ProductFormModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Nuevo estado para manejar las variantes del formulario
-  const [productVariants, setProductVariants] = useState<
-    ProductVariantFormData[]
-  >([]);
+  const [productVariants, setProductVariants] = useState<ProductVariantFormData[]>([]);
   const [hasVariantsEnabled, setHasVariantsEnabled] = useState(false); // Checkbox para activar variantes
 
   // Estado para el Combobox de categorías
@@ -102,12 +100,12 @@ export function ProductFormModal({
     if (product) {
       setFormData({
         id: product.id,
-        productName: product.productName,
-        category: product.category || "",
-        productDescription: product.productDescription,
-        sellingPrice: product.sellingPrice,
-        stock: product.stock,
-        imageUrl: product.imageUrl,
+        productName: product.productName || "", // Asegura string vacío si es null/undefined
+        category: product.category || "",       // <-- ESTO ES CLAVE para la categoría
+        productDescription: product.productDescription || "",
+        sellingPrice: product.sellingPrice || "",
+        stock: product.stock || "",
+        imageUrl: product.imageUrl || null, // null si no hay imagen
         has_variants: product.has_variants || false,
         variants: product.variants || [],
       });
@@ -118,6 +116,7 @@ export function ProductFormModal({
         product.variants || []
       ).map((variant, index) => {
         let unitType: "grams" | "units" | null = null;
+        // Determina el unitType basado en si gramaje o unidades tienen un valor significativo
         if (variant.gramaje !== null && variant.gramaje !== "" && variant.gramaje !== "0") {
           unitType = "grams";
         } else if (variant.unidades !== null && variant.unidades !== "" && variant.unidades !== "0") {
@@ -127,11 +126,14 @@ export function ProductFormModal({
           ...variant,
           _tempId: variant.id ? String(variant.id) : `new-${index}`,
           unitType: unitType,
-          descripcion: variant.descripcion || "", // Asegura que descripcion exista
+          descripcion: variant.descripcion || "", // Asegura que descripcion exista como string
+          stock: variant.stock || "0", // Asegura string
+          price: variant.price || "0.00", // Asegura string
         };
       });
       setProductVariants(mappedVariants);
     } else {
+      // Resetea el formulario cuando no hay producto (modo creación)
       setFormData({
         productName: "",
         category: "",
@@ -145,7 +147,7 @@ export function ProductFormModal({
       setProductVariants([]);
       setHasVariantsEnabled(false);
     }
-  }, [product, isOpen]);
+  }, [product, isOpen]); // Dependencias: product y isOpen para recargar si cambia la modal o el producto
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -203,8 +205,8 @@ export function ProductFormModal({
           ? {
               ...variant,
               unitType: type,
-              gramaje: type === "grams" ? variant.gramaje : null,
-              unidades: type === "units" ? variant.unidades : null,
+              gramaje: type === "grams" ? (variant.gramaje === null ? "" : variant.gramaje) : null, // Mantiene el valor si cambia a gramos, o resetea
+              unidades: type === "units" ? (variant.unidades === null ? "" : variant.unidades) : null, // Mantiene el valor si cambia a unidades, o resetea
             }
           : variant
       )
@@ -296,13 +298,14 @@ export function ProductFormModal({
     let variantsToSubmit: ProductVariant[] = [];
     if (hasVariantsEnabled) {
       variantsToSubmit = productVariants.map((variant) => {
+        // Asegúrate de enviar null si el campo está vacío o "0" para el backend
         const gramaje =
           variant.unitType === "grams" && variant.gramaje !== null && variant.gramaje !== ""
-            ? variant.gramaje === "0" ? null : variant.gramaje
+            ? (variant.gramaje === "0" ? null : variant.gramaje)
             : null;
         const unidades =
           variant.unitType === "units" && variant.unidades !== null && variant.unidades !== ""
-            ? variant.unidades === "0" ? null : variant.unidades
+            ? (variant.unidades === "0" ? null : variant.unidades)
             : null;
 
         return {
@@ -310,8 +313,8 @@ export function ProductFormModal({
           gramaje: gramaje,
           unidades: unidades,
           descripcion: variant.descripcion || "", // Asegura que la descripción se envíe como string
-          stock: variant.stock,
-          price: variant.price,
+          stock: variant.stock || "0", // Asegura string
+          price: variant.price || "0.00", // Asegura string
         };
       });
     }
@@ -374,7 +377,7 @@ export function ProductFormModal({
               </Label>
               <Input
                 id="productName"
-                value={formData.productName || ""}
+                value={formData.productName || ""} // <-- Aseguramos string vacío
                 onChange={handleChange}
                 className="sm:col-span-3"
                 required
@@ -396,7 +399,7 @@ export function ProductFormModal({
                       className="w-full justify-between cursor-pointer"
                     >
                       {formData.category
-                        ? formData.category
+                        ? formData.category // <-- Muestra la categoría seleccionada
                         : "Selecciona una categoría..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -424,7 +427,7 @@ export function ProductFormModal({
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  formData.category === categoryOption
+                                  formData.category === categoryOption // <-- Marca la categoría seleccionada
                                     ? "opacity-100"
                                     : "opacity-0"
                                 )}
@@ -447,7 +450,7 @@ export function ProductFormModal({
               </Label>
               <Textarea
                 id="productDescription"
-                value={formData.productDescription || ""}
+                value={formData.productDescription || ""} // <-- Aseguramos string vacío
                 onChange={handleChange}
                 className="sm:col-span-3"
               />
@@ -461,7 +464,7 @@ export function ProductFormModal({
               <Input
                 id="sellingPrice"
                 type="text"
-                value={formData.sellingPrice || ""}
+                value={formData.sellingPrice || ""} // <-- Aseguramos string vacío
                 onChange={handleChange}
                 className="sm:col-span-3"
                 required
@@ -476,7 +479,7 @@ export function ProductFormModal({
               <Input
                 id="stock"
                 type="text"
-                value={formData.stock || ""}
+                value={formData.stock || ""} // <-- Aseguramos string vacío
                 onChange={handleChange}
                 className="sm:col-span-3"
                 required
@@ -533,7 +536,7 @@ export function ProductFormModal({
                 </Label>
                 <Input
                   id="imageUrl"
-                  value={formData.imageUrl || ""}
+                  value={formData.imageUrl || ""} // <-- Aseguramos string vacío
                   onChange={handleChange}
                   placeholder="URL de la imagen"
                   className="sm:col-span-3"
@@ -594,7 +597,7 @@ export function ProductFormModal({
                         </Label>
                         <Textarea
                           id={`variant-${variant._tempId}-descripcion`}
-                          value={variant.descripcion || ""}
+                          value={variant.descripcion || ""} // <-- Aseguramos string vacío
                           onChange={(e) =>
                             handleVariantChange(
                               variant._tempId,
@@ -617,7 +620,7 @@ export function ProductFormModal({
                               id={`variant-${variant._tempId}-grams`}
                               name={`variant-${variant._tempId}-unitType`}
                               value="grams"
-                              checked={variant.unitType === "grams"}
+                              checked={variant.unitType === "grams"} // <-- Preselecciona si es gramos
                               onChange={() =>
                                 handleVariantUnitTypeChange(
                                   variant._tempId,
@@ -636,7 +639,7 @@ export function ProductFormModal({
                               id={`variant-${variant._tempId}-units`}
                               name={`variant-${variant._tempId}-unitType`}
                               value="units"
-                              checked={variant.unitType === "units"}
+                              checked={variant.unitType === "units"} // <-- Preselecciona si es unidades
                               onChange={() =>
                                 handleVariantUnitTypeChange(
                                   variant._tempId,
@@ -663,7 +666,7 @@ export function ProductFormModal({
                           <Input
                             id={`variant-${variant._tempId}-gramaje`}
                             type="text"
-                            value={variant.gramaje || ""}
+                            value={variant.gramaje || ""} // <-- Aseguramos string vacío
                             onChange={(e) =>
                               handleVariantChange(
                                 variant._tempId,
@@ -688,7 +691,7 @@ export function ProductFormModal({
                           <Input
                             id={`variant-${variant._tempId}-unidades`}
                             type="text"
-                            value={variant.unidades || ""}
+                            value={variant.unidades || ""} // <-- Aseguramos string vacío
                             onChange={(e) =>
                               handleVariantChange(
                                 variant._tempId,
@@ -713,7 +716,7 @@ export function ProductFormModal({
                         <Input
                           id={`variant-${variant._tempId}-stock`}
                           type="text"
-                          value={variant.stock || ""}
+                          value={variant.stock || ""} // <-- Aseguramos string vacío
                           onChange={(e) =>
                             handleVariantChange(
                               variant._tempId,
@@ -738,7 +741,7 @@ export function ProductFormModal({
                           id={`variant-${variant._tempId}-precio`}
                           type="text"
                           step="0.01"
-                          value={variant.price || ""}
+                          value={variant.price || ""} // <-- Aseguramos string vacío
                           onChange={(e) =>
                             handleVariantChange(
                               variant._tempId,

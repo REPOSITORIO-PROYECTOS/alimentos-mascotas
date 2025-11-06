@@ -172,40 +172,24 @@ export default function ProductsPage() {
         );
     }, [allProducts, keyword]);
 
-    // Función para añadir al carrito, ahora puede recibir un producto o una variante
-    const handleAddToCart = (
-        product: Product,
-        variant?: Variant | null // variant es opcional
-    ) => {
-        // Generamos un ID único para el carrito: product.id-variant.id o solo product.id
-        const cartItemId = variant ? `${product.id}-${variant.id}` : product.id.toString();
+    // Función para añadir al carrito. Siempre añade el producto principal con su precio base.
+    const handleAddToCart = (product: Product) => {
+        const cartItemId = product.id.toString(); // ID del producto principal
 
-        // Objeto con la información para el carrito
-        const itemDataForCart = variant ? {
-            id: cartItemId, // ID compuesto para variantes
-            productName: `${product.productName} (${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''})`.trim(),
-            productDescription: product.productDescription,
-            imageUrl: product.imageUrl,
-            sellingPrice: parseFloat(variant.precio),
-            discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
-            stock: parseFloat(variant.stock),
-            productId: product.id, // Guardamos el ID del producto principal para referencia
-            variantId: variant.id, // Guardamos el ID de la variante para referencia
-        } : {
-            id: cartItemId, // ID del producto principal
+        const itemDataForCart = {
+            id: cartItemId,
             productName: product.productName,
             productDescription: product.productDescription,
-            imageUrl: product.imageUrl,
+            imageUrl: product.images[0] || "/placeholder.svg", // Usamos la primera imagen del array
             sellingPrice: parseFloat(product.sellingPrice),
             discountPercent: product.discountPercent ? parseFloat(product.discountPercent) : 0,
             stock: parseFloat(product.stock),
-            productId: product.id, // Guardamos el ID del producto principal
-            variantId: undefined, // No hay variante
+            productId: product.id,
+            variantId: undefined, // No hay variante para el producto principal
         };
 
-        addItem(itemDataForCart as any); // Le pasamos el objeto construido
+        addItem(itemDataForCart as any);
 
-        // Usamos el ID de item del carrito (compuesto o simple) para el estado de `addedToCart`
         setAddedToCart((prev) => ({ ...prev, [cartItemId]: true }));
 
         setTimeout(() => {
@@ -321,157 +305,77 @@ export default function ProductsPage() {
                 {/* Productos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {Array.isArray(filteredProducts) &&
-                        filteredProducts.map((product) => {
-                            // Si el producto tiene variantes, renderiza una tarjeta para cada variante
-                            if (product.has_variants && product.variants && product.variants.length > 0) {
-                                return product.variants.map((variant) => (
-                                    <div key={`${product.id}-${variant.id}`} className="flex flex-col">
-                                        <Link
-                                            href={`/products/${product.id}`} // Enlaza al ID del producto principal
-                                            className="group"
-                                        >
-                                            <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
-                                                <Image
-                                                    src={
-                                                        product.images[0] ||
-                                                        "/placeholder.svg"
-                                                    }
-                                                    alt={`${product.productName} - ${variant.unidades || ''} ${variant.gramaje ? `${variant.gramaje}g` : ''}`}
-                                                    width={300}
-                                                    height={300}
-                                                    className="w-full h-auto object-contain"
-                                                    unoptimized
-                                                />
-                                            </div>
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-medium group-hover:underline">
-                                                    {product.productName}{" "}
-                                                    {variant.unidades && `(${variant.unidades} unidades)`}{" "}
-                                                    {variant.gramaje && `(${variant.gramaje}g)`}
-                                                </h3>
-                                            </div>
-                                        </Link>
-
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="font-bold">
-                                                ${parseFloat(variant.precio).toFixed(2)}{" "}
-                                            </span>
-                                            {product.discountPercent &&
-                                                parseFloat(product.discountPercent) > 0 && (
-                                                <>
-                                                    <span className="font-bold">
-                                                        -
-                                                        {parseFloat(
-                                                            product.discountPercent
-                                                        )}
-                                                        %
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-auto">
-                                            <Button
-                                                className={`w-full ${
-                                                    addedToCart[`${product.id}-${variant.id}`] // Usa el ID compuesto aquí
-                                                        ? "bg-green-500 hover:bg-green-600"
-                                                        : "bg-amber-400 hover:bg-amber-500"
-                                                } text-black`}
-                                                onClick={() =>
-                                                    handleAddToCart(product, variant)
-                                                }
-                                            >
-                                                {addedToCart[`${product.id}-${variant.id}`] ? ( // Usa el ID compuesto aquí
-                                                    <span className="text-white">
-                                                        Agregado al carrito
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-black cursor-pointer flex flex-row items-center">
-                                                        <ShoppingBag className="mr-2 h-4 w-4" />
-                                                        Comprar
-                                                    </span>
-                                                )}
-                                            </Button>
-                                        </div>
+                        filteredProducts.map((product) => (
+                            <div key={product.id} className="flex flex-col">
+                                <Link
+                                    href={`/products/${product.id}`}
+                                    className="group"
+                                >
+                                    <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
+                                        <Image
+                                            src={
+                                                product.images[0] ||
+                                                "/placeholder.svg"
+                                            } // Siempre usa la primera imagen del array "images"
+                                            alt={product.productName}
+                                            width={300}
+                                            height={300}
+                                            className="w-full h-auto object-contain"
+                                            unoptimized
+                                        />
                                     </div>
-                                ));
-                            } else {
-                                // Si no tiene variantes, renderiza la tarjeta del producto principal
-                                return (
-                                    <div key={product.id} className="flex flex-col">
-                                        <Link
-                                            href={`/products/${product.id}`}
-                                            className="group"
-                                        >
-                                            <div className="bg-amber-400 p-4 rounded-lg mb-2 group-hover:opacity-80 transition-opacity">
-                                                <Image
-                                                    src={
-                                                        product.imageUrl ||
-                                                        "/placeholder.svg"
-                                                    }
-                                                    alt={product.productName}
-                                                    width={300}
-                                                    height={300}
-                                                    className="w-full h-auto object-contain"
-                                                    unoptimized
-                                                />
-                                            </div>
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-medium group-hover:underline">
-                                                    {product.productName}
-                                                </h3>
-                                            </div>
-                                        </Link>
-
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="font-bold">
-                                                $
-                                                {parseFloat(product.sellingPrice).toFixed(
-                                                    2
-                                                )}{" "}
-                                            </span>
-                                            {product.discountPercent &&
-                                                parseFloat(product.discountPercent) >
-                                                    0 && (
-                                                <>
-                                                    <span className="font-bold">
-                                                        -
-                                                        {parseFloat(
-                                                            product.discountPercent
-                                                        )}
-                                                        %
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-auto">
-                                            <Button
-                                                className={`w-full ${
-                                                    addedToCart[product.id] // Usa el ID del producto principal aquí
-                                                        ? "bg-green-500 hover:bg-green-600"
-                                                        : "bg-amber-400 hover:bg-amber-500"
-                                                } text-black`}
-                                                onClick={() =>
-                                                    handleAddToCart(product)
-                                                }
-                                            >
-                                                {addedToCart[product.id] ? (
-                                                    <span className="text-white">
-                                                        Agregado al carrito
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-black cursor-pointer flex flex-row items-center">
-                                                        <ShoppingBag className="mr-2 h-4 w-4" />
-                                                        Comprar
-                                                    </span>
-                                                )}
-                                            </Button>
-                                        </div>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-medium group-hover:underline">
+                                            {product.productName}
+                                        </h3>
                                     </div>
-                                );
-                            }
-                        })}
+                                </Link>
+
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-bold">
+                                        $
+                                        {parseFloat(product.sellingPrice).toFixed(
+                                            2
+                                        )}{" "}
+                                    </span>
+                                    {product.discountPercent &&
+                                        parseFloat(product.discountPercent) >
+                                        0 && (
+                                        <>
+                                            <span className="font-bold">
+                                                -
+                                                {parseFloat(
+                                                    product.discountPercent
+                                                )}
+                                                %
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="mt-auto">
+                                    <Button
+                                        className={`w-full ${
+                                            addedToCart[product.id]
+                                                ? "bg-green-500 hover:bg-green-600"
+                                                : "bg-amber-400 hover:bg-amber-500"
+                                        } text-black`}
+                                        onClick={() => handleAddToCart(product)}
+                                    >
+                                        {addedToCart[product.id] ? (
+                                            <span className="text-white">
+                                                Agregado al carrito
+                                            </span>
+                                        ) : (
+                                            <span className="text-black cursor-pointer flex flex-row items-center">
+                                                <ShoppingBag className="mr-2 h-4 w-4" />
+                                                Comprar
+                                            </span>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
                 </div>
             </div>
             {/* Decorative paw prints */}

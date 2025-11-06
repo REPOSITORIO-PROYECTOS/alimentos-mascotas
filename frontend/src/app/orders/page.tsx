@@ -47,9 +47,11 @@ export default function OrdersPage() {
                     throw new Error(`Status ${res.status}: ${txt}`);
                 }
                 const data = await res.json();
-                // If paginated, try to read results
+                console.log(data)
+                
                 const list = Array.isArray(data) ? data : data.results || [];
                 setOrders(list as Order[]);
+                
             } catch (err) {
                 setError(err instanceof Error ? err.message : String(err));
             } finally {

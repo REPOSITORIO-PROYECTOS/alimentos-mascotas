@@ -340,16 +340,20 @@ export default function ProductDetail() {
                 </div>
 
                 <div className="flex flex-col gap-4">
+
+                    {/* Titulo */}
                     <h1 className="text-3xl font-semibold mb-2 underline-offset-4">
                         {product.productName}
                     </h1>
 
+                    {/* Categorias */}
                     {product.categories && product.categories.length > 0 && (
                         <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-md font-medium text-center max-w-fit">
                             {product.categories[0]} {/* Mostrar la primera categoría como badge */}
                         </div>
                     )}
                     
+                    {/* Precio */}
                     <div className="mb-4">
                         <span className="text-3xl font-bold">
                             ${parseFloat(currentPrice).toFixed(2)} {/* Muestra el precio actual */}
@@ -360,69 +364,72 @@ export default function ProductDetail() {
                         </p>
                     </div>
 
+                    {/* Descripcion */}
                     <p className="text-gray-600 mb-6">
                         {product.productDescription}
                     </p>
 
-                    {/* Selector de variantes si el producto tiene has_variants y variantes */}
-                    {product.has_variants && product.variants && product.variants.length > 0 && (
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium mb-2">
-                                Variantes
-                            </label>
-                            <Select
-                                value={selectedVariantId || ''}
-                                onValueChange={(value) => setSelectedVariantId(value)}
-                                // Deshabilitar si no hay variantes disponibles para seleccionar
-                                disabled={!product.variants || product.variants.length === 0}
-                            >
-                                <SelectTrigger className="cursor-pointer">
-                                    <SelectValue placeholder="Seleccionar variante" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {product.variants.map((variant) => (
-                                        <SelectItem key={variant.id} value={variant.id.toString()} className="bg-white">
-                                            {`${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''} - $${parseFloat(variant.precio).toFixed(2)}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
+                    <div className="w-full flex flex-row gap-4">
 
-                    {/* Cantidad */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">
-                                Cantidad
-                            </label>
-                            <Select
-                                value={selectedQuantity}
-                                onValueChange={setSelectedQuantity}
-                                disabled={!currentIsSellable || currentStock <= 0} // Deshabilitar si no es vendible
-                            >
-                                <SelectTrigger className="cursor-pointer">
-                                    <SelectValue placeholder="1" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {/* Generar opciones de cantidad hasta el stock actual, máximo 100 para evitar una lista enorme */}
-                                    {Array.from({ length: Math.min(currentStock, 100) }, (_, i) => i + 1).map((qty) => (
-                                        <SelectItem key={qty} value={qty.toString()}>
-                                            {qty}
-                                        </SelectItem>
-                                    ))}
-                                    {currentStock > 100 && ( // Si el stock es muy alto, ofrecer una opción para "más de 100" o similar
-                                        <SelectItem value="100+">Más de 100</SelectItem>
-                                    )}
-                                    {/* Si el stock es 0, al menos mostrar "0" para indicar que no hay opciones */}
-                                    {currentStock === 0 && (
-                                        <SelectItem value="0" disabled>0</SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
+                        {/* Selector de variantes si el producto tiene has_variants y variantes */}
+                        {product.has_variants && product.variants && product.variants.length > 0 && (
+                            <div className="w-1/2 mb-6">
+                                <label className="block text-sm font-medium mb-2">
+                                    Variantes
+                                </label>
+                                <Select
+                                    value={selectedVariantId || ''}
+                                    onValueChange={(value) => setSelectedVariantId(value)}
+                                    // Deshabilitar si no hay variantes disponibles para seleccionar
+                                    disabled={!product.variants || product.variants.length === 0}
+                                >
+                                    <SelectTrigger className="cursor-pointer">
+                                        <SelectValue placeholder="Seleccionar variante" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {product.variants.map((variant) => (
+                                            <SelectItem key={variant.id} value={variant.id.toString()} className="bg-white">
+                                                {`${variant.unidades ? `${variant.unidades} unidades` : ''} ${variant.gramaje ? `${variant.gramaje}g` : ''}`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {/* Cantidad */}
+                        <div className="flex flex-col gap-4 mb-6 w-1/2">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    Cantidad
+                                </label>
+                                <Select
+                                    value={selectedQuantity}
+                                    onValueChange={setSelectedQuantity}
+                                    disabled={!currentIsSellable || currentStock <= 0} // Deshabilitar si no es vendible
+                                >
+                                    <SelectTrigger className="cursor-pointer">
+                                        <SelectValue placeholder="1" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {/* Generar opciones de cantidad hasta el stock actual, máximo 100 para evitar una lista enorme */}
+                                        {Array.from({ length: Math.min(currentStock, 50) }, (_, i) => i + 1).map((qty) => (
+                                            <SelectItem key={qty} value={qty.toString()}>
+                                                {qty}
+                                            </SelectItem>
+                                        ))}
+                                        {/* Si el stock es 0, al menos mostrar "0" para indicar que no hay opciones */}
+                                        {currentStock === 0 && (
+                                            <SelectItem value="0" disabled>0</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
-
+                    
+                    
+                    {/* Agregar al Carrito */}
                     <Button
                         className="w-full bg-amber-500 hover:bg-amber-600 text-white text-lg cursor-pointer"
                         onClick={handleAddToCart}
